@@ -49,3 +49,12 @@ while () {
 for (int i = 0; i < 8; i++){
     
 }
+
+-- Orders of prescidence
+
+* Evaluated First
+. Additive Expressio.
+. MultiplicitativeExpression
+. UnaryExpression
+. PrimaryExpresion
+* Evaluated Last

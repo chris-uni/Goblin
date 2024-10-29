@@ -1,4 +1,4 @@
-package Tokens
+package tokens
 
 import "strings"
 
@@ -13,6 +13,7 @@ var (
 	BinaryOperator TokenType = "BinaryOperator"
 	Let            TokenType = "Let"
 	EOL            TokenType = "EOL"
+	EOF            TokenType = "EOF"
 
 	ReservedWords = map[string]TokenType{
 		"let": Let,
