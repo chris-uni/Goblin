@@ -1,0 +1,51 @@
+Rough structure on what the lang will look like:
+
+-- defining variables
+
+let x = 10;
+const y = 12;
+x = 11;
+
+-- functions
+
+-- Simple function.
+fn SayHello () {
+
+}
+
+-- Function with example of param and returning.
+fn int AddOne (int a) {
+    return a + 1;
+}
+
+-- Example of defining a function as a variable
+-- now 'FnAsVariable' can be passed around.
+
+fn FnAsVariable () => {
+    return 10;
+}
+
+-- Single line comment
+/* ... */ Multi-line comment
+
+-- Conditionals
+
+if ( ... ) {
+
+}
+elif ( ... ){
+
+}
+else {
+
+}
+
+-- loops
+
+while () {
+
+}
+
+for (int i = 0; i < 8; i++){
+    
+}
