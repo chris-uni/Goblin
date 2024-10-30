@@ -7,6 +7,7 @@ const (
 	ProgramNode             NodeType = "ProgramNode"
 	VariableDeclerationNode NodeType = "VariableDeclerationNode"
 	FunctionDeclerationNode NodeType = "FunctionDeclerationNode"
+	ArrayDeclerationNode    NodeType = "ArrayDeclerationNode"
 
 	// Expressions.
 	BinaryExprNode       NodeType = "BinaryExprNode"
@@ -59,6 +60,15 @@ type VariableDecleration struct {
 }
 
 func (v VariableDecleration) expr() {}
+
+type ArrayDecleration struct {
+	Kind       NodeType
+	Value      []Expression
+	Constant   bool
+	Identifier string
+}
+
+func (a ArrayDecleration) expr() {}
 
 type FunctionDecleration struct {
 	Kind   NodeType

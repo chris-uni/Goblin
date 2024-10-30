@@ -62,6 +62,8 @@ func main() {
 	} else {
 
 		// REPL Mode.
+		fmt.Println("Goblin v0.1")
+
 		for {
 
 			fmt.Print("> ")
