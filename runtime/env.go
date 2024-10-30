@@ -1,0 +1,95 @@
+package runtime
+
+import (
+	"fmt"
+)
+
+type Environment struct {
+	Parent    *Environment
+	Variables map[string]RuntimeValue
+	Constants map[string]bool
+}
+
+// Used to declare a new variable. Includes checking for variable already existing.
+func (e Environment) Declare(var_ string, value RuntimeValue, isConst bool) (RuntimeValue, error) {
+
+	_, exists := e.Variables[var_]
+
+	// If this variable is already set.
+	if exists {
+		return nil, fmt.Errorf("'%v' already defined", var_)
+	}
+
+	// If not, set it.
+	e.Variables[var_] = value
+
+	// Add our constant variable.
+	if isConst {
+		e.Constants[var_] = true
+	}
+
+	return value, nil
+}
+
+// Used to assign values to a variable.
+func (e Environment) Assign(var_ string, value RuntimeValue) (RuntimeValue, error) {
+
+	env, err := e.Resolve(var_)
+	if err != nil {
+		return nil, err
+	}
+
+	hasConstant := e.Constants[var_]
+
+	if hasConstant {
+		// Cannot assign to a constant.
+		return nil, fmt.Errorf("cannot reassign const value '%v'", var_)
+	}
+
+	env.Variables[var_] = value
+
+	return value, nil
+}
+
+// Used to find the specific Environment a variable is located in (scope resolution).
+func (e Environment) Resolve(var_ string) (Environment, error) {
+
+	// Variable in this scope?
+	_, exists := e.Variables[var_]
+	if exists {
+		return e, nil
+	}
+
+	// No parent exists in scope.
+	if e.Parent == nil {
+		return Environment{}, fmt.Errorf("reference to undefined variable '%v'", var_)
+	}
+
+	res, err := e.Parent.Resolve(var_)
+	if err != nil {
+		return Environment{}, err
+	}
+	// Check the parent scope.
+	return res, nil
+}
+
+// Returns the value of the variable.
+func (e Environment) Lookup(var_ string) (RuntimeValue, error) {
+
+	env, err := e.Resolve(var_)
+	if err != nil {
+		return nil, err
+	}
+
+	return env.Variables[var_], nil
+}
+
+func (e Environment) Setup() {
+
+	e.Declare("null", MK_NULL(), true)
+	e.Declare("true", MK_BOOL(true), true)
+	e.Declare("false", MK_BOOL(false), true)
+
+	e.Declare("print", MK_NATIVE_FN(Print), true)
+	e.Declare("println", MK_NATIVE_FN(Println), true)
+}
