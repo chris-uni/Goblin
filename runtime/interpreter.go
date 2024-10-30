@@ -112,6 +112,15 @@ func Evaluate(astNode ast.Expression, env Environment) (RuntimeValue, error) {
 
 		return varDec, nil
 
+	} else if arr, ok := astNode.(ast.ArrayDecleration); ok {
+
+		arrDec, err := eval_arr_decleration(arr, env)
+		if err != nil {
+			return nil, err
+		}
+
+		return arrDec, nil
+
 	} else if func_, ok := astNode.(ast.FunctionDecleration); ok {
 
 		fn, err := eval_function_decleration(func_, env)
@@ -496,6 +505,29 @@ func eval_var_decleration(dec ast.VariableDecleration, env Environment) (Runtime
 	}
 
 	decleration, err := env.Declare(dec.Identifier, value, dec.Constant)
+	if err != nil {
+		return nil, err
+	}
+
+	return decleration, nil
+}
+
+// Evaluates a new array decleration.
+func eval_arr_decleration(arr ast.ArrayDecleration, env Environment) (RuntimeValue, error) {
+
+	values := make([]RuntimeValue, 0)
+
+	for _, val := range arr.Value {
+
+		v, err := Evaluate(val, env)
+		if err != nil {
+			return nil, err
+		}
+
+		values = append(values, v)
+	}
+
+	decleration, err := env.DeclareArray(arr.Identifier, values, arr.Constant)
 	if err != nil {
 		return nil, err
 	}

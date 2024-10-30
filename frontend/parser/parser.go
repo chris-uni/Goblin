@@ -589,8 +589,6 @@ func parse_var_decleration() (ast.Expression, error) {
 		// Eat the opening bracket.
 		eat()
 
-		fmt.Println("Array declaration found!")
-
 		// Attempt to capture all the expressions inside the array.
 		array_decleration, err := parse_array_decleration(identifier.Value, isConst)
 		if err != nil {
@@ -627,7 +625,6 @@ func parse_array_decleration(identifier string, isConst bool) (ast.Expression, e
 	for at().Type != lexer.CloseBracket && at().Type != lexer.EOF {
 
 		value, err := parse_expression()
-		fmt.Printf("Parsing expression: %v \n", value)
 
 		if err != nil {
 			return ast.Expr{}, err

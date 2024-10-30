@@ -31,6 +31,30 @@ func (e Environment) Declare(var_ string, value RuntimeValue, isConst bool) (Run
 	return value, nil
 }
 
+// Used to declare a new array. Includes checking for arrays that might already existing.
+func (e Environment) DeclareArray(var_ string, values []RuntimeValue, isConst bool) (RuntimeValue, error) {
+
+	_, exists := e.Variables[var_]
+
+	// If this variable is already set.
+	if exists {
+		return nil, fmt.Errorf("'%v' already defined", var_)
+	}
+
+	// Make the array object here, which contains all the RuntimeValues the user specified.
+	arr := MK_ARRAY(values)
+
+	// If not, set it.
+	e.Variables[var_] = arr
+
+	// Add our constant variable.
+	if isConst {
+		e.Constants[var_] = true
+	}
+
+	return arr, nil
+}
+
 // Used to assign values to a variable.
 func (e Environment) Assign(var_ string, value RuntimeValue) (RuntimeValue, error) {
 
