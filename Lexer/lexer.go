@@ -20,7 +20,7 @@ func Tokenize(source string) []tokens.Token {
 			new_tokens = append(new_tokens, tokens.NewToken(tools.Shift(&elements), tokens.OpenParen))
 		} else if elements[0] == ")" {
 			new_tokens = append(new_tokens, tokens.NewToken(tools.Shift(&elements), tokens.CloseParen))
-		} else if elements[0] == "+" || elements[0] == "-" || elements[0] == "*" || elements[0] == "/" {
+		} else if elements[0] == "+" || elements[0] == "-" || elements[0] == "*" || elements[0] == "/" || elements[0] == "%" {
 			new_tokens = append(new_tokens, tokens.NewToken(tools.Shift(&elements), tokens.BinaryOperator))
 		} else if elements[0] == "=" {
 			new_tokens = append(new_tokens, tokens.NewToken(tools.Shift(&elements), tokens.Equals))

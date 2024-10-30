@@ -23,11 +23,22 @@ func at() tokens.Token {
 
 // Returns the current token and shift the slice along.
 func eat() tokens.Token {
-	prev := at()
-	tools.Shift(&tkns)
 
+	prev := tools.Shift(&tkns)
 	return prev
+}
 
+// Same functionality as 'eat()', however also allows us to check what the next token _should_ be.
+func expect(tkn tokens.TokenType) (tokens.Token, error) {
+
+	prev := eat()
+
+	if prev.Type != tkn {
+
+		return tokens.Token{}, fmt.Errorf("expected %v, received %v", tkn, prev.Type)
+	}
+
+	return prev, nil
 }
 
 func BuildAst(source string) ast.Program {
@@ -40,7 +51,6 @@ func BuildAst(source string) ast.Program {
 	}
 
 	for NotEOF() {
-
 		program.Body = append(program.Body, parse_statement())
 	}
 
@@ -68,9 +78,29 @@ RHS = LHS + 5
 */
 func parse_additive_expression() ast.Expression {
 
-	left := parse_primary_expression()
+	left := parse_multiplicitive_expression()
 
 	for at().Value == "+" || at().Value == "-" {
+
+		operator := eat().Value
+		right := parse_multiplicitive_expression()
+
+		left = ast.BinaryExpr{
+			Kind:     ast.BinaryExpressionNode,
+			Left:     left,
+			Right:    right,
+			Operator: operator,
+		}
+	}
+
+	return left
+}
+
+func parse_multiplicitive_expression() ast.Expression {
+
+	left := parse_primary_expression()
+
+	for at().Value == "/" || at().Value == "*" || at().Value == "%" {
 
 		operator := eat().Value
 		right := parse_primary_expression()
@@ -104,6 +134,16 @@ func parse_primary_expression() ast.Expression {
 			Kind:  ast.NumericLiteralNode,
 			Value: number,
 		}
+
+	case tokens.OpenParen:
+		eat() // Eat opening paren
+		val := parse_expression()
+		_, err := expect(tokens.CloseParen)
+		if err != nil {
+			fmt.Printf("%v \n", err.Error())
+			return ast.Expr{}
+		}
+		return val
 
 	default:
 		e := fmt.Sprintf("unexpected expression: %v \n", tkn)
