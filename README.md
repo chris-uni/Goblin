@@ -1,2 +1,4 @@
 # Goblin
-A repository for the Goblin Programming Language
+(**G**o **B**ut **L**ike **IN**terpreted)
+
+A repository for the Goblin Programming Language.
