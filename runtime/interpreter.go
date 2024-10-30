@@ -548,8 +548,13 @@ func eval_numeric_expression(lhs NumberValue, rhs NumberValue, opp string) (Numb
 	} else if opp == "*" {
 		result = lhs.Value * rhs.Value
 	} else if opp == "/" {
-		// To do, check divide by 0 etc.
-		result = lhs.Value / rhs.Value
+
+		if rhs.Value != 0 {
+			result = lhs.Value / rhs.Value
+		} else {
+			result = 0
+		}
+
 	} else if opp == "%" {
 		result = lhs.Value % rhs.Value
 	}
