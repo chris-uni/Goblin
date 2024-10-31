@@ -76,9 +76,9 @@ func Evaluate(astNode ast.Expression, env Environment) (RuntimeValue, error) {
 
 		return iden, nil
 
-	} else if iden, ok := astNode.(ast.ArrayIdentifier); ok {
+	} else if arrIden, ok := astNode.(ast.ArrayIdentifier); ok {
 
-		arr, err := eval_array_identifier(iden, env)
+		arr, err := eval_array_identifier(arrIden, env)
 		if err != nil {
 			return nil, err
 		}

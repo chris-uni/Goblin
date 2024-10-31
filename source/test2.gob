@@ -1,8 +1,9 @@
-let x = [1, 2, 3, 4, 5];
+let x = [10, 34, 56, 12, 78];
 let index = 0;
+let value = 0;
 
 while(index < 5){
-    let value = x[index];
+    value = x[index];
     println(value);
-    index + 1
+    index = index + 1;
 }
