@@ -7,6 +7,7 @@ const (
 	ProgramNode             NodeType = "ProgramNode"
 	VariableDeclerationNode NodeType = "VariableDeclerationNode"
 	FunctionDeclerationNode NodeType = "FunctionDeclerationNode"
+	ArrayDeclerationNode    NodeType = "ArrayDeclerationNode"
 
 	// Expressions.
 	BinaryExprNode       NodeType = "BinaryExprNode"
@@ -18,12 +19,13 @@ const (
 	CallExpression       NodeType = "CallExpression"
 
 	// Literals.
-	NumericLiteralNode NodeType = "NumericLiteralNode"
-	StringLiteralNode  NodeType = "StringLiteralNode"
-	BooleanLiteralNode NodeType = "BooleanLiteralNode"
-	IdentifierNode     NodeType = "IdentifierNode"
-	PropertyNode       NodeType = "PropertyNode"
-	ObjectLiteralNode  NodeType = "ObjectLiteralNode"
+	NumericLiteralNode  NodeType = "NumericLiteralNode"
+	StringLiteralNode   NodeType = "StringLiteralNode"
+	BooleanLiteralNode  NodeType = "BooleanLiteralNode"
+	IdentifierNode      NodeType = "IdentifierNode"
+	ArrayIdentifierNode NodeType = "ArrayIdentifierNode"
+	PropertyNode        NodeType = "PropertyNode"
+	ObjectLiteralNode   NodeType = "ObjectLiteralNode"
 
 	// Conditionals
 	IfNode      NodeType = "IfNode"
@@ -59,6 +61,15 @@ type VariableDecleration struct {
 }
 
 func (v VariableDecleration) expr() {}
+
+type ArrayDecleration struct {
+	Kind       NodeType
+	Value      []Expression
+	Constant   bool
+	Identifier string
+}
+
+func (a ArrayDecleration) expr() {}
 
 type FunctionDecleration struct {
 	Kind   NodeType
@@ -109,6 +120,14 @@ type Identifier struct {
 }
 
 func (i Identifier) expr() {}
+
+type ArrayIdentifier struct {
+	Kind   NodeType
+	Symbol string
+	Index  Expression
+}
+
+func (ai ArrayIdentifier) expr() {}
 
 type NumericLiteral struct {
 	Kind  NodeType

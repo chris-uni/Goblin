@@ -1,1 +1,9 @@
-println(0 / 0);
+let x = [10, 34, 56, 12, 78];
+let index = 0;
+let value = 0;
+
+while(index < 5){
+    value = x[index];
+    println(value);
+    index = index + 1;
+}

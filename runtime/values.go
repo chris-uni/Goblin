@@ -10,6 +10,7 @@ type ValueType string
 
 const (
 	Number      ValueType = "Number"
+	Array       ValueType = "Array"
 	Null        ValueType = "Null"
 	Boolean     ValueType = "Boolean"
 	String      ValueType = "String"
@@ -44,6 +45,15 @@ type NumberValue struct {
 
 func (n NumberValue) runtime() {
 	fmt.Printf("%v\n", n.Value)
+}
+
+type ArrayValue struct {
+	Type  ValueType
+	Value []RuntimeValue
+}
+
+func (a ArrayValue) runtime() {
+	fmt.Printf("%v\n", a.Value)
 }
 
 type StringValue struct {
@@ -109,6 +119,14 @@ func MK_NUMBER(n int) NumberValue {
 	return NumberValue{
 		Type:  "Number",
 		Value: n,
+	}
+}
+
+func MK_ARRAY(elements []RuntimeValue) ArrayValue {
+
+	return ArrayValue{
+		Type:  "Array",
+		Value: elements,
 	}
 }
 

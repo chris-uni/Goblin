@@ -526,7 +526,7 @@ func parse_fn_decleration() (ast.Expression, error) {
 		body = append(body, stmt)
 	}
 
-	// End of function, expect to see the closing bracket.
+	// End of function, expect to see the closing brace.
 	_, err = expect(lexer.CloseBrace)
 	if err != nil {
 		return nil, err
@@ -550,6 +550,8 @@ Handles either:
 */
 func parse_var_decleration() (ast.Expression, error) {
 
+	// true:  const x = 10;
+	// false: let x = 10;
 	isConst := eat().Type == lexer.Const
 	identifier, err := expect(lexer.Identifier)
 	if err != nil {
@@ -581,6 +583,21 @@ func parse_var_decleration() (ast.Expression, error) {
 		return ast.Expr{}, err
 	}
 
+	// In the case of 'let x = [];', we are declaring an array.
+	if at().Type == lexer.OpenBracket {
+
+		// Eat the opening bracket.
+		eat()
+
+		// Attempt to capture all the expressions inside the array.
+		array_decleration, err := parse_array_decleration(identifier.Value, isConst)
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		return array_decleration, nil
+	}
+
 	value, err := parse_expression()
 	if err != nil {
 		return ast.Expr{}, err
@@ -596,6 +613,52 @@ func parse_var_decleration() (ast.Expression, error) {
 	_, err = expect(lexer.EOL)
 	if err != nil {
 		return ast.Expr{}, err
+	}
+
+	return decleration, nil
+}
+
+func parse_array_decleration(identifier string, isConst bool) (ast.Expression, error) {
+
+	expressions := make([]ast.Expression, 0)
+
+	for at().Type != lexer.CloseBracket && at().Type != lexer.EOF {
+
+		value, err := parse_expression()
+
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		expressions = append(expressions, value)
+
+		if at().Type == lexer.CloseBracket {
+			break
+		} else {
+			_, err = expect(lexer.Comma)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// End of array body, expect to see a closing bracket.
+	_, err := expect(lexer.CloseBracket)
+	if err != nil {
+		return nil, err
+	}
+
+	// End of array decleration, expect to see an EOL.
+	_, err = expect(lexer.EOL)
+	if err != nil {
+		return nil, err
+	}
+
+	decleration := ast.ArrayDecleration{
+		Kind:       "ArrayDeclerationNode",
+		Value:      expressions,
+		Identifier: identifier,
+		Constant:   isConst,
 	}
 
 	return decleration, nil
@@ -826,10 +889,40 @@ func parse_primary_expression() (ast.Expression, error) {
 
 	switch tk {
 	case lexer.Identifier:
-		return ast.Identifier{
-			Kind:   "IdentifierNode",
-			Symbol: eat().Value,
-		}, nil
+		// Normal identifier, or array identifier?
+		// Normal = x
+		// Array = x[0]
+
+		identifier := eat() // Capture the identifier value
+
+		if at().Type == lexer.OpenBracket {
+			eat() // Eat the open bracket.
+
+			// Capture index, but we need to parse it as it could be a number or an identifier.
+			index, err := parse_expression()
+			if err != nil {
+				return nil, err
+			}
+
+			// End of array body, expect to see a closing bracket.
+			_, err = expect(lexer.CloseBracket)
+			if err != nil {
+				return nil, err
+			}
+
+			return ast.ArrayIdentifier{
+				Kind:   "ArrayIdentifierNode",
+				Symbol: identifier.Value,
+				Index:  index,
+			}, nil
+		} else {
+
+			// Standard identifier.
+			return ast.Identifier{
+				Kind:   "IdentifierNode",
+				Symbol: identifier.Value,
+			}, nil
+		}
 	case lexer.Boolean:
 		return ast.BooleanLiteral{
 			Kind:  "BooleanLiteralNode",

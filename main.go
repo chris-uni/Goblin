@@ -62,6 +62,8 @@ func main() {
 	} else {
 
 		// REPL Mode.
+		fmt.Println("Goblin v0.1")
+
 		for {
 
 			fmt.Print("> ")
@@ -98,12 +100,12 @@ func run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 
 	program, err := parser.ProduceAST(input)
 	if err != nil {
-		return nil, fmt.Errorf("parse error: %v\n", err.Error())
+		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
 
 	evaluation, err := runtime.Evaluate(program, env)
 	if err != nil {
-		return nil, fmt.Errorf("interpreter error: %v\n", err.Error())
+		return nil, fmt.Errorf("interpreter error: %v", err.Error())
 	}
 
 	if f, isNum := evaluation.(runtime.NativeFunction); isNum {

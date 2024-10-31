@@ -76,6 +76,15 @@ func Evaluate(astNode ast.Expression, env Environment) (RuntimeValue, error) {
 
 		return iden, nil
 
+	} else if arrIden, ok := astNode.(ast.ArrayIdentifier); ok {
+
+		arr, err := eval_array_identifier(arrIden, env)
+		if err != nil {
+			return nil, err
+		}
+
+		return arr, nil
+
 	} else if object, ok := astNode.(ast.ObjectLiteral); ok {
 
 		obj, err := eval_object_expr(object, env)
@@ -111,6 +120,15 @@ func Evaluate(astNode ast.Expression, env Environment) (RuntimeValue, error) {
 		}
 
 		return varDec, nil
+
+	} else if arr, ok := astNode.(ast.ArrayDecleration); ok {
+
+		arrDec, err := eval_arr_decleration(arr, env)
+		if err != nil {
+			return nil, err
+		}
+
+		return arrDec, nil
 
 	} else if func_, ok := astNode.(ast.FunctionDecleration); ok {
 
@@ -156,6 +174,30 @@ func eval_program(prog ast.Program, env Environment) (RuntimeValue, error) {
 func eval_identifier(iden ast.Identifier, env Environment) (RuntimeValue, error) {
 
 	val, err := env.Lookup(iden.Symbol)
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+// Evaluates the provided identifier.
+func eval_array_identifier(arr ast.ArrayIdentifier, env Environment) (RuntimeValue, error) {
+
+	i, err := Evaluate(arr.Index, env)
+	if err != nil {
+		return nil, err
+	}
+
+	index := 0
+
+	if num, ok := i.(NumberValue); ok {
+		index = num.Value
+	} else {
+		return nil, fmt.Errorf("array index must of of type int")
+	}
+
+	val, err := env.ArrayLookup(arr.Symbol, index)
 	if err != nil {
 		return nil, err
 	}
@@ -496,6 +538,29 @@ func eval_var_decleration(dec ast.VariableDecleration, env Environment) (Runtime
 	}
 
 	decleration, err := env.Declare(dec.Identifier, value, dec.Constant)
+	if err != nil {
+		return nil, err
+	}
+
+	return decleration, nil
+}
+
+// Evaluates an array decleration.
+func eval_arr_decleration(arr ast.ArrayDecleration, env Environment) (RuntimeValue, error) {
+
+	values := make([]RuntimeValue, 0)
+
+	for _, val := range arr.Value {
+
+		v, err := Evaluate(val, env)
+		if err != nil {
+			return nil, err
+		}
+
+		values = append(values, v)
+	}
+
+	decleration, err := env.DeclareArray(arr.Identifier, values, arr.Constant)
 	if err != nil {
 		return nil, err
 	}

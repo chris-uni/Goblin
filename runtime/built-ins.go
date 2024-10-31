@@ -53,6 +53,21 @@ func printHelper(arg RuntimeValue) string {
 
 		builder = fmt.Sprintf("%v", str.Value)
 
+	} else if arr, ok := arg.(ArrayValue); ok {
+
+		builder = "["
+		for i := 0; i < len(arr.Value); i++ {
+
+			val := fmt.Sprintf("%v", arr.Value[i])
+
+			builder += val
+
+			if i < len(arr.Value)-1 {
+				builder += ", "
+			}
+		}
+		builder += "]"
+
 	} else if null, ok := arg.(NullValue); ok {
 
 		builder = fmt.Sprintf("%v", null.Value)
