@@ -13,7 +13,7 @@ import (
 func main() {
 
 	env := runtime.Environment{
-		Stdout:    os.Stdout,
+		Stdout:    os.Stdout, // Set the stdout as os.stdout
 		Variables: map[string]runtime.RuntimeValue{},
 		Constants: map[string]bool{},
 	}
