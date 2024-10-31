@@ -6,13 +6,14 @@ import (
 	"os"
 	"strings"
 
-	"goblin.org/main/frontend/parser"
+	program "goblin.org/main/program"
 	"goblin.org/main/runtime"
 )
 
 func main() {
 
 	env := runtime.Environment{
+		Stdout:    os.Stdout,
 		Variables: map[string]runtime.RuntimeValue{},
 		Constants: map[string]bool{},
 	}
@@ -49,7 +50,7 @@ func main() {
 		}
 
 		// Run the program.
-		result, err := run(string(content), env)
+		result, err := program.Run(string(content), env)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
@@ -82,7 +83,7 @@ func main() {
 			}
 
 			// Run the program.
-			result, err := run(input, env)
+			result, err := program.Run(input, env)
 			if err != nil {
 				fmt.Println(err.Error())
 			} else {
@@ -93,26 +94,4 @@ func main() {
 			}
 		}
 	}
-}
-
-// Where the source goes to be lexed, parsed, interpreted, and returned.
-func run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
-
-	program, err := parser.ProduceAST(input)
-	if err != nil {
-		return nil, fmt.Errorf("parse error: %v", err.Error())
-	}
-
-	evaluation, err := runtime.Evaluate(program, env)
-	if err != nil {
-		return nil, fmt.Errorf("interpreter error: %v", err.Error())
-	}
-
-	if f, isNum := evaluation.(runtime.NativeFunction); isNum {
-
-		fmt.Printf("%v\n", f.Call)
-		return nil, nil
-	}
-
-	return nil, nil
 }

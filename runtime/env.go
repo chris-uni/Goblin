@@ -2,10 +2,12 @@ package runtime
 
 import (
 	"fmt"
+	"io"
 )
 
 type Environment struct {
 	Parent    *Environment
+	Stdout    io.Writer
 	Variables map[string]RuntimeValue
 	Constants map[string]bool
 }
