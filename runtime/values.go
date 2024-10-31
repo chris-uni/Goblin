@@ -49,7 +49,7 @@ func (n NumberValue) runtime() {
 
 type ArrayValue struct {
 	Type  ValueType
-	Value []any
+	Value []RuntimeValue
 }
 
 func (a ArrayValue) runtime() {
@@ -124,22 +124,9 @@ func MK_NUMBER(n int) NumberValue {
 
 func MK_ARRAY(elements []RuntimeValue) ArrayValue {
 
-	values := make([]any, 0)
-
-	for _, v := range elements {
-
-		// Need to check the actual type of the damn value...
-
-		if num, ok := v.(NumberValue); ok {
-			values = append(values, num.Value)
-		} else if num, ok := v.(StringValue); ok {
-			values = append(values, num.Value)
-		}
-	}
-
 	return ArrayValue{
 		Type:  "Array",
-		Value: values,
+		Value: elements,
 	}
 }
 

@@ -108,6 +108,29 @@ func (e Environment) Lookup(var_ string) (RuntimeValue, error) {
 	return env.Variables[var_], nil
 }
 
+// Used in the specific case of looking up individual elements in an array.
+func (e Environment) ArrayLookup(var_ string, index int) (RuntimeValue, error) {
+
+	arr_, err := e.Lookup(var_)
+	if err != nil {
+		return nil, err
+	}
+
+	var value RuntimeValue
+	if arr, ok := arr_.(ArrayValue); ok {
+
+		// The specified index value is out of bounds!
+		if index >= len(arr.Value) {
+
+			e := fmt.Sprintf("index out of bounds for index %v \n", index)
+			return MK_STRING(e), fmt.Errorf(e)
+		}
+		value = arr.Value[index]
+	}
+
+	return value, nil
+}
+
 func (e Environment) Setup() {
 
 	e.Declare("null", MK_NULL(), true)

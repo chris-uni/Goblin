@@ -889,10 +889,40 @@ func parse_primary_expression() (ast.Expression, error) {
 
 	switch tk {
 	case lexer.Identifier:
-		return ast.Identifier{
-			Kind:   "IdentifierNode",
-			Symbol: eat().Value,
-		}, nil
+		// Normal identifier, or array identifier?
+		// Normal = x
+		// Array = x[0]
+
+		identifier := eat() // Capture the identifier value
+
+		if at().Type == lexer.OpenBracket {
+			eat() // Eat the open bracket.
+
+			// Capture index, but we need to parse it as it could be a number or an identifier.
+			index, err := parse_expression()
+			if err != nil {
+				return nil, err
+			}
+
+			// End of array body, expect to see a closing bracket.
+			_, err = expect(lexer.CloseBracket)
+			if err != nil {
+				return nil, err
+			}
+
+			return ast.ArrayIdentifier{
+				Kind:   "ArrayIdentifierNode",
+				Symbol: identifier.Value,
+				Index:  index,
+			}, nil
+		} else {
+
+			// Standard identifier.
+			return ast.Identifier{
+				Kind:   "IdentifierNode",
+				Symbol: identifier.Value,
+			}, nil
+		}
 	case lexer.Boolean:
 		return ast.BooleanLiteral{
 			Kind:  "BooleanLiteralNode",

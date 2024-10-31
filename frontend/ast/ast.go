@@ -19,12 +19,13 @@ const (
 	CallExpression       NodeType = "CallExpression"
 
 	// Literals.
-	NumericLiteralNode NodeType = "NumericLiteralNode"
-	StringLiteralNode  NodeType = "StringLiteralNode"
-	BooleanLiteralNode NodeType = "BooleanLiteralNode"
-	IdentifierNode     NodeType = "IdentifierNode"
-	PropertyNode       NodeType = "PropertyNode"
-	ObjectLiteralNode  NodeType = "ObjectLiteralNode"
+	NumericLiteralNode  NodeType = "NumericLiteralNode"
+	StringLiteralNode   NodeType = "StringLiteralNode"
+	BooleanLiteralNode  NodeType = "BooleanLiteralNode"
+	IdentifierNode      NodeType = "IdentifierNode"
+	ArrayIdentifierNode NodeType = "ArrayIdentifierNode"
+	PropertyNode        NodeType = "PropertyNode"
+	ObjectLiteralNode   NodeType = "ObjectLiteralNode"
 
 	// Conditionals
 	IfNode      NodeType = "IfNode"
@@ -119,6 +120,14 @@ type Identifier struct {
 }
 
 func (i Identifier) expr() {}
+
+type ArrayIdentifier struct {
+	Kind   NodeType
+	Symbol string
+	Index  Expression
+}
+
+func (ai ArrayIdentifier) expr() {}
 
 type NumericLiteral struct {
 	Kind  NodeType
