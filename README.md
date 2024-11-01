@@ -24,7 +24,7 @@ if (2 > 1){
     println("2 is bigger than 1");
 }
 ```
-#### else if
+#### if/else
 ```
 if (1 > 2){
     println("1 isnt bigger than 2");
@@ -43,4 +43,12 @@ while (i < 10) {
     println(i);
     i = i + 1;
 }
+```
+
+### Function Decleration & calling
+```
+fn testPrint(){
+    println("Hello, World");
+}
+testPrint();
 ```
