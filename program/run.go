@@ -20,8 +20,6 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 		return nil, fmt.Errorf("interpreter error: %v", err.Error())
 	}
 
-	// fmt.Printf("%v \n", evaluation)
-
 	if f, isNum := evaluation.(runtime.NativeFunction); isNum {
 
 		fmt.Printf("%v\n", f.Call)
