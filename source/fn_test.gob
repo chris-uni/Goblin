@@ -1,0 +1,4 @@
+fn testPrint(){
+    println("Hello, World");
+}
+testPrint();

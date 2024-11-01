@@ -470,6 +470,7 @@ func eval_call_expr(expr ast.CallExpr, env Environment) (RuntimeValue, error) {
 	if isFn {
 
 		newScope := Environment{
+			Stdout:    env.Stdout, // Atm same stdout as main scope, however we would change to bytes.Buffer to give each new scope its own output buffer.
 			Parent:    &userFunc.DecEnv,
 			Constants: map[string]bool{},
 			Variables: map[string]RuntimeValue{},
@@ -495,7 +496,7 @@ func eval_call_expr(expr ast.CallExpr, env Environment) (RuntimeValue, error) {
 			}
 
 			// TO-DO: Currently this will make it so functions return values regardless of if there is a 'return' statement at the end.
-			// We maye want to change this in the future.
+			// We may want to change this in the future.
 			result = r
 		}
 

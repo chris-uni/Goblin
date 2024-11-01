@@ -1,6 +1,8 @@
 package runtime
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Defines the built-in method 'print'.
 // Depending on arg value type, print is handled in different ways.
@@ -13,7 +15,7 @@ var Print FunctionCall = func(args []RuntimeValue, env Environment) RuntimeValue
 		builder += printHelper(arg)
 	}
 
-	fmt.Printf("%v", builder)
+	fmt.Fprintf(env.Stdout, "%v\n", builder)
 
 	return MK_NULL()
 }
@@ -29,7 +31,7 @@ var Println FunctionCall = func(args []RuntimeValue, env Environment) RuntimeVal
 		builder += printHelper(arg)
 	}
 
-	fmt.Printf("%v\n", builder)
+	fmt.Fprintf(env.Stdout, "%v\n", builder)
 
 	return MK_NULL()
 }
