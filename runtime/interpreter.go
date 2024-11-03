@@ -581,7 +581,7 @@ func eval_arr_decleration(arr ast.ArrayDecleration, env Environment) (RuntimeVal
 // Evaluates a map decleration.
 func eval_map_decleration(map_ ast.MapDecleration, env Environment) (RuntimeValue, error) {
 
-	values := make(map[RuntimeValue]RuntimeValue, 0)
+	mapValues := make(map[RuntimeValue]RuntimeValue, 0)
 
 	for k, v := range map_.Value {
 
@@ -597,10 +597,10 @@ func eval_map_decleration(map_ ast.MapDecleration, env Environment) (RuntimeValu
 			return nil, err
 		}
 
-		values[key] = value
+		mapValues[key] = value
 	}
 
-	decleration, err := env.DeclareMap(map_.Identifier, values, map_.Constant)
+	decleration, err := env.DeclareMap(map_.Identifier, mapValues, map_.Constant)
 	if err != nil {
 		return nil, err
 	}

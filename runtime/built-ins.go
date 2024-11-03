@@ -73,8 +73,6 @@ func printHelper(arg RuntimeValue) string {
 	} else if map_, ok := arg.(MapValue); ok {
 
 		builder = "{"
-
-		numElements := len(map_.Value)
 		counter := 0
 
 		for key, value := range map_.Value {
@@ -83,7 +81,7 @@ func printHelper(arg RuntimeValue) string {
 
 			builder += s
 
-			if counter < (numElements - 1) {
+			if counter < (len(map_.Value) - 1) {
 				builder += ", "
 			}
 

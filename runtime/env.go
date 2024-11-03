@@ -64,15 +64,15 @@ func (e Environment) DeclareMap(var_ string, values map[RuntimeValue]RuntimeValu
 	}
 
 	// Make the array object here, which contains all the RuntimeValues the user specified.
-	arr := MK_MAP(values)
+	map_ := MK_MAP(values)
 
 	// If not, set it.
-	e.Variables[var_] = arr
+	e.Variables[var_] = map_
 
 	// Add our constant variable.
 	e.Constants[var_] = isConst
 
-	return arr, nil
+	return map_, nil
 }
 
 // Used to assign values to a variable.

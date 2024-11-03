@@ -666,6 +666,11 @@ func parse_map_decleration(identifier string, isConst bool) (ast.Expression, err
 			return ast.Expr{}, err
 		}
 
+		// Need to make sure the keys are unique.
+		if _, ok := keyValuePairs[key]; ok {
+			return nil, fmt.Errorf("maps keys should be unique: %v", key)
+		}
+
 		// Store the new key/value pair.
 		keyValuePairs[key] = value
 
