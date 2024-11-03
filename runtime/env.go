@@ -26,9 +26,7 @@ func (e Environment) Declare(var_ string, value RuntimeValue, isConst bool) (Run
 	e.Variables[var_] = value
 
 	// Add our constant variable.
-	if isConst {
-		e.Constants[var_] = true
-	}
+	e.Constants[var_] = isConst
 
 	return value, nil
 }
@@ -38,7 +36,7 @@ func (e Environment) DeclareArray(var_ string, values []RuntimeValue, isConst bo
 
 	_, exists := e.Variables[var_]
 
-	// If this variable is already set.
+	// If this array is already set.
 	if exists {
 		return nil, fmt.Errorf("'%v' already defined", var_)
 	}
@@ -50,9 +48,29 @@ func (e Environment) DeclareArray(var_ string, values []RuntimeValue, isConst bo
 	e.Variables[var_] = arr
 
 	// Add our constant variable.
-	if isConst {
-		e.Constants[var_] = true
+	e.Constants[var_] = isConst
+
+	return arr, nil
+}
+
+// Used to declare a new map. Includes checking for map that might already existing.
+func (e Environment) DeclareMap(var_ string, values map[RuntimeValue]RuntimeValue, isConst bool) (RuntimeValue, error) {
+
+	_, exists := e.Variables[var_]
+
+	// If this map is already set.
+	if exists {
+		return nil, fmt.Errorf("'%v' already defined", var_)
 	}
+
+	// Make the array object here, which contains all the RuntimeValues the user specified.
+	arr := MK_MAP(values)
+
+	// If not, set it.
+	e.Variables[var_] = arr
+
+	// Add our constant variable.
+	e.Constants[var_] = isConst
 
 	return arr, nil
 }

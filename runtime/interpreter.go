@@ -130,6 +130,15 @@ func Evaluate(astNode ast.Expression, env Environment) (RuntimeValue, error) {
 
 		return arrDec, nil
 
+	} else if map_, ok := astNode.(ast.MapDecleration); ok {
+
+		mapDec, err := eval_map_decleration(map_, env)
+		if err != nil {
+			return nil, err
+		}
+
+		return mapDec, nil
+
 	} else if func_, ok := astNode.(ast.FunctionDecleration); ok {
 
 		fn, err := eval_function_decleration(func_, env)
@@ -562,6 +571,36 @@ func eval_arr_decleration(arr ast.ArrayDecleration, env Environment) (RuntimeVal
 	}
 
 	decleration, err := env.DeclareArray(arr.Identifier, values, arr.Constant)
+	if err != nil {
+		return nil, err
+	}
+
+	return decleration, nil
+}
+
+// Evaluates a map decleration.
+func eval_map_decleration(map_ ast.MapDecleration, env Environment) (RuntimeValue, error) {
+
+	values := make(map[RuntimeValue]RuntimeValue, 0)
+
+	for k, v := range map_.Value {
+
+		// Evaluate the provided key.
+		key, err := Evaluate(k, env)
+		if err != nil {
+			return nil, err
+		}
+
+		// Evaluate the provided value.
+		value, err := Evaluate(v, env)
+		if err != nil {
+			return nil, err
+		}
+
+		values[key] = value
+	}
+
+	decleration, err := env.DeclareMap(map_.Identifier, values, map_.Constant)
 	if err != nil {
 		return nil, err
 	}
