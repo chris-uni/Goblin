@@ -1,6 +1,9 @@
+const index = 20;
+
 let x = {
     "foo": 10,
     20: 30,
 };
 
-println(x[20]);
+println(x["foo"]);
+println(x[index]);

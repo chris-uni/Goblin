@@ -9,13 +9,14 @@ import (
 // Mock up the stdout buffer using the below byte buffer.
 var output bytes.Buffer
 
-var env = runtime.Environment{
-	Stdout:    &output,
-	Variables: map[string]runtime.RuntimeValue{},
-	Constants: map[string]bool{},
-}
+var env = runtime.Environment{}
 
-// Empties the current harness buffer.
-func flushBuffer(o *bytes.Buffer) {
-	*o = bytes.Buffer{}
+// Set up the test harness environment.
+func HarnessSetup() {
+	output = bytes.Buffer{}
+	env.Stdout = &output
+	env.Variables = map[string]runtime.RuntimeValue{}
+	env.Constants = map[string]bool{}
+
+	env.Setup()
 }

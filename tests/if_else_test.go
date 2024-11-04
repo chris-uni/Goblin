@@ -11,10 +11,7 @@ import (
 func TestIfElseCondition(t *testing.T) {
 
 	// Setup the program env.
-	env.Setup()
-
-	// Empty the test stdout buffer.
-	flushBuffer(&output)
+	HarnessSetup()
 
 	file := "../source/if_else_test.gob"
 	expected := "1 is smaller than 2\n"

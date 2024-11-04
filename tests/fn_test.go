@@ -11,10 +11,7 @@ import (
 func TestFnCall(t *testing.T) {
 
 	// Setup the program env.
-	env.Setup()
-
-	// Empty the test stdout buffer.
-	flushBuffer(&output)
+	HarnessSetup()
 
 	file := "../source/fn_test.gob"
 	expected := "Hello, World\n"

@@ -11,10 +11,7 @@ import (
 func TestArray(t *testing.T) {
 
 	// Setup the program env.
-	env.Setup()
-
-	// Empty the test stdout buffer.
-	flushBuffer(&output)
+	HarnessSetup()
 
 	file := "../source/array_test.gob"
 	expected := "10\n34\n56\n12\n78\n"

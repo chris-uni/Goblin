@@ -8,13 +8,13 @@ import (
 )
 
 // Tests a basic `if` condition.
-func TestWhile(t *testing.T) {
+func TestMap(t *testing.T) {
 
 	// Setup the program env.
 	HarnessSetup()
 
-	file := "../source/while_test.gob"
-	expected := "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n"
+	file := "../source/map_test.gob"
+	expected := "10\n30\n"
 
 	source, err := os.ReadFile(file)
 	if err != nil {
