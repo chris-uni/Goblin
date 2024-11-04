@@ -131,13 +131,13 @@ type Identifier struct {
 
 func (i Identifier) expr() {}
 
-type ArrayIdentifier struct {
+type ArrayOrMapIdentifier struct {
 	Kind   NodeType
 	Symbol string
 	Index  Expression
 }
 
-func (ai ArrayIdentifier) expr() {}
+func (aom ArrayOrMapIdentifier) expr() {}
 
 type NumericLiteral struct {
 	Kind  NodeType

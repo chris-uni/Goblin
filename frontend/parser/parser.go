@@ -984,8 +984,9 @@ func parse_primary_expression() (ast.Expression, error) {
 	switch tk {
 	case lexer.Identifier:
 		// Normal identifier, or array identifier?
-		// Normal = x
-		// Array = x[0]
+		// Normal -> x
+		// Array -> x[0]
+		// Map -> x["foo"]
 
 		identifier := eat() // Capture the identifier value
 
@@ -1004,7 +1005,7 @@ func parse_primary_expression() (ast.Expression, error) {
 				return nil, err
 			}
 
-			return ast.ArrayIdentifier{
+			return ast.ArrayOrMapIdentifier{
 				Kind:   "ArrayIdentifierNode",
 				Symbol: identifier.Value,
 				Index:  index,
