@@ -17,6 +17,16 @@ let var = arr[2];
 println(var);
 ```
 
+### Map decleration & indexing
+```
+let x = {
+    "foo": 10,
+    20: 30,
+};
+let var = x["foo"];
+println(var);
+```
+
 ### Conditionals
 #### if
 ```
