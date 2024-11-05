@@ -46,8 +46,9 @@ const (
 	Ternary      TokenType = "Ternary"
 
 	// Operators.
-	BinaryOperator      TokenType = "BinaryOperator"
-	ConditionalOperator TokenType = "ConditionalOperator"
+	BinaryOperator      TokenType = "BinaryOperator"      // e.g. '+, -, /, *, etc'
+	ConditionalOperator TokenType = "ConditionalOperator" // e.g. '==, <=, >=, etc'
+	ShorthandOperator   TokenType = "ShorthandOperator"   // e.g. '++, --'
 
 	// Keywords.
 	Let   TokenType = "Let"   // declaring new variables
@@ -55,7 +56,7 @@ const (
 	Fn    TokenType = "Fn"    // declaring new functions
 	If    TokenType = "If"    // standard if condition
 	Else  TokenType = "Else"  // standard else condition
-	While TokenType = "While"
+	While TokenType = "While" // standard while condition
 
 	// End of Line.
 	EOL TokenType = "EOL"

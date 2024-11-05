@@ -94,6 +94,7 @@ func parse_statement() (ast.Expression, error) {
 		}
 
 		return b, nil
+
 	case lexer.Fn:
 
 		fn, err := parse_fn_decleration()
@@ -976,6 +977,80 @@ func parse_multiplicitive_expression() (ast.Expression, error) {
 	return left, nil
 }
 
+func parse_identifier() (ast.Expression, error) {
+
+	// Normal identifier, or array identifier?
+	// Normal -> x
+	// Array -> x[0]
+	// Map -> x["foo"]
+	// Shorthand Operator -> x++ or x--
+
+	identifier := eat() // Capture the identifier value
+
+	if at().Type == lexer.OpenBracket {
+		eat() // Eat the open bracket.
+
+		// Capture index, but we need to parse it as it could be a number or an identifier.
+		index, err := parse_expression()
+		if err != nil {
+			return nil, err
+		}
+
+		// End of array/map body, expect to see a closing bracket.
+		_, err = expect(lexer.CloseBracket)
+		if err != nil {
+			return nil, err
+		}
+
+		return ast.ArrayOrMapIdentifier{
+			Kind:   "ArrayIdentifierNode",
+			Symbol: identifier.Value,
+			Index:  index,
+		}, nil
+	} else if at().Type == lexer.ShorthandOperator {
+
+		// Capture the operator type.
+		opp := eat()
+
+		// Depending on shorthand operator used:
+		// x++;
+		// x += 1;
+		// Need to handle accordingly.
+
+		if opp.Value == "++" || opp.Value == "--" {
+
+			// ++, --
+
+			// End of statement.
+			_, err := expect(lexer.EOL)
+			if err != nil {
+				return nil, err
+			}
+
+			return ast.ShorthandOperator{
+				Kind: "ShorthandOperatorNode",
+				Left: identifier.Value,
+				Right: ast.NumericLiteral{
+					Kind:  "NumberNode",
+					Value: 0,
+				},
+				Operator: opp.Value,
+			}, nil
+
+		} else {
+
+			// +=, -=, *=, /=
+			return ast.Expr{}, nil
+		}
+	} else {
+		// Standard identifier.
+		return ast.Identifier{
+			Kind:   "IdentifierNode",
+			Symbol: identifier.Value,
+		}, nil
+	}
+}
+
 // Defines how the interpreter handles primary expressions.
 func parse_primary_expression() (ast.Expression, error) {
 
@@ -983,41 +1058,13 @@ func parse_primary_expression() (ast.Expression, error) {
 
 	switch tk {
 	case lexer.Identifier:
-		// Normal identifier, or array identifier?
-		// Normal -> x
-		// Array -> x[0]
-		// Map -> x["foo"]
-
-		identifier := eat() // Capture the identifier value
-
-		if at().Type == lexer.OpenBracket {
-			eat() // Eat the open bracket.
-
-			// Capture index, but we need to parse it as it could be a number or an identifier.
-			index, err := parse_expression()
-			if err != nil {
-				return nil, err
-			}
-
-			// End of array body, expect to see a closing bracket.
-			_, err = expect(lexer.CloseBracket)
-			if err != nil {
-				return nil, err
-			}
-
-			return ast.ArrayOrMapIdentifier{
-				Kind:   "ArrayIdentifierNode",
-				Symbol: identifier.Value,
-				Index:  index,
-			}, nil
-		} else {
-
-			// Standard identifier.
-			return ast.Identifier{
-				Kind:   "IdentifierNode",
-				Symbol: identifier.Value,
-			}, nil
+		// Some form of Identifier coming in.
+		iden, err := parse_identifier()
+		if err != nil {
+			return ast.Expr{}, nil
 		}
+
+		return iden, nil
 	case lexer.Boolean:
 		return ast.BooleanLiteral{
 			Kind:  "BooleanLiteralNode",

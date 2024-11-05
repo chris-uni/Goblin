@@ -31,6 +31,22 @@ func (e Environment) Declare(var_ string, value RuntimeValue, isConst bool) (Run
 	return value, nil
 }
 
+// Used to update an existing variable value.
+func (e Environment) Update(var_ string, value RuntimeValue) (RuntimeValue, error) {
+
+	_, exists := e.Variables[var_]
+
+	// If this variable does not exit.
+	if !exists {
+		return nil, fmt.Errorf("unidentified variable: '%v'", var_)
+	}
+
+	// Update it.
+	e.Variables[var_] = value
+
+	return value, nil
+}
+
 // Used to declare a new array. Includes checking for arrays that might already existing.
 func (e Environment) DeclareArray(var_ string, values []RuntimeValue, isConst bool) (RuntimeValue, error) {
 
