@@ -60,7 +60,7 @@ func printHelper(arg RuntimeValue) string {
 		builder = "["
 		for i := 0; i < len(arr.Value); i++ {
 
-			val := fmt.Sprintf("%v", arr.Value[i])
+			val := fmt.Sprintf("%v", printHelper(arr.Value[i]))
 
 			builder += val
 
@@ -69,6 +69,26 @@ func printHelper(arg RuntimeValue) string {
 			}
 		}
 		builder += "]"
+
+	} else if map_, ok := arg.(MapValue); ok {
+
+		builder = "{"
+		counter := 0
+
+		for key, value := range map_.Value {
+
+			s := fmt.Sprintf("%v : %v", printHelper(key), printHelper(value))
+
+			builder += s
+
+			if counter < (len(map_.Value) - 1) {
+				builder += ", "
+			}
+
+			counter++
+		}
+
+		builder += "}"
 
 	} else if null, ok := arg.(NullValue); ok {
 

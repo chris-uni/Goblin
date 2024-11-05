@@ -76,14 +76,14 @@ func Evaluate(astNode ast.Expression, env Environment) (RuntimeValue, error) {
 
 		return iden, nil
 
-	} else if arrIden, ok := astNode.(ast.ArrayIdentifier); ok {
+	} else if aomIden, ok := astNode.(ast.ArrayOrMapIdentifier); ok {
 
-		arr, err := eval_array_identifier(arrIden, env)
+		aom, err := eval_array_or_map_identifier(aomIden, env)
 		if err != nil {
 			return nil, err
 		}
 
-		return arr, nil
+		return aom, nil
 
 	} else if object, ok := astNode.(ast.ObjectLiteral); ok {
 
@@ -129,6 +129,15 @@ func Evaluate(astNode ast.Expression, env Environment) (RuntimeValue, error) {
 		}
 
 		return arrDec, nil
+
+	} else if map_, ok := astNode.(ast.MapDecleration); ok {
+
+		mapDec, err := eval_map_decleration(map_, env)
+		if err != nil {
+			return nil, err
+		}
+
+		return mapDec, nil
 
 	} else if func_, ok := astNode.(ast.FunctionDecleration); ok {
 
@@ -181,28 +190,20 @@ func eval_identifier(iden ast.Identifier, env Environment) (RuntimeValue, error)
 	return val, nil
 }
 
-// Evaluates the provided identifier.
-func eval_array_identifier(arr ast.ArrayIdentifier, env Environment) (RuntimeValue, error) {
+// Evaluates either an array or map index accessor.
+func eval_array_or_map_identifier(arr ast.ArrayOrMapIdentifier, env Environment) (RuntimeValue, error) {
 
 	i, err := Evaluate(arr.Index, env)
 	if err != nil {
 		return nil, err
 	}
 
-	index := 0
-
-	if num, ok := i.(NumberValue); ok {
-		index = num.Value
-	} else {
-		return nil, fmt.Errorf("array index must of of type int")
-	}
-
-	val, err := env.ArrayLookup(arr.Symbol, index)
+	ds, err := env.ArrayOrMapLookup(arr.Symbol, i)
 	if err != nil {
 		return nil, err
 	}
 
-	return val, nil
+	return ds, nil
 }
 
 // Evaluates complex object assignments such as 'let foo = {x: 10};'
@@ -562,6 +563,36 @@ func eval_arr_decleration(arr ast.ArrayDecleration, env Environment) (RuntimeVal
 	}
 
 	decleration, err := env.DeclareArray(arr.Identifier, values, arr.Constant)
+	if err != nil {
+		return nil, err
+	}
+
+	return decleration, nil
+}
+
+// Evaluates a map decleration.
+func eval_map_decleration(map_ ast.MapDecleration, env Environment) (RuntimeValue, error) {
+
+	mapValues := make(map[RuntimeValue]RuntimeValue, 0)
+
+	for k, v := range map_.Value {
+
+		// Evaluate the provided key.
+		key, err := Evaluate(k, env)
+		if err != nil {
+			return nil, err
+		}
+
+		// Evaluate the provided value.
+		value, err := Evaluate(v, env)
+		if err != nil {
+			return nil, err
+		}
+
+		mapValues[key] = value
+	}
+
+	decleration, err := env.DeclareMap(map_.Identifier, mapValues, map_.Constant)
 	if err != nil {
 		return nil, err
 	}

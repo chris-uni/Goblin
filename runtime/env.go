@@ -26,9 +26,7 @@ func (e Environment) Declare(var_ string, value RuntimeValue, isConst bool) (Run
 	e.Variables[var_] = value
 
 	// Add our constant variable.
-	if isConst {
-		e.Constants[var_] = true
-	}
+	e.Constants[var_] = isConst
 
 	return value, nil
 }
@@ -38,7 +36,7 @@ func (e Environment) DeclareArray(var_ string, values []RuntimeValue, isConst bo
 
 	_, exists := e.Variables[var_]
 
-	// If this variable is already set.
+	// If this array is already set.
 	if exists {
 		return nil, fmt.Errorf("'%v' already defined", var_)
 	}
@@ -50,11 +48,31 @@ func (e Environment) DeclareArray(var_ string, values []RuntimeValue, isConst bo
 	e.Variables[var_] = arr
 
 	// Add our constant variable.
-	if isConst {
-		e.Constants[var_] = true
-	}
+	e.Constants[var_] = isConst
 
 	return arr, nil
+}
+
+// Used to declare a new map. Includes checking for map that might already existing.
+func (e Environment) DeclareMap(var_ string, values map[RuntimeValue]RuntimeValue, isConst bool) (RuntimeValue, error) {
+
+	_, exists := e.Variables[var_]
+
+	// If this map is already set.
+	if exists {
+		return nil, fmt.Errorf("'%v' already defined", var_)
+	}
+
+	// Make the array object here, which contains all the RuntimeValues the user specified.
+	map_ := MK_MAP(values)
+
+	// If not, set it.
+	e.Variables[var_] = map_
+
+	// Add our constant variable.
+	e.Constants[var_] = isConst
+
+	return map_, nil
 }
 
 // Used to assign values to a variable.
@@ -110,6 +128,45 @@ func (e Environment) Lookup(var_ string) (RuntimeValue, error) {
 	return env.Variables[var_], nil
 }
 
+func (e Environment) ArrayOrMapLookup(var_ string, i RuntimeValue) (RuntimeValue, error) {
+
+	datastructure, err := e.Lookup(var_)
+	if err != nil {
+		return nil, err
+	}
+
+	// Dealing with an array.
+	if e.IsArray(datastructure) {
+
+		// Arrays can only use ints as their indexer.
+		if index, ok := i.(NumberValue); ok {
+
+			val, err := e.ArrayLookup(var_, index.Value)
+			if err != nil {
+				return nil, err
+			}
+
+			return val, nil
+
+		} else {
+			return nil, fmt.Errorf("array index must be of type int")
+		}
+
+	} else if e.IsMap(datastructure) {
+		// Dealing with a map.
+
+		val, err := e.MapLookup(var_, i)
+		if err != nil {
+			return nil, err
+		}
+
+		return val, nil
+
+	} else {
+		return nil, fmt.Errorf("unrecognised datastructure provided: %v", datastructure)
+	}
+}
+
 // Used in the specific case of looking up individual elements in an array.
 func (e Environment) ArrayLookup(var_ string, index int) (RuntimeValue, error) {
 
@@ -118,7 +175,6 @@ func (e Environment) ArrayLookup(var_ string, index int) (RuntimeValue, error) {
 		return nil, err
 	}
 
-	var value RuntimeValue
 	if arr, ok := arr_.(ArrayValue); ok {
 
 		// The specified index value is out of bounds!
@@ -127,10 +183,52 @@ func (e Environment) ArrayLookup(var_ string, index int) (RuntimeValue, error) {
 			e := fmt.Sprintf("index out of bounds for index %v \n", index)
 			return MK_STRING(e), fmt.Errorf(e)
 		}
-		value = arr.Value[index]
+		return arr.Value[index], nil
 	}
 
-	return value, nil
+	return nil, fmt.Errorf("invalid array: %v", arr_)
+}
+
+// Used in the specific case of looking up individual elements in a map
+func (e Environment) MapLookup(var_ string, index RuntimeValue) (RuntimeValue, error) {
+
+	mapp_, err := e.Lookup(var_)
+	if err != nil {
+		return nil, err
+	}
+
+	if mapp, ok := mapp_.(MapValue); ok {
+
+		// The specified index value is out of bounds!
+		val, ok := mapp.Value[index]
+		if ok {
+			return val, nil
+		} else {
+			return nil, fmt.Errorf("key `%v` does not exist for map: %v", index, mapp)
+		}
+	}
+
+	return nil, fmt.Errorf("invalid map: %v", mapp_)
+}
+
+// Returns true if the Runtime value is an Array type.
+func (e Environment) IsArray(r RuntimeValue) bool {
+
+	if _, ok := r.(ArrayValue); ok {
+		return true
+	}
+
+	return false
+}
+
+// Returns true if the Runtime value is a Map type.
+func (e Environment) IsMap(r RuntimeValue) bool {
+
+	if _, ok := r.(MapValue); ok {
+		return true
+	}
+
+	return false
 }
 
 func (e Environment) Setup() {

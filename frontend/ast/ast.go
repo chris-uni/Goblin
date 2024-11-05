@@ -8,6 +8,7 @@ const (
 	VariableDeclerationNode NodeType = "VariableDeclerationNode"
 	FunctionDeclerationNode NodeType = "FunctionDeclerationNode"
 	ArrayDeclerationNode    NodeType = "ArrayDeclerationNode"
+	MapDeclerationNode      NodeType = "MapDeclerationNode"
 
 	// Expressions.
 	BinaryExprNode       NodeType = "BinaryExprNode"
@@ -71,6 +72,15 @@ type ArrayDecleration struct {
 
 func (a ArrayDecleration) expr() {}
 
+type MapDecleration struct {
+	Kind       NodeType
+	Identifier string
+	Value      map[Expression]Expression
+	Constant   bool
+}
+
+func (m MapDecleration) expr() {}
+
 type FunctionDecleration struct {
 	Kind   NodeType
 	Params []string
@@ -121,13 +131,13 @@ type Identifier struct {
 
 func (i Identifier) expr() {}
 
-type ArrayIdentifier struct {
+type ArrayOrMapIdentifier struct {
 	Kind   NodeType
 	Symbol string
 	Index  Expression
 }
 
-func (ai ArrayIdentifier) expr() {}
+func (aom ArrayOrMapIdentifier) expr() {}
 
 type NumericLiteral struct {
 	Kind  NodeType

@@ -399,6 +399,7 @@ func parse_assignment_expression() (ast.Expression, error) {
 // Parses a complex expression.
 func parse_object_expression() (ast.Expression, error) {
 
+	// Non-map object.
 	if at().Type != lexer.OpenBrace {
 
 		add, err := parse_additive_expression()
@@ -583,7 +584,7 @@ func parse_var_decleration() (ast.Expression, error) {
 		return ast.Expr{}, err
 	}
 
-	// In the case of 'let x = [];', we are declaring an array.
+	// In the case of 'let x = [];', an array is being declared.
 	if at().Type == lexer.OpenBracket {
 
 		// Eat the opening bracket.
@@ -596,7 +597,24 @@ func parse_var_decleration() (ast.Expression, error) {
 		}
 
 		return array_decleration, nil
+
+	} else if at().Type == lexer.OpenBrace {
+
+		// In the case of 'let x = {};', a map is being declared.
+
+		// Eat the opening brace.
+		eat()
+
+		// Attempt to capture all the expressions inside the array.
+		map_decleration, err := parse_map_decleration(identifier.Value, isConst)
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		return map_decleration, nil
 	}
+
+	// Standard variable decleration, i.e. 'let x = 10;'
 
 	value, err := parse_expression()
 	if err != nil {
@@ -618,6 +636,83 @@ func parse_var_decleration() (ast.Expression, error) {
 	return decleration, nil
 }
 
+// Parses a statement that declares a new map.
+func parse_map_decleration(identifier string, isConst bool) (ast.Expression, error) {
+
+	keyValuePairs := make(map[ast.Expression]ast.Expression, 0)
+
+	for at().Type != lexer.CloseBrace && at().Type != lexer.EOF {
+
+		// Capture the key defined.
+		key, err := parse_expression()
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		// Key must be of type IComparable
+		if !isComparableType(key) {
+			return nil, fmt.Errorf("invalid type provided for map key: %v", key)
+		}
+
+		// Next we expect to see a ':'.
+		_, err = expect(lexer.Colon)
+		if err != nil {
+			return nil, err
+		}
+
+		// Capture the value defined.
+		value, err := parse_expression()
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		// Need to make sure the keys are unique.
+		if _, ok := keyValuePairs[key]; ok {
+			return nil, fmt.Errorf("maps keys should be unique: %v", key)
+		}
+
+		// Store the new key/value pair.
+		keyValuePairs[key] = value
+
+		// Next we expect to see a ','.
+		_, err = expect(lexer.Comma)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// End of map body, expect to see a closing bracket.
+	_, err := expect(lexer.CloseBrace)
+	if err != nil {
+		return nil, err
+	}
+
+	// End of array decleration, expect to see an EOL.
+	_, err = expect(lexer.EOL)
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.MapDecleration{
+		Kind:       "MapDeclerationNode",
+		Identifier: identifier,
+		Value:      keyValuePairs,
+		Constant:   isConst,
+	}, nil
+}
+
+// Is the key type one of the valid types Goblin allows for its keys?
+func isComparableType(val any) bool {
+
+	switch any(val).(type) {
+	case ast.NumericLiteral, ast.StringLiteral, ast.BooleanLiteral:
+		return true
+	default:
+		return false
+	}
+}
+
+// Parses a statement that declares a new array.
 func parse_array_decleration(identifier string, isConst bool) (ast.Expression, error) {
 
 	expressions := make([]ast.Expression, 0)
@@ -625,7 +720,6 @@ func parse_array_decleration(identifier string, isConst bool) (ast.Expression, e
 	for at().Type != lexer.CloseBracket && at().Type != lexer.EOF {
 
 		value, err := parse_expression()
-
 		if err != nil {
 			return ast.Expr{}, err
 		}
@@ -890,8 +984,9 @@ func parse_primary_expression() (ast.Expression, error) {
 	switch tk {
 	case lexer.Identifier:
 		// Normal identifier, or array identifier?
-		// Normal = x
-		// Array = x[0]
+		// Normal -> x
+		// Array -> x[0]
+		// Map -> x["foo"]
 
 		identifier := eat() // Capture the identifier value
 
@@ -910,7 +1005,7 @@ func parse_primary_expression() (ast.Expression, error) {
 				return nil, err
 			}
 
-			return ast.ArrayIdentifier{
+			return ast.ArrayOrMapIdentifier{
 				Kind:   "ArrayIdentifierNode",
 				Symbol: identifier.Value,
 				Index:  index,
