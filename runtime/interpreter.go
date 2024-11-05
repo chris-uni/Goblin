@@ -387,6 +387,10 @@ func eval_shorthand_operator_expression(sho ast.ShorthandOperator, env Environme
 					currentValue /= rhs.Value
 				} else if sho.Operator == "%=" {
 					currentValue %= rhs.Value
+				} else if sho.Operator == "+=" {
+					currentValue += rhs.Value
+				} else if sho.Operator == "-=" {
+					currentValue -= rhs.Value
 				}
 
 			} else {

@@ -29,14 +29,24 @@ func Tokenize(sourceCode string) []Token {
 		} else if src[0] == "]" {
 			tokens = append(tokens, token(CloseBracket, utils.Shift[string](&src)))
 
-		} else if src[0] == "+" || src[0] == "-" {
+		} else if src[0] == "+" {
 
-			if (src[0] == "+" && src[1] == "+") || (src[0] == "-" && src[1] == "-") {
-				// Shorthand ++ or --
+			if (src[1] == "+") || (src[1] == "=") {
+				// Shorthand ++ or +=
 				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
 				tokens = append(tokens, token(ShorthandOperator, op))
 			} else {
-				// Standard + or - BinaryOperator.
+				// Standard + BinOp.
+				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
+			}
+		} else if src[0] == "-" {
+
+			if (src[1] == "-") || (src[1] == "=") {
+				// Shorthand -- or -=
+				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
+				tokens = append(tokens, token(ShorthandOperator, op))
+			} else {
+				// Standard - BinOp.
 				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
 			}
 		} else if src[0] == "/" || src[0] == "*" || src[0] == "%" {
