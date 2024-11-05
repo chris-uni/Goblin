@@ -15,6 +15,8 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
 
+	fmt.Printf("%v \n", program)
+
 	evaluation, err := runtime.Evaluate(program, env)
 	if err != nil {
 		return nil, fmt.Errorf("interpreter error: %v", err.Error())

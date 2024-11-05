@@ -1039,8 +1039,23 @@ func parse_identifier() (ast.Expression, error) {
 
 		} else {
 
-			// +=, -=, *=, /=
-			return ast.Expr{}, nil
+			rhs, err := parse_expression()
+			if err != nil {
+				return ast.Expr{}, nil
+			}
+
+			// End of statement.
+			_, err = expect(lexer.EOL)
+			if err != nil {
+				return nil, err
+			}
+
+			return ast.ShorthandOperator{
+				Kind:     "ShorthandOperatorNode",
+				Left:     identifier.Value,
+				Right:    rhs,
+				Operator: opp.Value,
+			}, nil
 		}
 	} else {
 		// Standard identifier.

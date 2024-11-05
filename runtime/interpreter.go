@@ -355,25 +355,57 @@ func eval_shorthand_operator_expression(sho ast.ShorthandOperator, env Environme
 		return nil, err
 	}
 
-	lhs, ok1 := left.(NumberValue)
-	if ok1 {
-		// In the future we can expand this to support other types, such as string concat.
-		// For the moment, this only supports ints.
+	lhs, lok := left.(NumberValue)
 
-		increment := 1
-		if sho.Operator == "--" {
-			increment = -1
+	if lok {
+
+		currentValue := lhs.Value
+
+		if sho.Operator == "++" || sho.Operator == "--" {
+			// Simple Shorthand (x++;)
+
+			if sho.Operator == "++" {
+				currentValue++
+			} else {
+				currentValue--
+			}
+
+		} else {
+			// Complex Shorthand (x += 1;)
+
+			right, err := Evaluate(sho.Right, env)
+			if err != nil {
+				return nil, err
+			}
+
+			rhs, rok := right.(NumberValue)
+			if rok {
+
+				if sho.Operator == "*=" {
+					currentValue *= rhs.Value
+				} else if sho.Operator == "/=" {
+					currentValue /= rhs.Value
+				} else if sho.Operator == "%=" {
+					currentValue %= rhs.Value
+				}
+
+			} else {
+				return nil, fmt.Errorf("invalid type used for operator %v", sho.Operator)
+			}
 		}
 
-		newValue, err := env.Update(sho.Left, MK_NUMBER(lhs.Value+increment))
+		newValue, err := env.Update(sho.Left, MK_NUMBER(currentValue))
 		if err != nil {
 			return nil, err
 		}
 
 		return newValue, nil
+
 	} else {
 		return nil, fmt.Errorf("invalid type used for operator %v", sho.Operator)
 	}
+
+	return nil, fmt.Errorf("invalid operator %v", sho.Operator)
 }
 
 // Evaluates an if condition, i.e. if (10 > 5) { ... }

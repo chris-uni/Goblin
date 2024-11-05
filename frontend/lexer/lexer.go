@@ -40,7 +40,16 @@ func Tokenize(sourceCode string) []Token {
 				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
 			}
 		} else if src[0] == "/" || src[0] == "*" || src[0] == "%" {
-			tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
+
+			// Shorthand operator or standard BinaryOperator?
+			if src[1] == "=" {
+				// Shorthand operator.
+				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
+				tokens = append(tokens, token(ShorthandOperator, op))
+			} else {
+				// Standard BinOp.
+				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
+			}
 		} else if src[0] == ">" || src[0] == "<" {
 			tokens = append(tokens, token(ConditionalOperator, utils.Shift[string](&src)))
 		} else if src[0] == "=" && src[1] != "=" {
