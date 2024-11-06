@@ -18,8 +18,7 @@ func TestSimpleIfCondition(t *testing.T) {
 	}{
 		{`if (10 > 5){
 			println(10);
-		}
-		`, "10\n"},
+		}`, "10\n"},
 		{`if (10 < 20){
 			println(11);
 		}`, "11\n"},

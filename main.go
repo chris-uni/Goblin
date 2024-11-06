@@ -8,6 +8,7 @@ import (
 
 	program "goblin.org/main/program"
 	"goblin.org/main/runtime"
+	"goblin.org/main/utils"
 )
 
 func main() {
@@ -30,14 +31,15 @@ func main() {
 		executable := args[1]
 
 		if !strings.HasSuffix(executable, ".gob") {
-			fmt.Println("Error: File must have a .gob extension!")
+			utils.Stdout("Error: File must have a .gob extension!", env.Stdout)
 			return
 		}
 
 		// Open the file
 		file, err := os.Open(executable)
 		if err != nil {
-			fmt.Println("Error:", err)
+			e := fmt.Sprintf("Error: %v", err)
+			utils.Stdout(e, env.Stdout)
 			return
 		}
 		defer file.Close()
@@ -45,18 +47,20 @@ func main() {
 		// Read the contents of the file.
 		content, err := os.ReadFile(executable)
 		if err != nil {
-			fmt.Println("Error reading file:", err)
+			e := fmt.Sprintf("Error reading file: %v", err)
+			utils.Stdout(e, env.Stdout)
 			return
 		}
 
 		// Run the program.
 		result, err := program.Run(string(content), env)
 		if err != nil {
-			fmt.Println(err.Error())
+			utils.Stdout("test --> "+err.Error(), env.Stdout)
 		} else {
 			// Only really want to print to console if its a statement that needs returning.
 			if result != nil {
-				fmt.Printf("%v\n", result)
+				r := fmt.Sprintf("%v\n", result)
+				utils.Stdout(r, env.Stdout)
 			}
 		}
 
@@ -70,7 +74,8 @@ func main() {
 			fmt.Print("> ")
 			input, err := reader.ReadString('\n')
 			if err != nil {
-				fmt.Println("Error reading input:", err)
+				e := fmt.Sprintf("Error reading input: %v", err)
+				utils.Stdout(e, env.Stdout)
 				return
 			}
 
@@ -78,18 +83,19 @@ func main() {
 			input = strings.TrimSpace(input)
 
 			if input == "exit" {
-				fmt.Println("Goodbye!")
+				utils.Stdout("Goodbye!", env.Stdout)
 				return
 			}
 
 			// Run the program.
 			result, err := program.Run(input, env)
 			if err != nil {
-				fmt.Println(err.Error())
+				utils.Stdout(err.Error(), env.Stdout)
 			} else {
 				// Only really want to print to console if its a statement that needs returning.
 				if result != nil {
-					fmt.Printf("%v\n", result)
+					r := fmt.Sprintf("%v\n", result)
+					utils.Stdout(r, env.Stdout)
 				}
 			}
 		}

@@ -2,6 +2,8 @@ package runtime
 
 import (
 	"fmt"
+
+	"goblin.org/main/utils"
 )
 
 // Defines the built-in method 'print'.
@@ -15,7 +17,7 @@ var Print FunctionCall = func(args []RuntimeValue, env Environment) RuntimeValue
 		builder += printHelper(arg)
 	}
 
-	fmt.Fprintf(env.Stdout, "%v\n", builder)
+	utils.Stdout(builder, env.Stdout)
 
 	return MK_NULL()
 }
@@ -31,7 +33,7 @@ var Println FunctionCall = func(args []RuntimeValue, env Environment) RuntimeVal
 		builder += printHelper(arg)
 	}
 
-	fmt.Fprintf(env.Stdout, "%v\n", builder)
+	utils.Stdout(builder, env.Stdout)
 
 	return MK_NULL()
 }

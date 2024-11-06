@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 )
 
@@ -58,4 +59,10 @@ func StoB(s string) bool {
 	}
 
 	return false
+}
+
+// Language standard output writer.
+func Stdout(s string, buff io.Writer) {
+
+	fmt.Fprintln(buff, s)
 }

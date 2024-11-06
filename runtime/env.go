@@ -195,9 +195,7 @@ func (e Environment) ArrayLookup(var_ string, index int) (RuntimeValue, error) {
 
 		// The specified index value is out of bounds!
 		if index >= len(arr.Value) {
-
-			e := fmt.Sprintf("index out of bounds for index %v \n", index)
-			return MK_STRING(e), fmt.Errorf(e)
+			return nil, fmt.Errorf("index out of bounds for index %v", index)
 		}
 		return arr.Value[index], nil
 	}
