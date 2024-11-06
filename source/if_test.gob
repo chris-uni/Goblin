@@ -1,3 +1,0 @@
-if (2 > 1){
-    println("2 is bigger than 1");
-}
