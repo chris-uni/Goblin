@@ -9,6 +9,7 @@ const (
 	FunctionDeclerationNode NodeType = "FunctionDeclerationNode"
 	ArrayDeclerationNode    NodeType = "ArrayDeclerationNode"
 	MapDeclerationNode      NodeType = "MapDeclerationNode"
+	ShorthandOperatorNode   NodeType = "ShorthandOperatorNode" // e.g. ++, --, +=, -=, /=, *=
 
 	// Expressions.
 	BinaryExprNode       NodeType = "BinaryExprNode"
@@ -138,6 +139,15 @@ type ArrayOrMapIdentifier struct {
 }
 
 func (aom ArrayOrMapIdentifier) expr() {}
+
+type ShorthandOperator struct {
+	Kind     NodeType
+	Left     string
+	Right    Expression
+	Operator string
+}
+
+func (sho ShorthandOperator) expr() {}
 
 type NumericLiteral struct {
 	Kind  NodeType

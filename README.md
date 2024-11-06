@@ -62,3 +62,13 @@ fn testPrint(){
 }
 testPrint();
 ```
+
+### Supported Operators
+```
+x += 1;
+x -= 1;
+x /= 1;
+x *= 1;
+x++;
+x--;
+```

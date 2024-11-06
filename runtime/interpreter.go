@@ -13,9 +13,18 @@ func Evaluate(astNode ast.Expression, env Environment) (RuntimeValue, error) {
 
 		return MK_NUMBER(value.Value), nil
 
-	} else if binop, ok := astNode.(ast.BinaryExpr); ok {
+	} else if sho, ok := astNode.(ast.ShorthandOperator); ok {
 
-		binop, err := eval_binary_expression(binop, env)
+		shoVal, err := eval_shorthand_operator_expression(sho, env)
+		if err != nil {
+			return nil, err
+		}
+
+		return shoVal, err
+
+	} else if bino, ok := astNode.(ast.BinaryExpr); ok {
+
+		binop, err := eval_binary_expression(bino, env)
 		if err != nil {
 			return nil, err
 		}
@@ -339,6 +348,70 @@ func eval_while_expression(w ast.WhileLoop, env Environment) (RuntimeValue, erro
 	return MK_NULL(), nil
 }
 
+func eval_shorthand_operator_expression(sho ast.ShorthandOperator, env Environment) (RuntimeValue, error) {
+
+	left, err := env.Lookup(sho.Left)
+	if err != nil {
+		return nil, err
+	}
+
+	lhs, lok := left.(NumberValue)
+
+	if lok {
+
+		currentValue := lhs.Value
+
+		if sho.Operator == "++" || sho.Operator == "--" {
+			// Simple Shorthand (x++;)
+
+			if sho.Operator == "++" {
+				currentValue++
+			} else {
+				currentValue--
+			}
+
+		} else {
+			// Complex Shorthand (x += 1;)
+
+			right, err := Evaluate(sho.Right, env)
+			if err != nil {
+				return nil, err
+			}
+
+			rhs, rok := right.(NumberValue)
+			if rok {
+
+				if sho.Operator == "*=" {
+					currentValue *= rhs.Value
+				} else if sho.Operator == "/=" {
+					currentValue /= rhs.Value
+				} else if sho.Operator == "%=" {
+					currentValue %= rhs.Value
+				} else if sho.Operator == "+=" {
+					currentValue += rhs.Value
+				} else if sho.Operator == "-=" {
+					currentValue -= rhs.Value
+				}
+
+			} else {
+				return nil, fmt.Errorf("invalid type used for operator %v", sho.Operator)
+			}
+		}
+
+		newValue, err := env.Update(sho.Left, MK_NUMBER(currentValue))
+		if err != nil {
+			return nil, err
+		}
+
+		return newValue, nil
+
+	} else {
+		return nil, fmt.Errorf("invalid type used for operator %v", sho.Operator)
+	}
+
+	return nil, fmt.Errorf("invalid operator %v", sho.Operator)
+}
+
 // Evaluates an if condition, i.e. if (10 > 5) { ... }
 func eval_if_condition_expression(iif ast.IfCondition, env Environment) (RuntimeValue, error) {
 
@@ -619,7 +692,9 @@ func eval_binary_expression(binop ast.BinaryExpr, env Environment) (RuntimeValue
 	if ok1 && ok2 {
 
 		// Is this a mathemetical expression?
-		if binop.Operator == "+" || binop.Operator == "-" || binop.Operator == "/" || binop.Operator == "*" || binop.Operator == "%" {
+		if binop.Operator == "+" || binop.Operator == "-" ||
+			binop.Operator == "/" || binop.Operator == "*" ||
+			binop.Operator == "%" {
 			return eval_numeric_expression(NumberValue{Type: "Number", Value: lhs.Value}, NumberValue{Type: "Number", Value: rhs.Value}, binop.Operator)
 
 			// Or is this a boolean (logical) expression?
@@ -654,6 +729,8 @@ func eval_numeric_expression(lhs NumberValue, rhs NumberValue, opp string) (Numb
 
 	} else if opp == "%" {
 		result = lhs.Value % rhs.Value
+	} else {
+		return NumberValue{}, fmt.Errorf("invalid binop provided: %v", opp)
 	}
 
 	return MK_NUMBER(result), nil
