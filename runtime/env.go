@@ -218,7 +218,7 @@ func (e Environment) MapLookup(var_ string, index RuntimeValue) (RuntimeValue, e
 		if ok {
 			return val, nil
 		} else {
-			return nil, fmt.Errorf("key `%v` does not exist for map: %v", index, mapp)
+			return nil, fmt.Errorf("key `%v` does not exist for map: %v", index, var_)
 		}
 	}
 
