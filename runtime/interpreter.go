@@ -388,6 +388,7 @@ func eval_for_expression(f ast.ForLoop, env Environment) (RuntimeValue, error) {
 	return result, nil
 }
 
+// Evaluates the provided body of a for loop.
 func eval_for_body(binop ast.BinaryExpr, body []ast.Expression, sho ast.ShorthandOperator, env Environment) (RuntimeValue, error) {
 
 	var isConditionTrue bool
@@ -413,12 +414,21 @@ func eval_for_body(binop ast.BinaryExpr, body []ast.Expression, sho ast.Shorthan
 		}
 	}
 
-	// This iteration, is the for condition still true?
+	// Is the for condition still true?
 	if isConditionTrue {
+
+		// Scope of for loop.
+		// Each iteration of the loop is distinct from all previous iterations.
+		iterationSpecificEnv := Environment{
+			Stdout:    env.Stdout,
+			Parent:    &env,
+			Constants: map[string]bool{},
+			Variables: map[string]RuntimeValue{},
+		}
 
 		for _, stmt := range body {
 
-			_, err := Evaluate(stmt, env)
+			_, err := Evaluate(stmt, iterationSpecificEnv)
 			if err != nil {
 				return nil, err
 			}

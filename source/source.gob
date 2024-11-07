@@ -1,13 +1,12 @@
-let arr = ["one", "two", "three"];
+let arrrr = ["foo", "bar", "foobar"];
 let map = {
-    "one": 1,
-    "two": 2,
-    "three": 3,
+    "foo": "10",
+    "bar": 20,
+    "foobar": true,
 };
 
 for(let i = 0; i < 3; i++;){
-    let key = arr[i];
-    let value = map[key];
-
-    println(value);
+    let key = arrrr[i];
+    let val = map[key];
+    println(val);
 }
