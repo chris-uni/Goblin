@@ -40,6 +40,15 @@ func Evaluate(astNode ast.Expression, env Environment) (RuntimeValue, error) {
 
 		return while, err
 
+	} else if f, ok := astNode.(ast.ForLoop); ok {
+
+		for_, err := eval_for_expression(f, env)
+		if err != nil {
+			return nil, err
+		}
+
+		return for_, err
+
 	} else if str, ok := astNode.(ast.StringLiteral); ok {
 
 		str, err := eval_string_expression(str, env)
@@ -348,6 +357,86 @@ func eval_while_expression(w ast.WhileLoop, env Environment) (RuntimeValue, erro
 	return MK_NULL(), nil
 }
 
+// Evaluates a standard for loop.
+func eval_for_expression(f ast.ForLoop, env Environment) (RuntimeValue, error) {
+
+	/*
+		Assignment VariableDecleration
+		Condition  BinaryExpr
+		Iterator   ShorthandOperator
+		Body       []Expression
+	*/
+
+	// Scope of for loop.
+	newScope := Environment{
+		Stdout:    env.Stdout,
+		Parent:    &env,
+		Constants: map[string]bool{},
+		Variables: map[string]RuntimeValue{},
+	}
+
+	_, err := eval_var_decleration(f.Assignment, newScope)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := eval_for_body(f.Condition, f.Body, f.Iterator, newScope)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func eval_for_body(binop ast.BinaryExpr, body []ast.Expression, sho ast.ShorthandOperator, env Environment) (RuntimeValue, error) {
+
+	var isConditionTrue bool
+
+	left, err := Evaluate(binop.Left, env)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := Evaluate(binop.Right, env)
+	if err != nil {
+		return nil, err
+	}
+
+	lhs, ok1 := left.(NumberValue)
+	rhs, ok2 := right.(NumberValue)
+
+	if ok1 && ok2 {
+		b, err := eval_numeric_boolean_expression(lhs, rhs, binop.Operator)
+		isConditionTrue = b.Value
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// This iteration, is the for condition still true?
+	if isConditionTrue {
+
+		for _, stmt := range body {
+
+			_, err := Evaluate(stmt, env)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// Increase the incrementor variable by whatever the shorthand operator is.
+		_, err := eval_shorthand_operator_expression(sho, env)
+		if err != nil {
+			return nil, err
+		}
+
+		// Run again, perhaps next time the loop will break?
+		eval_for_body(binop, body, sho, env)
+	}
+
+	return MK_NULL(), nil
+}
+
 func eval_shorthand_operator_expression(sho ast.ShorthandOperator, env Environment) (RuntimeValue, error) {
 
 	left, err := env.Lookup(sho.Left)
@@ -398,6 +487,7 @@ func eval_shorthand_operator_expression(sho ast.ShorthandOperator, env Environme
 			}
 		}
 
+		// Update the value of the initial variable.
 		newValue, err := env.Update(sho.Left, MK_NUMBER(currentValue))
 		if err != nil {
 			return nil, err

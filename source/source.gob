@@ -1,5 +1,13 @@
-fn testPrint(a, b, c){
-    let x = a + b;
-    println(x);
+let arr = ["one", "two", "three"];
+let map = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+};
+
+for(let i = 0; i < 3; i++;){
+    let key = arr[i];
+    let value = map[key];
+
+    println(value);
 }
-testPrint(1, 3);

@@ -121,6 +121,14 @@ func parse_statement() (ast.Expression, error) {
 		}
 
 		return while, nil
+	case lexer.For:
+
+		while, err := parse_for_loop()
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		return while, nil
 	default:
 		expr, err := parse_expression()
 		if err != nil {
@@ -336,6 +344,97 @@ func parse_while_loop() (ast.Expression, error) {
 		Kind:      ast.WhileNode,
 		Condition: condition,
 		Body:      body,
+	}, nil
+}
+
+// Parses a standard for loop, i.e. for( ... ) { ... }
+func parse_for_loop() (ast.Expression, error) {
+
+	eat() // Eat past the 'for' keyword.
+
+	// Start of loop head, should be an open paren there.
+	_, err := expect(lexer.OpenParen)
+	if err != nil {
+		return nil, err
+	}
+
+	// Next we should see an assignment expression, i.e. 'let i = 0;'
+	ass, err := parse_var_decleration()
+	if err != nil {
+		return nil, err
+	}
+
+	varDec, isVarDecleration := ass.(ast.VariableDecleration)
+	if !isVarDecleration {
+		return nil, fmt.Errorf("invalid assigment statement provided: %v", ass)
+	}
+
+	// Next we expect to see our binary expression, as this is how we determine if the loop should keep running.
+	expr, err := parse_statement()
+	if err != nil {
+		return nil, err
+	}
+
+	// Now we should get the type of the above expression.
+	binop, isBinop := expr.(ast.BinaryExpr)
+	if !isBinop {
+		return nil, fmt.Errorf("invalid condition in loop: %v", binop)
+	}
+
+	// Next should be another ';'.
+	_, err = expect(lexer.EOL)
+	if err != nil {
+		return nil, err
+	}
+
+	// Finally, we expect to see a shorthand operator expression.
+	she, err := parse_identifier()
+	if err != nil {
+		return nil, err
+	}
+
+	shorthandOp, isShorthand := she.(ast.ShorthandOperator)
+	if !isShorthand {
+		return nil, fmt.Errorf("invalid shorthand operator provided: %v", shorthandOp)
+	}
+
+	// End of loop header, should see ')'.
+	_, err = expect(lexer.CloseParen)
+	if err != nil {
+		return nil, err
+	}
+
+	// Start of loop body, expect to see '{'.
+	_, err = expect(lexer.OpenBrace)
+	if err != nil {
+		return nil, err
+	}
+
+	body := make([]ast.Expression, 0)
+
+	// Until we hit the end of the if body.
+	for at().Type != lexer.CloseBrace && at().Type != lexer.EOF {
+
+		stmt, err := parse_statement()
+		if err != nil {
+			return nil, err
+		}
+
+		body = append(body, stmt)
+	}
+
+	// Start of loop body, expect to see '{'.
+	_, err = expect(lexer.CloseBrace)
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.ForLoop{
+		Kind:       "ForNode",
+		Assignment: varDec,
+		Condition:  binop,
+		Iterator:   shorthandOp,
+		Body:       body,
 	}, nil
 }
 

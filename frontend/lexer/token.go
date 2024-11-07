@@ -56,7 +56,8 @@ const (
 	Fn    TokenType = "Fn"    // declaring new functions
 	If    TokenType = "If"    // standard if condition
 	Else  TokenType = "Else"  // standard else condition
-	While TokenType = "While" // standard while condition
+	While TokenType = "While" // standard while loop
+	For   TokenType = "For"   // standard for loop
 
 	// End of Line.
 	EOL TokenType = "EOL"
@@ -72,4 +73,5 @@ var Keywords = map[string]TokenType{
 	"if":    If,
 	"else":  Else,
 	"while": While,
+	"for":   For,
 }
