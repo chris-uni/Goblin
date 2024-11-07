@@ -550,11 +550,15 @@ func eval_call_expr(expr ast.CallExpr, env Environment) (RuntimeValue, error) {
 			Variables: map[string]RuntimeValue{},
 		}
 
-		// Make vars for params list.
-		for i := 0; i < len(userFunc.Params); i++ {
+		// Does number of provided params match the expected params?
+		providedParamCount := len(expr.Args)
+		expectingParamCount := len(userFunc.Params)
+		if expectingParamCount != providedParamCount {
+			return nil, fmt.Errorf("incorrect number of params specified for fn %v, got %v want %v", userFunc.Name, providedParamCount, expectingParamCount)
+		}
 
-			// TO-DO, verify that the number of args being passed in matched the number of params
-			// specified in function decleration.
+		// Make vars for params list.
+		for i := 0; i < expectingParamCount; i++ {
 			varName := userFunc.Params[i]
 			newScope.Declare(varName, args[i], false)
 		}

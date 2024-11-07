@@ -1,0 +1,5 @@
+fn testPrint(a, b, c){
+    let x = a + b;
+    println(x);
+}
+testPrint(1, 3);

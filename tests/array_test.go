@@ -1,33 +1,54 @@
 package tests
 
 import (
-	"os"
+	"fmt"
 	"testing"
 
 	"goblin.org/main/program"
 )
 
-// Tests a basic `if` condition.
-func TestArray(t *testing.T) {
+func TestSimpleArray(t *testing.T) {
 
 	// Setup the program env.
 	HarnessSetup()
 
-	file := "../source/array_test.gob"
-	expected := "10\n34\n56\n12\n78\n"
-
-	source, err := os.ReadFile(file)
-	if err != nil {
-		t.Errorf(err.Error())
+	var tests = []struct {
+		source      string
+		want        string
+		throwsError bool
+	}{
+		{`let arr = [1, 2, 3, 4, 5];
+		println(arr[2]);`, "3\n", false},
+		{`let arrr = [1, 2, 3, 4, 5];
+		println(arrr[6]);`, "interpreter error: index out of bounds for index 6", true},
 	}
 
-	// Run the program.
-	_, err = program.Run(string(source), env)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
+		t.Run(testname, func(t *testing.T) {
 
-	if expected != output.String() {
-		t.Errorf("expected `%v`, received `%v`", expected, output.String())
+			// Run the program.
+			_, err := program.Run(string(tt.source), env)
+
+			if !tt.throwsError {
+
+				// When tests aren't supposed to throw an error.
+				if err != nil {
+					t.Errorf(err.Error())
+				}
+
+				if output.String() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
+				}
+			} else {
+
+				// When tests are supposed to throw an error.
+				if err.Error() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, err.Error())
+				}
+			}
+
+			FlushBuffer()
+		})
 	}
 }

@@ -1,33 +1,53 @@
 package tests
 
 import (
-	"os"
+	"fmt"
 	"testing"
 
 	"goblin.org/main/program"
 )
 
-// Tests a basic `if` condition.
-func TestIfCondition(t *testing.T) {
+func TestSimpleIfCondition(t *testing.T) {
 
 	// Setup the program env.
 	HarnessSetup()
 
-	file := "../source/if_test.gob"
-	expected := "2 is bigger than 1\n"
-
-	source, err := os.ReadFile(file)
-	if err != nil {
-		t.Errorf(err.Error())
+	var tests = []struct {
+		source string
+		want   string
+	}{
+		{`if (10 > 5){
+			println(10);
+		}`, "10\n"},
+		{`if (10 < 20){
+			println(11);
+		}`, "11\n"},
+		{`if (10 == 10){
+			println(10);
+		}`, "10\n"},
+		{`if (5 > 10){
+			println(5);
+		}
+		else {
+			println(10);
+		}`, "10\n"},
 	}
 
-	// Run the program.
-	_, err = program.Run(string(source), env)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
+		t.Run(testname, func(t *testing.T) {
 
-	if expected != output.String() {
-		t.Errorf("expected `%v`, received `%v`", expected, output.String())
+			// Run the program.
+			_, err := program.Run(string(tt.source), env)
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+
+			if output.String() != tt.want {
+				t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
+			}
+
+			FlushBuffer()
+		})
 	}
 }

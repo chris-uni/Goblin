@@ -1,7 +1,0 @@
-let x = [10, 34, 56, 12, 78];
-let index = 0;
-
-while(index < 5){
-    println(x[index]);
-    index = index + 1;
-}

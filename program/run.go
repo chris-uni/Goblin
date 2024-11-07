@@ -5,6 +5,7 @@ import (
 
 	"goblin.org/main/frontend/parser"
 	"goblin.org/main/runtime"
+	"goblin.org/main/utils"
 )
 
 // Where the source goes to be lexed, parsed, interpreted, and returned.
@@ -15,6 +16,8 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
 
+	// fmt.Printf("%v \n", program)
+
 	evaluation, err := runtime.Evaluate(program, env)
 	if err != nil {
 		return nil, fmt.Errorf("interpreter error: %v", err.Error())
@@ -22,7 +25,8 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 
 	if f, isNum := evaluation.(runtime.NativeFunction); isNum {
 
-		fmt.Printf("%v\n", f.Call)
+		r := fmt.Sprintf("%v\n", f.Call)
+		utils.Stdout(r, env.Stdout)
 		return nil, nil
 	}
 

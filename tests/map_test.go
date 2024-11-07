@@ -1,33 +1,60 @@
 package tests
 
 import (
-	"os"
+	"fmt"
 	"testing"
 
 	"goblin.org/main/program"
 )
 
-// Tests a basic `if` condition.
-func TestMap(t *testing.T) {
+func TestSimpleMap(t *testing.T) {
 
 	// Setup the program env.
 	HarnessSetup()
 
-	file := "../source/map_test.gob"
-	expected := "10\n30\n"
-
-	source, err := os.ReadFile(file)
-	if err != nil {
-		t.Errorf(err.Error())
+	var tests = []struct {
+		source      string
+		want        string
+		throwsError bool
+	}{
+		{`let map = {
+			"foo": 10,
+			"bar": 20,
+		};
+		println(map["foo"]);`, "10\n", false},
+		{`let mapp = {
+			"foo": 10,
+			"bar": 20,
+		};
+		println(mapp["baz"]);`, "interpreter error: key `{String baz}` does not exist for map: mapp", true},
 	}
 
-	// Run the program.
-	_, err = program.Run(string(source), env)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
+		t.Run(testname, func(t *testing.T) {
 
-	if expected != output.String() {
-		t.Errorf("expected `%v`, received `%v`", expected, output.String())
+			// Run the program.
+			_, err := program.Run(string(tt.source), env)
+
+			if !tt.throwsError {
+
+				// When tests aren't supposed to throw an error.
+				if err != nil {
+					t.Errorf(err.Error())
+				}
+
+				if output.String() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
+				}
+			} else {
+
+				// When tests are supposed to throw an error.
+				if err.Error() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, err.Error())
+				}
+			}
+
+			FlushBuffer()
+		})
 	}
 }

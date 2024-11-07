@@ -20,3 +20,7 @@ func HarnessSetup() {
 
 	env.Setup()
 }
+
+func FlushBuffer() {
+	output = bytes.Buffer{}
+}
