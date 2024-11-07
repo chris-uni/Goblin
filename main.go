@@ -55,7 +55,7 @@ func main() {
 		// Run the program.
 		result, err := program.Run(string(content), env)
 		if err != nil {
-			utils.Stdout("test --> "+err.Error(), env.Stdout)
+			utils.Stdout(err.Error(), env.Stdout)
 		} else {
 			// Only really want to print to console if its a statement that needs returning.
 			if result != nil {

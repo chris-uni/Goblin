@@ -57,3 +57,7 @@ let x = {
 };
 
 let var = x.foo;
+
+To-Do:
+- Fix functions when params are passed in and we want to return a value
+- For loops
