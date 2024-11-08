@@ -55,6 +55,22 @@ while (i < 10) {
 }
 ```
 
+#### for
+```
+let arr = ["foo", "bar", "foobar"];
+let map = {
+    "foo": "10",
+    "bar": 20,
+    "foobar": true,
+};
+
+for(let i = 0; i < 3; i++;){
+    let key = arr[i];
+    let val = map[key];
+    println(val);
+}
+```
+
 ### Function Decleration & calling
 ```
 fn testPrint(){

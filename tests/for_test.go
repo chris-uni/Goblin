@@ -7,7 +7,7 @@ import (
 	"goblin.org/main/program"
 )
 
-func TestWhile(t *testing.T) {
+func TestForLoop(t *testing.T) {
 
 	// Setup the program env.
 	HarnessSetup()
@@ -17,22 +17,37 @@ func TestWhile(t *testing.T) {
 		want        string
 		throwsError bool
 	}{
-		{`let i = 0;
-		while (i < 5) {
+		{`for(let i = 0; i < 5; i++;){
 			println(i);
-			i++;
 		}`, "0\n1\n2\n3\n4\n", false},
-		{`let j = 5;
-		while (j > 0) {
-			println(j);
-			j--;
+		{`for(let i = 5; i > 0; i--;){
+			println(i);
 		}`, "5\n4\n3\n2\n1\n", false},
-		{`let arr = [];
-		let k = 0;
-		while (k < 1) {
-			println(arr[k]);
-			k++;
-		}`, "interpreter error: index out of bounds for index 0", true},
+		{`let arr = [1, 2, 3, 4, 5];
+		for(let i = 0; i < 5; i++;){
+			println(arr[i]);
+		}`, "1\n2\n3\n4\n5\n", false},
+		{`let arrr = ["foo", "bar", "foobar"];
+		for(let i = 0; i < 3; i++;){
+			let val = arrr[i];
+			println(val);
+		}`, "foo\nbar\nfoobar\n", false},
+		{`let arrrr = ["foo", "bar", "foobar"];
+		let map = {
+			"foo": 10,
+			"bar": 20,
+			"foobar": 30,
+		};
+
+		for(let i = 0; i < 3; i++;){
+			let key = arrrr[i];
+			let val = map[key];
+			println(val);
+		}`, "10\n20\n30\n", false},
+		{`let smallArray = [1, 2];
+		for (let i = 2; i < 3; i++;){
+			println(smallArray[i]);
+		}`, "interpreter error: index out of bounds for index 2", true},
 	}
 
 	for _, tt := range tests {

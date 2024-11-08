@@ -33,6 +33,7 @@ const (
 	IfNode      NodeType = "IfNode"
 	TernaryNode NodeType = "TernaryNode"
 	WhileNode   NodeType = "WhileNode"
+	ForNode     NodeType = "ForNode"
 
 	// Misc.
 	UnknownNode NodeType = "UnknownNode"
@@ -196,6 +197,16 @@ type WhileLoop struct {
 }
 
 func (w WhileLoop) expr() {}
+
+type ForLoop struct {
+	Kind       NodeType
+	Assignment VariableDecleration
+	Condition  BinaryExpr
+	Iterator   ShorthandOperator
+	Body       []Expression
+}
+
+func (f ForLoop) expr() {}
 
 type Property struct {
 	Kind  string
