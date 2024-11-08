@@ -351,7 +351,10 @@ func eval_while_expression(w ast.WhileLoop, env Environment) (RuntimeValue, erro
 			}
 		}
 
-		eval_while_expression(w, env)
+		_, err := eval_while_expression(w, env)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return MK_NULL(), nil
@@ -359,13 +362,6 @@ func eval_while_expression(w ast.WhileLoop, env Environment) (RuntimeValue, erro
 
 // Evaluates a standard for loop.
 func eval_for_expression(f ast.ForLoop, env Environment) (RuntimeValue, error) {
-
-	/*
-		Assignment VariableDecleration
-		Condition  BinaryExpr
-		Iterator   ShorthandOperator
-		Body       []Expression
-	*/
 
 	// Scope of for loop.
 	newScope := Environment{
@@ -441,7 +437,10 @@ func eval_for_body(binop ast.BinaryExpr, body []ast.Expression, sho ast.Shorthan
 		}
 
 		// Run again, perhaps next time the loop will break?
-		eval_for_body(binop, body, sho, env)
+		_, err = eval_for_body(binop, body, sho, env)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return MK_NULL(), nil

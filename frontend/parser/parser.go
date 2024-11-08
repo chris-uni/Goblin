@@ -1102,7 +1102,7 @@ func parse_identifier() (ast.Expression, error) {
 		}
 
 		return ast.ArrayOrMapIdentifier{
-			Kind:   "ArrayIdentifierNode",
+			Kind:   "ArrayOrMapIdentifierNode",
 			Symbol: identifier.Value,
 			Index:  index,
 		}, nil

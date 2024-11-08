@@ -44,6 +44,10 @@ func TestForLoop(t *testing.T) {
 			let val = map[key];
 			println(val);
 		}`, "10\n20\n30\n", false},
+		{`let smallArray = [1, 2];
+		for (let i = 2; i < 3; i++;){
+			println(smallArray[i]);
+		}`, "interpreter error: index out of bounds for index 2", true},
 	}
 
 	for _, tt := range tests {
