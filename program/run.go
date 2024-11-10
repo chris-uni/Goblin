@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"goblin.org/main/frontend/parser"
-	"goblin.org/main/runtime"
+	runtime "goblin.org/main/runtime"
 	"goblin.org/main/utils"
 )
 
@@ -15,8 +15,6 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
-
-	// fmt.Printf("%v \n", program)
 
 	evaluation, err := runtime.Evaluate(program, env)
 	if err != nil {

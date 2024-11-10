@@ -5,11 +5,16 @@ import (
 	"io"
 )
 
+var register = map[string]Namespace{
+	"io": IO,
+}
+
 type Environment struct {
-	Parent    *Environment
-	Stdout    io.Writer
-	Variables map[string]RuntimeValue
-	Constants map[string]bool
+	Parent     *Environment
+	Stdout     io.Writer
+	Variables  map[string]RuntimeValue
+	Constants  map[string]bool
+	Namespaces map[string]Namespace
 }
 
 // Used to declare a new variable. Includes checking for variable already existing.
@@ -122,7 +127,16 @@ func (e Environment) Resolve(var_ string) (Environment, error) {
 
 	// No parent exists in scope.
 	if e.Parent == nil {
-		return Environment{}, fmt.Errorf("reference to undefined variable '%v'", var_)
+
+		// Could be a reference to a Namespace?
+		_, isNamespace := e.Namespaces[var_]
+		if isNamespace {
+			return e, nil
+
+		} else {
+			// No idea.
+			return Environment{}, fmt.Errorf("reference to undefined variable '%v'", var_)
+		}
 	}
 
 	res, err := e.Parent.Resolve(var_)
@@ -142,6 +156,44 @@ func (e Environment) Lookup(var_ string) (RuntimeValue, error) {
 	}
 
 	return env.Variables[var_], nil
+}
+
+// Attempts to add a new namespace to an environment.
+func (e Environment) AddNamespace(var_ string) error {
+
+	namespace, ok := register[var_]
+	if ok {
+		// Add namespace.
+		e.Namespaces[var_] = namespace
+		return nil
+	}
+
+	// Namespace does not exist, perhaps not added to stdlib yet?
+	return fmt.Errorf("unrecognised namespace: %v", var_)
+}
+
+// Attempts to resolve the namespace this variable maps to.
+func (e Environment) LookupNamespace(var_ string) (*Namespace, error) {
+
+	env, err := e.Resolve(var_)
+	if err != nil {
+		return &Namespace{}, err
+	}
+
+	n := env.Namespaces[var_]
+
+	return &n, nil
+}
+
+// Attemptsm to resolve a namespace property to a function.
+func (e Environment) LookupNativeFunction(ns Namespace, prop string) (NativeFunction, error) {
+
+	fn, ok := ns.Functions[prop]
+	if !ok {
+		return NativeFunction{}, fmt.Errorf("undefined fucntion: %v for namespace: %v", prop, ns.Name)
+	}
+
+	return fn, nil
 }
 
 func (e Environment) ArrayOrMapLookup(var_ string, i RuntimeValue) (RuntimeValue, error) {
@@ -250,7 +302,4 @@ func (e Environment) Setup() {
 	e.Declare("null", MK_NULL(), true)
 	e.Declare("true", MK_BOOL(true), true)
 	e.Declare("false", MK_BOOL(false), true)
-
-	e.Declare("print", MK_NATIVE_FN(Print), true)
-	e.Declare("println", MK_NATIVE_FN(Println), true)
 }

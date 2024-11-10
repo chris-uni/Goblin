@@ -6,9 +6,23 @@ import (
 	"goblin.org/main/utils"
 )
 
+var IO = Namespace{
+	Name: "io",
+	Functions: map[string]NativeFunction{
+		"print": {
+			Type: "NativeFn",
+			Call: print,
+		},
+		"println": {
+			Type: "NativeFn",
+			Call: println,
+		},
+	},
+}
+
 // Defines the built-in method 'print'.
 // Depending on arg value type, print is handled in different ways.
-var Print FunctionCall = func(args []RuntimeValue, env Environment) RuntimeValue {
+var print FunctionCall = func(args []RuntimeValue, env Environment) RuntimeValue {
 
 	builder := ""
 
@@ -24,7 +38,7 @@ var Print FunctionCall = func(args []RuntimeValue, env Environment) RuntimeValue
 
 // Defines the built-in method 'println'.
 // Same as 'print' but adds a '\n' char at the end of the output.
-var Println FunctionCall = func(args []RuntimeValue, env Environment) RuntimeValue {
+var println FunctionCall = func(args []RuntimeValue, env Environment) RuntimeValue {
 
 	builder := ""
 

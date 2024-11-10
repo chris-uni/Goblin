@@ -129,6 +129,14 @@ func parse_statement() (ast.Expression, error) {
 		}
 
 		return while, nil
+	case lexer.Using:
+
+		using, err := parse_using_decleration()
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		return using, nil
 	default:
 		expr, err := parse_expression()
 		if err != nil {
@@ -989,6 +997,34 @@ func parse_args_list() ([]ast.Expression, error) {
 	}
 
 	return args, nil
+}
+
+// Parses a 'using' directive.
+func parse_using_decleration() (ast.Expression, error) {
+
+	// Move past the 'using' keyword.
+	eat()
+
+	val, err := parse_statement()
+	if err != nil {
+		return nil, err
+	}
+
+	str, ok := val.(ast.StringLiteral)
+	if !ok {
+		return nil, fmt.Errorf("string type required with using directives, got %v", val)
+	}
+
+	// Always expect to see a ';' after a using directive.
+	_, err = expect(lexer.EOL)
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.NamespaceDecleration{
+		Kind: "NamespaceDecleration",
+		Name: str.Value,
+	}, nil
 }
 
 // Parses how to access member fields from an object.

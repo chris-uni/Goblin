@@ -166,14 +166,30 @@ func Evaluate(astNode ast.Expression, env Environment) (RuntimeValue, error) {
 
 		return fn, nil
 
-	} else if assign, ok := astNode.(ast.AssignmentExpr); ok {
+	} else if a, ok := astNode.(ast.AssignmentExpr); ok {
 
-		assign, err := eval_assignment_expression(assign, env)
+		assign, err := eval_assignment_expression(a, env)
 		if err != nil {
 			return nil, err
 		}
 
 		return assign, nil
+	} else if u, ok := astNode.(ast.NamespaceDecleration); ok {
+
+		using, err := eval_namespace_decleration(u, env)
+		if err != nil {
+			return nil, err
+		}
+
+		return using, nil
+	} else if mem, ok := astNode.(ast.MemberExpr); ok {
+
+		member, err := eval_member_expression(mem, env)
+		if err != nil {
+			return nil, err
+		}
+
+		return member, nil
 	}
 
 	return nil, fmt.Errorf("unrecognised node in source %v", astNode)
@@ -205,7 +221,19 @@ func eval_identifier(iden ast.Identifier, env Environment) (RuntimeValue, error)
 		return nil, err
 	}
 
-	return val, nil
+	// Variable found.
+	if val != nil {
+		return val, nil
+	} else {
+
+		// Potentially a Namespace?
+		namespace, err := env.LookupNamespace(iden.Symbol)
+		if err != nil {
+			return nil, err
+		}
+
+		return namespace, nil
+	}
 }
 
 // Evaluates either an array or map index accessor.
@@ -504,8 +532,6 @@ func eval_shorthand_operator_expression(sho ast.ShorthandOperator, env Environme
 
 		return newValue, nil
 
-	} else {
-		return nil, fmt.Errorf("invalid type used for operator %v", sho.Operator)
 	}
 
 	return nil, fmt.Errorf("invalid operator %v", sho.Operator)
@@ -601,10 +627,78 @@ func eval_if_condition_expression(iif ast.IfCondition, env Environment) (Runtime
 	return result, nil
 }
 
+// Evaluates a new 'using' directive. Attempts to import the specified module.
+func eval_namespace_decleration(ns ast.NamespaceDecleration, env Environment) (RuntimeValue, error) {
+
+	moduleName := ns.Name
+	err := env.AddNamespace(moduleName)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
 // Evaluates a string expression.
 func eval_string_expression(str ast.StringLiteral, env Environment) (RuntimeValue, error) {
 
 	return MK_STRING(str.Value), nil
+}
+
+// Evaluates a member call, i.e. 'io.print();'.
+func eval_member_expression(mem ast.MemberExpr, env Environment) (RuntimeValue, error) {
+
+	// Get object (caller).
+	obj, ok := mem.Object.(ast.Identifier)
+	if !ok {
+		return nil, fmt.Errorf("object identifier invalid: %v", mem.Object)
+	}
+
+	// Get property (method).
+	prop, ok := mem.Property.(ast.Identifier)
+	if !ok {
+		return nil, fmt.Errorf("object property invalid: %v", mem.Property)
+	}
+
+	// Our function placeholder.
+	var fn RuntimeValue
+
+	// Lookup to see if this is a user defined func or a func part of the stdlib.
+	userFn, err := env.Lookup(obj.Symbol)
+	if err != nil {
+		return nil, err
+	}
+
+	// Potentially a user func.
+	fn = userFn
+
+	// Perhaps its a stdlib func.
+	if userFn == nil {
+
+		// Attempts to resolve namespace of the caller object.
+		stdlibNamespace, err := env.LookupNamespace(obj.Symbol)
+		if err != nil {
+			return nil, err
+		}
+
+		if stdlibNamespace != nil {
+
+			// Namespace exists, but does the object property?
+			stdlibFn, err := env.LookupNativeFunction(*stdlibNamespace, prop.Symbol)
+			if err != nil {
+				return nil, err
+			}
+
+			fn = stdlibFn
+		}
+
+		// No, so return error.
+		if fn == nil {
+			return nil, fmt.Errorf("undefined member call: %v", mem)
+		}
+	}
+
+	return fn, nil
 }
 
 // Evaluates complex object assignments such as 'let foo = {x: 10};'
@@ -623,6 +717,7 @@ func eval_call_expr(expr ast.CallExpr, env Environment) (RuntimeValue, error) {
 		args = append(args, val)
 	}
 
+	// (Probably) evaluates a member call, if so, use defined or part of stdlib?
 	fn, err := Evaluate(expr.Caller, env)
 	if err != nil {
 		return nil, err

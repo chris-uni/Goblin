@@ -179,3 +179,10 @@ func MK_NATIVE_FN(call FunctionCall) NativeFunction {
 		Call: call,
 	}
 }
+
+type Namespace struct {
+	Name      string
+	Functions map[string]NativeFunction
+}
+
+func (n Namespace) runtime() {}
