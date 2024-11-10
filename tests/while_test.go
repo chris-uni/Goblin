@@ -17,20 +17,23 @@ func TestWhile(t *testing.T) {
 		want        string
 		throwsError bool
 	}{
-		{`let i = 0;
+		{`using "io";
+		let i = 0;
 		while (i < 5) {
-			println(i);
+			io.println(i);
 			i++;
 		}`, "0\n1\n2\n3\n4\n", false},
-		{`let j = 5;
+		{`using "io";
+		let j = 5;
 		while (j > 0) {
-			println(j);
+			io.println(j);
 			j--;
 		}`, "5\n4\n3\n2\n1\n", false},
-		{`let arr = [];
+		{`using "io";
+		let arr = [];
 		let k = 0;
 		while (k < 1) {
-			println(arr[k]);
+			io.println(arr[k]);
 			k++;
 		}`, "interpreter error: index out of bounds for index 0", true},
 	}

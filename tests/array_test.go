@@ -17,10 +17,12 @@ func TestSimpleArray(t *testing.T) {
 		want        string
 		throwsError bool
 	}{
-		{`let arr = [1, 2, 3, 4, 5];
-		println(arr[2]);`, "3\n", false},
-		{`let arrr = [1, 2, 3, 4, 5];
-		println(arrr[6]);`, "interpreter error: index out of bounds for index 6", true},
+		{`using "io";
+		let arr = [1, 2, 3, 4, 5];
+		io.println(arr[2]);`, "3\n", false},
+		{`using "io";
+		let arrr = [1, 2, 3, 4, 5];
+		io.println(arrr[6]);`, "interpreter error: index out of bounds for index 6", true},
 	}
 
 	for _, tt := range tests {

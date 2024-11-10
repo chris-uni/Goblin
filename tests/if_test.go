@@ -16,20 +16,24 @@ func TestSimpleIfCondition(t *testing.T) {
 		source string
 		want   string
 	}{
-		{`if (10 > 5){
-			println(10);
+		{`using "io";
+		if (10 > 5){
+			io.println(10);
 		}`, "10\n"},
-		{`if (10 < 20){
-			println(11);
+		{`using "io";
+		if (10 < 20){
+			io.println(11);
 		}`, "11\n"},
-		{`if (10 == 10){
-			println(10);
+		{`using "io";
+		if (10 == 10){
+			io.println(10);
 		}`, "10\n"},
-		{`if (5 > 10){
-			println(5);
+		{`using "io";
+		if (5 > 10){
+			io.println(5);
 		}
 		else {
-			println(10);
+			io.println(10);
 		}`, "10\n"},
 	}
 
