@@ -60,7 +60,7 @@ func main() {
 		} else {
 			// Only really want to print to console if its a statement that needs returning.
 			if result != nil {
-				r := fmt.Sprintf("%v\n", result)
+				r := fmt.Sprintf("%v", result)
 				utils.Stdout(r, env.Stdout)
 			}
 		}
@@ -95,7 +95,7 @@ func main() {
 			} else {
 				// Only really want to print to console if its a statement that needs returning.
 				if result != nil {
-					r := fmt.Sprintf("%v\n", result)
+					r := fmt.Sprintf("%v", result)
 					utils.Stdout(r, env.Stdout)
 				}
 			}

@@ -64,5 +64,5 @@ func StoB(s string) bool {
 // Language standard output writer.
 func Stdout(s string, buff io.Writer) {
 
-	fmt.Fprintln(buff, s)
+	fmt.Fprintf(buff, "%v", s)
 }

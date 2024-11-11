@@ -1,2 +1,3 @@
 using "io";
+io.println("Hello, World!");
 io.print("Hello, World!");

@@ -47,6 +47,8 @@ var println FunctionCall = func(args []RuntimeValue, env Environment) RuntimeVal
 		builder += printHelper(arg)
 	}
 
+	builder += "\n"
+
 	utils.Stdout(builder, env.Stdout)
 
 	return MK_NULL()
