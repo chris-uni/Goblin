@@ -29,44 +29,38 @@ var IO = Namespace{
 }
 
 // Defines the built-in method 'print'.
-// Depending on arg value type, print is handled in different ways.
+// print, a standard printing function.
 var print FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
-	builder := ""
-
-	for _, arg := range args {
-
-		builder += printHelper(arg)
+	str, err := printer(args)
+	if err != nil {
+		return nil, err
 	}
 
-	utils.Stdout(builder, env.Stdout)
+	utils.Stdout(str, env.Stdout)
 
 	return MK_NULL(), nil
 }
 
 // Defines the built-in method 'println'.
-// Same as 'print' but adds a '\n' char at the end of the output.
+// println acts the same as print, but appends a new line to the end.
 var println FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
-	builder := ""
-
-	for _, arg := range args {
-
-		builder += printHelper(arg)
+	str, err := printer(args)
+	if err != nil {
+		return nil, err
 	}
 
-	builder += "\n"
-
-	utils.Stdout(builder, env.Stdout)
+	utils.Stdout(str+"\n", env.Stdout)
 
 	return MK_NULL(), nil
 }
 
 // Defines build-in method 'printf'.
-// Printf allows for formatted statements to be printed.
+// printf allows for formatted statements to be printed.
 var printf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
-	s, err := printer(args)
+	s, err := printerFormatter(args)
 	if err != nil {
 		return nil, err
 	}
@@ -78,10 +72,10 @@ var printf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVal
 }
 
 // Defines build-in method 'printf'.
-// Printf allows for formatted statements to be printed.
+// sprintf allows for formatted statements to be printed.
 var sprintf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
-	s, err := printer(args)
+	s, err := printerFormatter(args)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +84,7 @@ var sprintf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVa
 }
 
 // Helper function for printf, sprintf
-func printer(args []RuntimeValue) (string, error) {
+func printerFormatter(args []RuntimeValue) (string, error) {
 
 	formattedString, isStr := args[0].(StringValue)
 	arguments := args[1:]
@@ -133,6 +127,18 @@ func printer(args []RuntimeValue) (string, error) {
 		} else { // If the current character is not '%', print it literally
 			builder += fmt.Sprintf("%c", formattedString.Value[i])
 		}
+	}
+
+	return builder, nil
+}
+
+func printer(args []RuntimeValue) (string, error) {
+
+	builder := ""
+
+	for _, arg := range args {
+
+		builder += printHelper(arg)
 	}
 
 	return builder, nil
