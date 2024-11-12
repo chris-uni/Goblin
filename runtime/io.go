@@ -17,12 +17,20 @@ var IO = Namespace{
 			Type: "NativeFn",
 			Call: println,
 		},
+		"printf": {
+			Type: "NativeFn",
+			Call: printf,
+		},
+		"sprintf": {
+			Type: "NativeFn",
+			Call: sprintf,
+		},
 	},
 }
 
 // Defines the built-in method 'print'.
 // Depending on arg value type, print is handled in different ways.
-var print FunctionCall = func(args []RuntimeValue, env Environment) RuntimeValue {
+var print FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	builder := ""
 
@@ -33,12 +41,12 @@ var print FunctionCall = func(args []RuntimeValue, env Environment) RuntimeValue
 
 	utils.Stdout(builder, env.Stdout)
 
-	return MK_NULL()
+	return MK_NULL(), nil
 }
 
 // Defines the built-in method 'println'.
 // Same as 'print' but adds a '\n' char at the end of the output.
-var println FunctionCall = func(args []RuntimeValue, env Environment) RuntimeValue {
+var println FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	builder := ""
 
@@ -51,7 +59,83 @@ var println FunctionCall = func(args []RuntimeValue, env Environment) RuntimeVal
 
 	utils.Stdout(builder, env.Stdout)
 
-	return MK_NULL()
+	return MK_NULL(), nil
+}
+
+// Defines build-in method 'printf'.
+// Printf allows for formatted statements to be printed.
+var printf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	s, err := printer(args)
+	if err != nil {
+		return nil, err
+	}
+
+	// Write to std-out.
+	utils.Stdout(s, env.Stdout)
+
+	return MK_NULL(), nil
+}
+
+// Defines build-in method 'printf'.
+// Printf allows for formatted statements to be printed.
+var sprintf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	s, err := printer(args)
+	if err != nil {
+		return nil, err
+	}
+
+	return MK_STRING(s), nil
+}
+
+// Helper function for printf, sprintf
+func printer(args []RuntimeValue) (string, error) {
+
+	formattedString, isStr := args[0].(StringValue)
+	arguments := args[1:]
+	builder := ""
+
+	if !isStr {
+		return "", fmt.Errorf("string type required for formatted string, got %v", formattedString)
+	}
+	for i := 0; i < len(formattedString.Value); i++ {
+		// If we encounter a '%' character
+		if formattedString.Value[i] == '%' {
+			// Check if we have enough arguments
+			if i+1 < len(formattedString.Value) && len(arguments) > 0 {
+				// Switch on the format specifier
+				switch formattedString.Value[i+1] {
+				case 'd': // Integer
+					iVal, err := utils.ToNumber(printHelper(arguments[0]))
+					if err != nil {
+						return "", err
+					}
+
+					builder += fmt.Sprintf("%d", iVal)
+					arguments = arguments[1:]
+					i++
+				case 's': // String
+					builder += fmt.Sprint(printHelper(arguments[0]))
+					arguments = arguments[1:]
+					i++
+				case 'v': // Default of the type specified.
+					builder += fmt.Sprintf("%v", printHelper(arguments[0]))
+					arguments = arguments[1:]
+					i++
+				// Add more cases for other format specifiers as needed
+				default: // If the format specifier is not recognized, print it literally
+					builder += fmt.Sprintf("%c", formattedString.Value[i])
+				}
+			} else { // If there are not enough arguments, print '%' literally
+				builder += fmt.Sprintf("%%")
+			}
+		} else { // If the current character is not '%', print it literally
+			builder += fmt.Sprintf("%c", formattedString.Value[i])
+		}
+	}
+
+	return builder, nil
 }
 
 // Helper funcition for the 'print' built-in function defined above.

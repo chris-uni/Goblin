@@ -1,3 +1,4 @@
 using "io";
-io.println("Hello, World!");
-io.print("Hello, World!");
+
+let x = io.sprintf("Hello, %v", "World");
+io.println(x);

@@ -736,6 +736,11 @@ func parse_var_decleration() (ast.Expression, error) {
 		Constant:   isConst,
 	}
 
+	_, isCallExpr := decleration.Value.(ast.CallExpr)
+	if isCallExpr {
+		return decleration, nil
+	}
+
 	_, err = expect(lexer.EOL)
 	if err != nil {
 		return ast.Expr{}, err

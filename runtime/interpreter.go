@@ -728,7 +728,10 @@ func eval_call_expr(expr ast.CallExpr, env Environment) (RuntimeValue, error) {
 	if isFn {
 		// Build the function call.
 		var func_ FunctionCall = nativeFunc.Call
-		result := func_(args, env)
+		result, err := func_(args, env)
+		if err != nil {
+			return nil, err
+		}
 
 		return result, nil
 	}
