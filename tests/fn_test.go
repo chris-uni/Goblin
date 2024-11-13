@@ -17,18 +17,21 @@ func TestFunctions(t *testing.T) {
 		want        string
 		throwsError bool
 	}{
-		{`fn Print() {
-			println("Hello, World");
+		{`using "io";
+		fn Print() {
+			io.println("Hello, World");
 		}
 		Print();`, "Hello, World\n", false},
-		{`fn testPrint(a, b){
+		{`using "io";
+		fn testPrint(a, b){
 			let x = a + b;
-			println(x);
+			io.println(x);
 		}
 		testPrint(1, 3);`, "4\n", false},
-		{`fn Adder(a, b, c){
+		{`using "io";
+		fn Adder(a, b, c){
 			let x = a + b;
-			println(x);
+			io.println(x);
 		}
 		Adder(1, 3);`, "interpreter error: incorrect number of params specified for fn Adder, got 2 want 3", true},
 	}

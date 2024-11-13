@@ -17,22 +17,27 @@ func TestForLoop(t *testing.T) {
 		want        string
 		throwsError bool
 	}{
-		{`for(let i = 0; i < 5; i++;){
-			println(i);
-		}`, "0\n1\n2\n3\n4\n", false},
-		{`for(let i = 5; i > 0; i--;){
-			println(i);
-		}`, "5\n4\n3\n2\n1\n", false},
-		{`let arr = [1, 2, 3, 4, 5];
+		{`using "io";
 		for(let i = 0; i < 5; i++;){
-			println(arr[i]);
+			io.println(i);
+		}`, "0\n1\n2\n3\n4\n", false},
+		{`using "io";
+		for(let i = 5; i > 0; i--;){
+			io.println(i);
+		}`, "5\n4\n3\n2\n1\n", false},
+		{`using "io";
+		let arr = [1, 2, 3, 4, 5];
+		for(let i = 0; i < 5; i++;){
+			io.println(arr[i]);
 		}`, "1\n2\n3\n4\n5\n", false},
-		{`let arrr = ["foo", "bar", "foobar"];
+		{`using "io";
+		let arrr = ["foo", "bar", "foobar"];
 		for(let i = 0; i < 3; i++;){
 			let val = arrr[i];
-			println(val);
+			io.println(val);
 		}`, "foo\nbar\nfoobar\n", false},
-		{`let arrrr = ["foo", "bar", "foobar"];
+		{`using "io";
+		let arrrr = ["foo", "bar", "foobar"];
 		let map = {
 			"foo": 10,
 			"bar": 20,
@@ -42,11 +47,12 @@ func TestForLoop(t *testing.T) {
 		for(let i = 0; i < 3; i++;){
 			let key = arrrr[i];
 			let val = map[key];
-			println(val);
+			io.println(val);
 		}`, "10\n20\n30\n", false},
-		{`let smallArray = [1, 2];
+		{`using "io";
+		let smallArray = [1, 2];
 		for (let i = 2; i < 3; i++;){
-			println(smallArray[i]);
+			io.println(smallArray[i]);
 		}`, "interpreter error: index out of bounds for index 2", true},
 	}
 

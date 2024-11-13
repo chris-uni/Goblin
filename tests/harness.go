@@ -17,6 +17,7 @@ func HarnessSetup() {
 	env.Stdout = &output
 	env.Variables = map[string]runtime.RuntimeValue{}
 	env.Constants = map[string]bool{}
+	env.Namespaces = map[string]runtime.Namespace{}
 
 	env.Setup()
 }

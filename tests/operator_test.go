@@ -16,27 +16,34 @@ func TestOperators(t *testing.T) {
 		source string
 		want   string
 	}{
-		{`let x = 1;
+		{`using "io";
+		let x = 1;
 		x++;
-		println(x);`, "2\n"},
-		{`let y = 1;
+		io.println(x);`, "2\n"},
+		{`using "io";
+		let y = 1;
 		y--;
-		println(y);`, "0\n"},
-		{`let j = 1;
+		io.println(y);`, "0\n"},
+		{`using "io";
+		let j = 1;
 		j += 1;
-		println(j);`, "2\n"},
-		{`let k = 1;
+		io.println(j);`, "2\n"},
+		{`using "io";
+		let k = 1;
 		k -= 1;
-		println(k);`, "0\n"},
-		{`let i = 1;
+		io.println(k);`, "0\n"},
+		{`using "io";
+		let i = 1;
 		i *= 2;
-		println(i);`, "2\n"},
-		{`let n = 1;
+		io.println(i);`, "2\n"},
+		{`using "io";
+		let n = 1;
 		n /= 1;
-		println(n);`, "1\n"},
-		{`let m = 1;
+		io.println(n);`, "1\n"},
+		{`using "io";
+		let m = 1;
 		m %= 1;
-		println(m);`, "0\n"},
+		io.println(m);`, "0\n"},
 	}
 
 	for _, tt := range tests {

@@ -87,7 +87,7 @@ type ObjectVal struct {
 
 func (o ObjectVal) runtime() {}
 
-type FunctionCall func(args []RuntimeValue, env Environment) RuntimeValue
+type FunctionCall func(args []RuntimeValue, env Environment) (RuntimeValue, error)
 
 type NativeFunction struct {
 	Type ValueType
@@ -179,3 +179,10 @@ func MK_NATIVE_FN(call FunctionCall) NativeFunction {
 		Call: call,
 	}
 }
+
+type Namespace struct {
+	Name      string
+	Functions map[string]NativeFunction
+}
+
+func (n Namespace) runtime() {}

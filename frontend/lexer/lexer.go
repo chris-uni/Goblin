@@ -151,6 +151,7 @@ func Tokenize(sourceCode string) []Token {
 
 	// Add in the EOF token.
 	tokens = append(tokens, token(EOF, "EOF"))
+
 	return tokens
 }
 

@@ -14,9 +14,10 @@ import (
 func main() {
 
 	env := runtime.Environment{
-		Stdout:    os.Stdout, // Set the stdout as os.stdout
-		Variables: map[string]runtime.RuntimeValue{},
-		Constants: map[string]bool{},
+		Stdout:     os.Stdout, // Set the stdout as os.stdout
+		Variables:  map[string]runtime.RuntimeValue{},
+		Constants:  map[string]bool{},
+		Namespaces: map[string]runtime.Namespace{},
 	}
 
 	env.Setup()
@@ -59,7 +60,7 @@ func main() {
 		} else {
 			// Only really want to print to console if its a statement that needs returning.
 			if result != nil {
-				r := fmt.Sprintf("%v\n", result)
+				r := fmt.Sprintf("%v", result)
 				utils.Stdout(r, env.Stdout)
 			}
 		}
@@ -94,7 +95,7 @@ func main() {
 			} else {
 				// Only really want to print to console if its a statement that needs returning.
 				if result != nil {
-					r := fmt.Sprintf("%v\n", result)
+					r := fmt.Sprintf("%v", result)
 					utils.Stdout(r, env.Stdout)
 				}
 			}

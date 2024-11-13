@@ -1,0 +1,4 @@
+using "io";
+
+let x = io.sprintf("Hello, %v", "World");
+io.println(x);

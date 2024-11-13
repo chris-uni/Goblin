@@ -11,6 +11,9 @@ const (
 	MapDeclerationNode      NodeType = "MapDeclerationNode"
 	ShorthandOperatorNode   NodeType = "ShorthandOperatorNode" // e.g. ++, --, +=, -=, /=, *=
 
+	// Namespace and Environment.
+	NamespaceDeclerationNode NodeType = "NamespaceDeclerationNode"
+
 	// Expressions.
 	BinaryExprNode       NodeType = "BinaryExprNode"
 	AssingmentExprNode   NodeType = "AssignmentExprNode"
@@ -18,7 +21,6 @@ const (
 	UnaryExprNode        NodeType = "UnaryExprNode"
 	FuncDeclerationNode  NodeType = "FuncDeclerationNode"
 	MemberExpressionNode NodeType = "MemberExpressionNode"
-	CallExpression       NodeType = "CallExpression"
 
 	// Literals.
 	NumericLiteralNode  NodeType = "NumericLiteralNode"
@@ -91,6 +93,13 @@ type FunctionDecleration struct {
 }
 
 func (f FunctionDecleration) expr() {}
+
+type NamespaceDecleration struct {
+	Kind NodeType
+	Name string
+}
+
+func (n NamespaceDecleration) expr() {}
 
 type BinaryExpr struct {
 	Kind     NodeType

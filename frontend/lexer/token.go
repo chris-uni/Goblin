@@ -58,6 +58,7 @@ const (
 	Else  TokenType = "Else"  // standard else condition
 	While TokenType = "While" // standard while loop
 	For   TokenType = "For"   // standard for loop
+	Using TokenType = "Using"
 
 	// End of Line.
 	EOL TokenType = "EOL"
@@ -74,4 +75,5 @@ var Keywords = map[string]TokenType{
 	"else":  Else,
 	"while": While,
 	"for":   For,
+	"using": Using,
 }

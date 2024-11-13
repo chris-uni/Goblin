@@ -17,16 +17,18 @@ func TestSimpleMap(t *testing.T) {
 		want        string
 		throwsError bool
 	}{
-		{`let map = {
+		{`using "io";
+		let map = {
 			"foo": 10,
 			"bar": 20,
 		};
-		println(map["foo"]);`, "10\n", false},
-		{`let mapp = {
+		io.println(map["foo"]);`, "10\n", false},
+		{`using "io";
+		let mapp = {
 			"foo": 10,
 			"bar": 20,
 		};
-		println(mapp["baz"]);`, "interpreter error: key `{String baz}` does not exist for map: mapp", true},
+		io.println(mapp["baz"]);`, "interpreter error: key `{String baz}` does not exist for map: mapp", true},
 	}
 
 	for _, tt := range tests {
