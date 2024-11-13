@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"os"
 
 	"goblin.org/main/runtime"
 )
@@ -15,6 +16,7 @@ var env = runtime.Environment{}
 func HarnessSetup() {
 	output = bytes.Buffer{}
 	env.Stdout = &output
+	env.Stdin = os.Stdin
 	env.Variables = map[string]runtime.RuntimeValue{}
 	env.Constants = map[string]bool{}
 	env.Namespaces = map[string]runtime.Namespace{}

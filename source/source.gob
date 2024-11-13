@@ -1,4 +1,4 @@
 using "io";
 
-let x = io.sprintf("Hello, %v", "World");
+let x = io.read("/test.txt", 2);
 io.println(x);

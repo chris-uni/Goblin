@@ -12,6 +12,7 @@ var register = map[string]Namespace{
 type Environment struct {
 	Parent     *Environment
 	Stdout     io.Writer
+	Stdin      io.Reader
 	Variables  map[string]RuntimeValue
 	Constants  map[string]bool
 	Namespaces map[string]Namespace

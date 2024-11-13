@@ -3,7 +3,17 @@
 
 A repository for the Goblin Programming Language.
 
-## Language Features
+## Standard Libary
+### `io`
+```
+using "io";
+
+io.print("Hello, World");
+io.println("Hello, World");
+io.printf("Hello, %v", "World");
+let x = io.sprintf("Hello, %v", "World");
+```
+## Language Design
 
 ### Variable decleration
 ```

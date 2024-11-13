@@ -14,7 +14,8 @@ import (
 func main() {
 
 	env := runtime.Environment{
-		Stdout:     os.Stdout, // Set the stdout as os.stdout
+		Stdout:     os.Stdout,
+		Stdin:      os.Stdin,
 		Variables:  map[string]runtime.RuntimeValue{},
 		Constants:  map[string]bool{},
 		Namespaces: map[string]runtime.Namespace{},

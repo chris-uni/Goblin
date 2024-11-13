@@ -1,10 +1,19 @@
 package runtime
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"goblin.org/main/utils"
 )
+
+/*
+TODO:
+- Arg count check, add error handling to check that all functions have the correct number of arguments specified, and that they are of the proper type.
+*/
 
 var IO = Namespace{
 	Name: "io",
@@ -25,11 +34,19 @@ var IO = Namespace{
 			Type: "NativeFn",
 			Call: sprintf,
 		},
+		"input": {
+			Type: "NativeFn",
+			Call: input,
+		},
+		"read": {
+			Type: "NativeFn",
+			Call: read,
+		},
 	},
 }
 
-// Defines the built-in method 'print'.
 // print, a standard printing function.
+// io.print(msg string)
 var print FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	str, err := printer(args)
@@ -42,8 +59,8 @@ var print FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValu
 	return MK_NULL(), nil
 }
 
-// Defines the built-in method 'println'.
 // println acts the same as print, but appends a new line to the end.
+// io.println(msg string)
 var println FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	str, err := printer(args)
@@ -56,8 +73,8 @@ var println FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVa
 	return MK_NULL(), nil
 }
 
-// Defines build-in method 'printf'.
 // printf allows for formatted statements to be printed.
+// io.printf(formattedString string, args ...any)
 var printf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	s, err := printerFormatter(args)
@@ -71,8 +88,8 @@ var printf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVal
 	return MK_NULL(), nil
 }
 
-// Defines build-in method 'printf'.
 // sprintf allows for formatted statements to be printed.
+// io.sprintf(formattedString string, args ...any)
 var sprintf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	s, err := printerFormatter(args)
@@ -83,7 +100,83 @@ var sprintf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVa
 	return MK_STRING(s), nil
 }
 
-// Helper function for printf, sprintf
+// input reads a single line from std::in.
+// io.input(message string)
+var input FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	m := args[0]
+	msg, isStr := m.(StringValue)
+	if !isStr {
+		return nil, fmt.Errorf("os.readline message must be string type, got %v", msg.Type)
+	}
+
+	reader := bufio.NewReader(env.Stdin)
+	utils.Stdout(msg.Value, env.Stdout)
+
+	input, err := reader.ReadString('\n') // Read until EOF (Ctrl+D)
+	if err != nil {
+		return nil, err
+	}
+
+	// Remove the EOF character and any trailing newline
+	input = strings.TrimSuffix(input, "\n")
+	input = strings.TrimSpace(input)
+
+	return MK_STRING(input), nil
+}
+
+// read reads a single line from the specified file.
+// io.read(fileName string, lineNumber int)
+var read FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	f := args[0]
+	file, isStr := f.(StringValue)
+	if !isStr {
+		return nil, fmt.Errorf("io.read expectes arg1 to be of type string, %v given", file.Type)
+	}
+
+	l := args[1]
+	line, isStr := l.(NumberValue)
+	if !isStr {
+		return nil, fmt.Errorf("io.read expectes arg2 to be of type int, %v given", line.Type)
+	}
+
+	lineNumber := line.Value
+
+	// Get the absolute path to the file
+	absPath, err := filepath.Abs(file.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	// Open the file for reading
+	fileObj, err := os.Open(absPath)
+	if err != nil {
+		return nil, err
+	}
+	defer fileObj.Close()
+
+	// Create a new scanner to read the file line by line
+	scanner := bufio.NewScanner(fileObj)
+
+	// Iterate through lines until the desired line number is reached
+	currentLine := 1
+	for scanner.Scan() {
+		if currentLine == lineNumber {
+			return MK_STRING(scanner.Text()), nil
+		}
+		currentLine++
+	}
+
+	// Handle errors during scanning and cases where the line number is out of bounds
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return nil, fmt.Errorf("line number %d not found in file", lineNumber)
+}
+
+// Helper function for printf, sprintf.
 func printerFormatter(args []RuntimeValue) (string, error) {
 
 	formattedString, isStr := args[0].(StringValue)
@@ -132,6 +225,7 @@ func printerFormatter(args []RuntimeValue) (string, error) {
 	return builder, nil
 }
 
+// Helper function for print, println.
 func printer(args []RuntimeValue) (string, error) {
 
 	builder := ""
@@ -144,9 +238,7 @@ func printer(args []RuntimeValue) (string, error) {
 	return builder, nil
 }
 
-// Helper funcition for the 'print' built-in function defined above.
-// Recursive function to identifiy what type wants to be printed
-// and handles accordingly.
+// Helper function, resolves types to strings.
 func printHelper(arg RuntimeValue) string {
 
 	builder := ""
