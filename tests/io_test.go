@@ -46,6 +46,10 @@ func TestPrint(t *testing.T) {
 
 			io.print(map[keys[i]]);
 		}`, "123", false},
+		{`using "io";
+		io.print();`, "interpreter error: unexpected number of args for io.print, expected 1 got 0", true},
+		{`using "io";
+		io.print("hello", "world");`, "interpreter error: unexpected number of args for io.print, expected 1 got 2", true},
 	}
 
 	for _, tt := range tests {
@@ -117,6 +121,10 @@ func TestPrintln(t *testing.T) {
 
 			io.println(map[keys[i]]);
 		}`, "1\n2\n3\n", false},
+		{`using "io";
+		io.println();`, "interpreter error: unexpected number of args for io.println, expected 1 got 0", true},
+		{`using "io";
+		io.println("hello", "world");`, "interpreter error: unexpected number of args for io.println, expected 1 got 2", true},
 	}
 
 	for _, tt := range tests {
@@ -164,6 +172,8 @@ func TestPrintf(t *testing.T) {
 		{`using "io";
 		let arr = [1, 2, 3];
 		io.printf("One: %v", arr[0]);`, "One: 1", false},
+		{`using "io";
+		io.printf();`, "interpreter error: unexpected number of args for io.printf, expected min 1 got 0", true},
 	}
 
 	for _, tt := range tests {
@@ -208,6 +218,53 @@ func TestSPrintf(t *testing.T) {
 	}{
 		{`using "io";
 		let i = io.sprintf("Hello, %v", "World");
+		io.print(i);`, "Hello, World", false},
+		{`using "io";
+		let j = io.sprintf();`, "interpreter error: unexpected number of args for io.sprintf, expected min 1 got 0", true},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
+		t.Run(testname, func(t *testing.T) {
+
+			// Run the program.
+			_, err := program.Run(string(tt.source), env)
+
+			if !tt.throwsError {
+
+				// When tests aren't supposed to throw an error.
+				if err != nil {
+					t.Errorf(err.Error())
+				}
+
+				if output.String() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
+				}
+			} else {
+
+				// When tests are supposed to throw an error.
+				if err.Error() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, err.Error())
+				}
+			}
+
+			FlushBuffer()
+		})
+	}
+}
+
+func TestInput(t *testing.T) {
+
+	// Setup the program env.
+	HarnessSetup()
+
+	var tests = []struct {
+		source      string
+		want        string
+		throwsError bool
+	}{
+		{`using "io";
+		let i = io.input("Hello, %v", "World");
 		io.print(i);`, "Hello, World", false},
 	}
 

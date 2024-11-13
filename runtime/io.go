@@ -49,6 +49,11 @@ var IO = Namespace{
 // io.print(msg string)
 var print FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
+	numArgs := len(args)
+	if numArgs != 1 {
+		return nil, fmt.Errorf("unexpected number of args for io.print, expected 1 got %v", numArgs)
+	}
+
 	str, err := printer(args)
 	if err != nil {
 		return nil, err
@@ -63,6 +68,11 @@ var print FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValu
 // io.println(msg string)
 var println FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
+	numArgs := len(args)
+	if numArgs != 1 {
+		return nil, fmt.Errorf("unexpected number of args for io.println, expected 1 got %v", numArgs)
+	}
+
 	str, err := printer(args)
 	if err != nil {
 		return nil, err
@@ -76,6 +86,11 @@ var println FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVa
 // printf allows for formatted statements to be printed.
 // io.printf(formattedString string, args ...any)
 var printf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	numArgs := len(args)
+	if numArgs < 1 {
+		return nil, fmt.Errorf("unexpected number of args for io.printf, expected min 1 got %v", numArgs)
+	}
 
 	s, err := printerFormatter(args)
 	if err != nil {
@@ -92,6 +107,11 @@ var printf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVal
 // io.sprintf(formattedString string, args ...any)
 var sprintf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
+	numArgs := len(args)
+	if numArgs < 1 {
+		return nil, fmt.Errorf("unexpected number of args for io.sprintf, expected min 1 got %v", numArgs)
+	}
+
 	s, err := printerFormatter(args)
 	if err != nil {
 		return nil, err
@@ -103,6 +123,11 @@ var sprintf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVa
 // input reads a single line from std::in.
 // io.input(message string)
 var input FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	numArgs := len(args)
+	if numArgs != 1 {
+		return nil, fmt.Errorf("unexpected number of args for io.input, expected 1 got %v", numArgs)
+	}
 
 	m := args[0]
 	msg, isStr := m.(StringValue)
@@ -128,6 +153,11 @@ var input FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValu
 // read reads a single line from the specified file.
 // io.read(fileName string, lineNumber int)
 var read FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	numArgs := len(args)
+	if numArgs != 2 {
+		return nil, fmt.Errorf("unexpected number of args for io.read, expected 2 got %v", numArgs)
+	}
 
 	f := args[0]
 	file, isStr := f.(StringValue)
