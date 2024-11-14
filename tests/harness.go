@@ -7,7 +7,7 @@ import (
 	"goblin.org/main/runtime"
 )
 
-// Mock up the stdout buffer using the below byte buffer.
+// Mock std::out buffer using the below byte buffer.
 var output bytes.Buffer
 
 var env = runtime.Environment{}

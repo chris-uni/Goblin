@@ -13,6 +13,12 @@ import (
 /*
 TODO:
 - Arg count check, add error handling to check that all functions have the correct number of arguments specified, and that they are of the proper type.
+- Fix bug in open that occurs when specifying local file (files are local to interpreter/main.go, not local to the .gob source file)
+- Add new type: fileObject
+	- contains a reference to the specified file
+	- value that specifies the mode of the file (read, write, append)
+- Add new type: byte
+	- Similar to string, but is a collection of bytes
 */
 
 var IO = Namespace{
@@ -38,9 +44,25 @@ var IO = Namespace{
 			Type: "NativeFn",
 			Call: input,
 		},
-		"read": {
+		"readline": {
 			Type: "NativeFn",
-			Call: read,
+			Call: readline,
+		},
+		"readlines": {
+			Type: "NativeFn",
+			Call: readlines,
+		},
+		"open": {
+			Type: "NativeFn",
+			Call: open,
+		},
+		"close": {
+			Type: "NativeFn",
+			Call: close,
+		},
+		"write": {
+			Type: "NativeFn",
+			Call: write,
 		},
 	},
 }
@@ -64,7 +86,7 @@ var print FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValu
 	return MK_NULL(), nil
 }
 
-// println acts the same as print, but appends a new line to the end.
+// println - acts the same as print, but appends a new line to the end.
 // io.println(msg string)
 var println FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
@@ -83,7 +105,7 @@ var println FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVa
 	return MK_NULL(), nil
 }
 
-// printf allows for formatted statements to be printed.
+// printf - allows for formatted statements to be printed.
 // io.printf(formattedString string, args ...any)
 var printf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
@@ -103,8 +125,8 @@ var printf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVal
 	return MK_NULL(), nil
 }
 
-// sprintf allows for formatted statements to be printed.
-// io.sprintf(formattedString string, args ...any)
+// sprintf - allows for formatted statements to be printed.
+// io.sprintf(formattedString string, args ...any) string
 var sprintf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	numArgs := len(args)
@@ -120,8 +142,8 @@ var sprintf FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeVa
 	return MK_STRING(s), nil
 }
 
-// input reads a single line from std::in.
-// io.input(message string)
+// input - reads a single line from std::in.
+// io.input(message string) string
 var input FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	numArgs := len(args)
@@ -132,7 +154,7 @@ var input FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValu
 	m := args[0]
 	msg, isStr := m.(StringValue)
 	if !isStr {
-		return nil, fmt.Errorf("os.readline message must be string type, got %v", msg.Type)
+		return nil, fmt.Errorf("os.input message must be string type, got %v", msg.Type)
 	}
 
 	reader := bufio.NewReader(env.Stdin)
@@ -150,9 +172,23 @@ var input FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValu
 	return MK_STRING(input), nil
 }
 
-// read reads a single line from the specified file.
-// io.read(fileName string, lineNumber int)
-var read FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+// open - returns a new file object using the specified mode, i.e. r, w, a.
+// io.open(fileName string, mode string) fileObject
+var open FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	return nil, nil
+}
+
+// close - closes the specified file object.
+// io.close(fileObject *fileObj)
+var close FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	return nil, nil
+}
+
+// read - reads a single line from the specified file.
+// io.readline(fileObject *fileObj, lineNumber int) string
+var readline FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	numArgs := len(args)
 	if numArgs != 2 {
@@ -204,6 +240,20 @@ var read FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue
 	}
 
 	return nil, fmt.Errorf("line number %d not found in file", lineNumber)
+}
+
+// readline - reads a file line by line
+// io.readlines(fileObject *fileObj) []string
+var readlines FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	return nil, nil
+}
+
+// writen - writes the contents of the buffer to the specified fileObject.
+// io.write(fileObject *fileObj, buffer []byte)
+var write FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	return nil, nil
 }
 
 // Helper function for printf, sprintf.
