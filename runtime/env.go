@@ -10,12 +10,13 @@ var register = map[string]Namespace{
 }
 
 type Environment struct {
-	Parent     *Environment
-	Stdout     io.Writer
-	Stdin      io.Reader
-	Variables  map[string]RuntimeValue
-	Constants  map[string]bool
-	Namespaces map[string]Namespace
+	Parent        *Environment
+	Stdout        io.Writer
+	Stdin         io.Reader
+	EntryLocation string
+	Variables     map[string]RuntimeValue
+	Constants     map[string]bool
+	Namespaces    map[string]Namespace
 }
 
 // Used to declare a new variable. Includes checking for variable already existing.

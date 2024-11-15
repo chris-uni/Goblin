@@ -321,3 +321,68 @@ func TestInput(t *testing.T) {
 		})
 	}
 }
+
+func TestOpen(t *testing.T) {
+
+	// Setup the program env.
+	HarnessSetup()
+
+	var tests = []struct {
+		source      string
+		stdin       string
+		want        string
+		throwsError bool
+	}{
+		{`using "io";
+		let f = io.open("test.txt", "r");
+		io.print(f);`, "\n", "../source/test.txt", false},
+		{`using "io";
+		let f = io.open("doesNotExist.txt", "r");
+		io.print(f);`, "\n", "interpreter error: open ../source/doesNotExist.txt: no such file or directory", true},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
+		t.Run(testname, func(t *testing.T) {
+
+			// Create a pipe to simulate stdin
+			reader, writer, err := os.Pipe()
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer reader.Close()
+
+			// Replace os.Stdin with the reader end of the pipe
+			env.Stdin = reader
+
+			// Write the test input to the writer end of the pipe
+			go func() {
+				writer.Write([]byte(tt.stdin))
+				writer.Close()
+			}()
+
+			// Run the program.
+			_, err = program.Run(string(tt.source), env)
+
+			if !tt.throwsError {
+
+				// When tests aren't supposed to throw an error.
+				if err != nil {
+					t.Errorf("%v - %v", err.Error(), output.String())
+				}
+
+				if output.String() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
+				}
+			} else {
+
+				// When tests are supposed to throw an error.
+				if err.Error() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, err.Error())
+				}
+			}
+
+			FlushBuffer()
+		})
+	}
+}

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"goblin.org/main/utils"
@@ -17,6 +16,7 @@ TODO:
 - Add new type: fileObject
 	- contains a reference to the specified file
 	- value that specifies the mode of the file (read, write, append)
+	- when opening files, file locations should be relative to the main.gob file, not the Goblin interpreter.
 - Add new type: byte
 	- Similar to string, but is a collection of bytes
 */
@@ -176,7 +176,43 @@ var input FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValu
 // io.open(fileName string, mode string) fileObject
 var open FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
-	return nil, nil
+	numArgs := len(args)
+	if numArgs != 2 {
+		return nil, fmt.Errorf("unexpected number of args for io.open, expected 2 got %v", numArgs)
+	}
+
+	fp, isStr := args[0].(StringValue)
+	if !isStr {
+		return nil, fmt.Errorf("file path: string expected, got %v", fp)
+	}
+
+	m, isStr := args[1].(StringValue)
+	if !isStr {
+		return nil, fmt.Errorf("file mode: string expected, got %v", m)
+	}
+
+	/*
+		// Get the absolute path to the file
+		path, err := filepath.Abs(fp.Value)
+		if err != nil {
+			return nil, err
+		}*/
+	mode := m.Value
+
+	filePath := env.EntryLocation + "/" + fp.Value
+
+	file, err := os.OpenFile(filePath, fileOpenFlags(mode), 0644) // Adjust permissions as needed
+	if err != nil {
+		return nil, err
+	}
+
+	return FileObjectValue{
+		Path:          filePath,
+		File:          file,
+		Mode:          0,
+		IsOpen:        true,
+		CursorPointer: 0,
+	}, nil
 }
 
 // close - closes the specified file object.
@@ -192,38 +228,25 @@ var readline FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeV
 
 	numArgs := len(args)
 	if numArgs != 2 {
-		return nil, fmt.Errorf("unexpected number of args for io.read, expected 2 got %v", numArgs)
+		return nil, fmt.Errorf("unexpected number of args for io.readline, expected 2 got %v", numArgs)
 	}
 
 	f := args[0]
-	file, isStr := f.(StringValue)
-	if !isStr {
-		return nil, fmt.Errorf("io.read expectes arg1 to be of type string, %v given", file.Type)
+	fileObj, isFileObj := f.(FileObjectValue)
+	if !isFileObj {
+		return nil, fmt.Errorf("io.readline expectes arg1 to be of type fileObject, %v given", fileObj.Type)
 	}
 
 	l := args[1]
 	line, isStr := l.(NumberValue)
 	if !isStr {
-		return nil, fmt.Errorf("io.read expectes arg2 to be of type int, %v given", line.Type)
+		return nil, fmt.Errorf("io.readline expectes arg2 to be of type int, %v given", line.Type)
 	}
 
 	lineNumber := line.Value
 
-	// Get the absolute path to the file
-	absPath, err := filepath.Abs(file.Value)
-	if err != nil {
-		return nil, err
-	}
-
-	// Open the file for reading
-	fileObj, err := os.Open(absPath)
-	if err != nil {
-		return nil, err
-	}
-	defer fileObj.Close()
-
 	// Create a new scanner to read the file line by line
-	scanner := bufio.NewScanner(fileObj)
+	scanner := bufio.NewScanner(fileObj.File)
 
 	// Iterate through lines until the desired line number is reached
 	currentLine := 1
@@ -239,7 +262,7 @@ var readline FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeV
 		return nil, err
 	}
 
-	return nil, fmt.Errorf("line number %d not found in file", lineNumber)
+	return nil, fmt.Errorf("line number %d not found in %v", lineNumber, fileObj.Path)
 }
 
 // readline - reads a file line by line
@@ -254,6 +277,27 @@ var readlines FunctionCall = func(args []RuntimeValue, env Environment) (Runtime
 var write FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	return nil, nil
+}
+
+// Helper function for open
+func fileOpenFlags(mode string) int {
+
+	var flags int
+
+	if strings.Contains(mode, "r") {
+		flags |= os.O_RDONLY // Read only
+	}
+	if strings.Contains(mode, "w") {
+		flags |= os.O_WRONLY | os.O_CREATE | os.O_TRUNC // Write only, create if not exists, truncate
+	}
+	if strings.Contains(mode, "a") {
+		flags |= os.O_WRONLY | os.O_CREATE | os.O_APPEND // Write only, create if not exists, append
+	}
+	if strings.Contains(mode, "+") {
+		flags |= os.O_RDWR // Read and write
+	}
+
+	return flags
 }
 
 // Helper function for printf, sprintf.
@@ -388,6 +432,9 @@ func printHelper(arg RuntimeValue) string {
 				builder += fmt.Sprintf("%v: %v", name, printHelper(arg))
 			}
 		}
+	} else if fileObj, ok := arg.(FileObjectValue); ok {
+
+		builder += fileObj.Path
 	}
 
 	return builder

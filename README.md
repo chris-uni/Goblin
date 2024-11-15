@@ -36,11 +36,11 @@ let f = io.open("path/to/file", "r")
 // io.close(fileObject *fileObj)
 io.close(f)
 
-// read - reads a single line from the specified file.
+// readline - reads a single line from the specified file.
 // io.readline(fileObject *fileObj, lineNumber int) string
 let line = io.readline(f, 1)
 
-// readline - reads a file line by line
+// readlines - reads a file line by line
 // io.readlines(fileObject *fileObj) []string
 let lines = io.readlines(f)
 

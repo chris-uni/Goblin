@@ -1,3 +1,5 @@
 using "io";
-let i = io.input("Message: ");
-io.print(i);
+let f = io.open("test.txt", "r");
+let line = io.readline(f, 1);
+
+io.println(f);
