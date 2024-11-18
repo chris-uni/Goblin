@@ -329,40 +329,77 @@ func TestOpen(t *testing.T) {
 
 	var tests = []struct {
 		source      string
-		stdin       string
 		want        string
 		throwsError bool
 	}{
 		{`using "io";
 		let f = io.open("test.txt", "r");
-		io.print(f);`, "\n", "../source/test.txt", false},
+		io.print(f);`, "../source/test.txt", false},
 		{`using "io";
 		let f = io.open("doesNotExist.txt", "r");
-		io.print(f);`, "\n", "interpreter error: open ../source/doesNotExist.txt: no such file or directory", true},
+		io.print(f);`, "interpreter error: open ../source/doesNotExist.txt: no such file or directory", true},
 	}
 
 	for _, tt := range tests {
 		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
 		t.Run(testname, func(t *testing.T) {
 
-			// Create a pipe to simulate stdin
-			reader, writer, err := os.Pipe()
-			if err != nil {
-				t.Fatal(err)
+			// Run the program.
+			_, err := program.Run(string(tt.source), env)
+
+			if !tt.throwsError {
+
+				// When tests aren't supposed to throw an error.
+				if err != nil {
+					t.Errorf("%v - %v", err.Error(), output.String())
+				}
+
+				if output.String() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
+				}
+			} else {
+
+				// When tests are supposed to throw an error.
+				if err.Error() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, err.Error())
+				}
 			}
-			defer reader.Close()
 
-			// Replace os.Stdin with the reader end of the pipe
-			env.Stdin = reader
+			FlushBuffer()
+		})
+	}
+}
 
-			// Write the test input to the writer end of the pipe
-			go func() {
-				writer.Write([]byte(tt.stdin))
-				writer.Close()
-			}()
+func TestReadLine(t *testing.T) {
+
+	// Setup the program env.
+	HarnessSetup()
+
+	var tests = []struct {
+		source      string
+		want        string
+		throwsError bool
+	}{
+		{`using "io";
+		let f = io.open("test.txt", "r");
+		let line = io.readline(f, 1);
+		io.print(line);`, "Hello, World!", false},
+		{`using "io";
+		let fr = io.open("test.txt", "r");
+		let liner = io.readline(fr, 3);
+		io.print(liner);`, "interpreter error: line number 3 not found in ../source/test.txt", true},
+		{`using "io";
+		let fw = io.open("test.txt", "w");
+		let linew = io.readline(fw, 1);
+		io.print(linew);`, "interpreter error: file: ../source/test.txt not opened in a valid read-mode", true},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
+		t.Run(testname, func(t *testing.T) {
 
 			// Run the program.
-			_, err = program.Run(string(tt.source), env)
+			_, err := program.Run(string(tt.source), env)
 
 			if !tt.throwsError {
 

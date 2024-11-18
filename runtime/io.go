@@ -191,17 +191,10 @@ var open FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue
 		return nil, fmt.Errorf("file mode: string expected, got %v", m)
 	}
 
-	/*
-		// Get the absolute path to the file
-		path, err := filepath.Abs(fp.Value)
-		if err != nil {
-			return nil, err
-		}*/
-	mode := m.Value
-
+	mode := fileOpenFlags(m.Value)
 	filePath := env.EntryLocation + "/" + fp.Value
 
-	file, err := os.OpenFile(filePath, fileOpenFlags(mode), 0644) // Adjust permissions as needed
+	file, err := os.OpenFile(filePath, mode, 0644) // Adjust permissions as needed
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +202,7 @@ var open FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue
 	return FileObjectValue{
 		Path:          filePath,
 		File:          file,
-		Mode:          0,
+		Mode:          mode,
 		IsOpen:        true,
 		CursorPointer: 0,
 	}, nil
@@ -243,26 +236,33 @@ var readline FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeV
 		return nil, fmt.Errorf("io.readline expectes arg2 to be of type int, %v given", line.Type)
 	}
 
-	lineNumber := line.Value
+	// Only allow this to work if file opened in appropriate mode.
+	if fileObj.Mode == os.O_RDONLY || fileObj.Mode == os.O_RDWR {
 
-	// Create a new scanner to read the file line by line
-	scanner := bufio.NewScanner(fileObj.File)
+		lineNumber := line.Value
 
-	// Iterate through lines until the desired line number is reached
-	currentLine := 1
-	for scanner.Scan() {
-		if currentLine == lineNumber {
-			return MK_STRING(scanner.Text()), nil
+		// Create a new scanner to read the file line by line
+		scanner := bufio.NewScanner(fileObj.File)
+
+		// Iterate through lines until the desired line number is reached
+		currentLine := 1
+		for scanner.Scan() {
+			if currentLine == lineNumber {
+				return MK_STRING(scanner.Text()), nil
+			}
+			currentLine++
 		}
-		currentLine++
+
+		// Handle errors during scanning and cases where the line number is out of bounds
+		if err := scanner.Err(); err != nil {
+			return nil, err
+		}
+
+		return nil, fmt.Errorf("line number %d not found in %v", lineNumber, fileObj.Path)
 	}
 
-	// Handle errors during scanning and cases where the line number is out of bounds
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return nil, fmt.Errorf("line number %d not found in %v", lineNumber, fileObj.Path)
+	// File was opened in a non-read mode.
+	return nil, fmt.Errorf("file: %v not opened in a valid read-mode", fileObj.Path)
 }
 
 // readline - reads a file line by line
@@ -285,16 +285,13 @@ func fileOpenFlags(mode string) int {
 	var flags int
 
 	if strings.Contains(mode, "r") {
-		flags |= os.O_RDONLY // Read only
+		flags = os.O_RDONLY
 	}
 	if strings.Contains(mode, "w") {
-		flags |= os.O_WRONLY | os.O_CREATE | os.O_TRUNC // Write only, create if not exists, truncate
-	}
-	if strings.Contains(mode, "a") {
-		flags |= os.O_WRONLY | os.O_CREATE | os.O_APPEND // Write only, create if not exists, append
+		flags = os.O_WRONLY
 	}
 	if strings.Contains(mode, "+") {
-		flags |= os.O_RDWR // Read and write
+		flags = os.O_RDWR
 	}
 
 	return flags

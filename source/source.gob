@@ -1,5 +1,5 @@
 using "io";
 let f = io.open("test.txt", "r");
-let line = io.readline(f, 1);
+let line = io.readline(f, 2);
 
-io.println(f);
+io.println(line);
