@@ -328,7 +328,7 @@ func fileReader(file FileObjectValue, lineNumber int) (string, error) {
 		return "\r\n", err
 	}
 
-	return "\r\n", nil
+	return "\r\n", fmt.Errorf("line number %v not found in %v", lineNumber, file.Path)
 }
 
 // Helper function for open

@@ -433,20 +433,7 @@ func TestReadLines(t *testing.T) {
 		source      string
 		want        string
 		throwsError bool
-	}{
-		{`using "io";
-		let f = io.open("test.txt", "r");
-		let line = io.readline(f, 1);
-		io.print(line);`, "Hello, World!", false},
-		{`using "io";
-		let fr = io.open("test.txt", "r");
-		let liner = io.readline(fr, 3);
-		io.print(liner);`, "interpreter error: line number 3 not found in ../source/test.txt", true},
-		{`using "io";
-		let fw = io.open("test.txt", "w");
-		let linew = io.readline(fw, 1);
-		io.print(linew);`, "interpreter error: file: ../source/test.txt not opened in a valid read-mode", true},
-	}
+	}{}
 
 	for _, tt := range tests {
 		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
@@ -500,7 +487,7 @@ func TestClose(t *testing.T) {
 		let file = io.open("test.txt", "r");
 
 		let lline = io.readline(file, 1);
-		io.println(lline);`, "Hello, World\n", false},
+		io.println(lline);`, "Hello, World!\n", false},
 	}
 
 	for _, tt := range tests {

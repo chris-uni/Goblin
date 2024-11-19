@@ -1,8 +1,9 @@
 using "io";
 let f = io.open("test.txt", "r");
 
-let line = io.readline(f, 1);
-io.println(line);
-io.close(f);
+for(let i = 1; i < 3; i++;){
 
-let anotherLine = io.readline(f, 1);
+    let line = io.readlines(f);
+
+    io.println(line);
+}
