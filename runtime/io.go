@@ -199,12 +199,13 @@ var open FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue
 		return nil, err
 	}
 
+	initCursorValue := 1
 	return FileObjectValue{
 		Path:          filePath,
 		File:          file,
 		Mode:          mode,
 		IsOpen:        true,
-		CursorPointer: 0,
+		CursorPointer: &initCursorValue,
 	}, nil
 }
 
@@ -212,7 +213,25 @@ var open FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue
 // io.close(fileObject *fileObj)
 var close FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
-	return nil, nil
+	numArgs := len(args)
+	if numArgs != 1 {
+		return nil, fmt.Errorf("unexpected number of args for io.close, expected 1 got %v", numArgs)
+	}
+
+	f := args[0]
+	fileObj, isFileObj := f.(FileObjectValue)
+	if !isFileObj {
+		return nil, fmt.Errorf("io.close expectes arg1 to be of type fileObject, %v given", fileObj.Type)
+	}
+
+	// Close the underlying file.
+	if err := fileObj.File.Close(); err != nil {
+		return nil, err
+	}
+
+	fileObj.IsOpen = false
+
+	return MK_NULL(), nil
 }
 
 // read - reads a single line from the specified file.
@@ -237,46 +256,79 @@ var readline FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeV
 	}
 
 	// Only allow this to work if file opened in appropriate mode.
-	if fileObj.Mode == os.O_RDONLY || fileObj.Mode == os.O_RDWR {
+	if fileObj.IsOpen && (fileObj.Mode == os.O_RDONLY || fileObj.Mode == os.O_RDWR) {
 
-		lineNumber := line.Value
-
-		// Create a new scanner to read the file line by line
-		scanner := bufio.NewScanner(fileObj.File)
-
-		// Iterate through lines until the desired line number is reached
-		currentLine := 1
-		for scanner.Scan() {
-			if currentLine == lineNumber {
-				return MK_STRING(scanner.Text()), nil
-			}
-			currentLine++
-		}
-
-		// Handle errors during scanning and cases where the line number is out of bounds
-		if err := scanner.Err(); err != nil {
+		val, err := fileReader(fileObj, line.Value)
+		if err != nil {
 			return nil, err
 		}
 
-		return nil, fmt.Errorf("line number %d not found in %v", lineNumber, fileObj.Path)
+		return MK_STRING(val), nil
 	}
 
 	// File was opened in a non-read mode.
 	return nil, fmt.Errorf("file: %v not opened in a valid read-mode", fileObj.Path)
 }
 
-// readline - reads a file line by line
-// io.readlines(fileObject *fileObj) []string
+// readline - reads a file line by line, uses internal file pointer to continue pointing to next
+// line. Returns \r\n when line limit is reached.
+// io.readlines(fileObject *fileObj) string
 var readlines FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	numArgs := len(args)
+	if numArgs != 1 {
+		return nil, fmt.Errorf("unexpected number of args for io.readlines, expected 1 got %v", numArgs)
+	}
+
+	f := args[0]
+	fileObj, isFileObj := f.(FileObjectValue)
+	if !isFileObj {
+		return nil, fmt.Errorf("io.readlines expectes arg1 to be of type fileObject, %v given", fileObj.Type)
+	}
+
+	// Only allow this to work if file opened in appropriate mode.
+	if fileObj.IsOpen && (fileObj.Mode == os.O_RDONLY || fileObj.Mode == os.O_RDWR) {
+
+		val, err := fileReader(fileObj, *fileObj.CursorPointer)
+		if err != nil {
+			return nil, err
+		}
+
+		*fileObj.CursorPointer++
+
+		return MK_STRING(val), nil
+	}
 
 	return nil, nil
 }
 
-// writen - writes the contents of the buffer to the specified fileObject.
+// write - writes the contents of the buffer to the specified fileObject.
 // io.write(fileObject *fileObj, buffer []byte)
 var write FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
 
 	return nil, nil
+}
+
+func fileReader(file FileObjectValue, lineNumber int) (string, error) {
+
+	// Create a new scanner to read the file line by line
+	scanner := bufio.NewScanner(file.File)
+
+	// Iterate through lines until the desired line number is reached
+	currentLine := 1
+	for scanner.Scan() {
+		if currentLine == lineNumber {
+			return scanner.Text(), nil
+		}
+		currentLine++
+	}
+
+	// Handle errors during scanning and cases where the line number is out of bounds
+	if err := scanner.Err(); err != nil {
+		return "\r\n", err
+	}
+
+	return "\r\n", nil
 }
 
 // Helper function for open

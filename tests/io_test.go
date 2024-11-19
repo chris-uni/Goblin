@@ -423,3 +423,112 @@ func TestReadLine(t *testing.T) {
 		})
 	}
 }
+
+func TestReadLines(t *testing.T) {
+
+	// Setup the program env.
+	HarnessSetup()
+
+	var tests = []struct {
+		source      string
+		want        string
+		throwsError bool
+	}{
+		{`using "io";
+		let f = io.open("test.txt", "r");
+		let line = io.readline(f, 1);
+		io.print(line);`, "Hello, World!", false},
+		{`using "io";
+		let fr = io.open("test.txt", "r");
+		let liner = io.readline(fr, 3);
+		io.print(liner);`, "interpreter error: line number 3 not found in ../source/test.txt", true},
+		{`using "io";
+		let fw = io.open("test.txt", "w");
+		let linew = io.readline(fw, 1);
+		io.print(linew);`, "interpreter error: file: ../source/test.txt not opened in a valid read-mode", true},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
+		t.Run(testname, func(t *testing.T) {
+
+			// Run the program.
+			_, err := program.Run(string(tt.source), env)
+
+			if !tt.throwsError {
+
+				// When tests aren't supposed to throw an error.
+				if err != nil {
+					t.Errorf("%v - %v", err.Error(), output.String())
+				}
+
+				if output.String() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
+				}
+			} else {
+
+				// When tests are supposed to throw an error.
+				if err.Error() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, err.Error())
+				}
+			}
+
+			FlushBuffer()
+		})
+	}
+}
+
+func TestClose(t *testing.T) {
+
+	// Setup the program env.
+	HarnessSetup()
+
+	var tests = []struct {
+		source      string
+		want        string
+		throwsError bool
+	}{
+		{`using "io";
+		let f = io.open("test.txt", "r");
+
+		let line = io.readline(f, 1);
+		io.println(line);
+		io.close(f);
+
+		let anotherLine = io.readline(f, 1);`, "interpreter error: read ../source/test.txt: file already closed", true},
+		{`using "io";
+		let file = io.open("test.txt", "r");
+
+		let lline = io.readline(file, 1);
+		io.println(lline);`, "Hello, World\n", false},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
+		t.Run(testname, func(t *testing.T) {
+
+			// Run the program.
+			_, err := program.Run(string(tt.source), env)
+
+			if !tt.throwsError {
+
+				// When tests aren't supposed to throw an error.
+				if err != nil {
+					t.Errorf("%v - %v", err.Error(), output.String())
+				}
+
+				if output.String() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
+				}
+			} else {
+
+				// When tests are supposed to throw an error.
+				if err.Error() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, err.Error())
+				}
+			}
+
+			FlushBuffer()
+		})
+	}
+}

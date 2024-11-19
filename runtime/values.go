@@ -132,7 +132,7 @@ type FileObjectValue struct {
 	File          *os.File
 	Mode          int
 	IsOpen        bool
-	CursorPointer int
+	CursorPointer *int
 }
 
 func (f FileObjectValue) runtime() {}
