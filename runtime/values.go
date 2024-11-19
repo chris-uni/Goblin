@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"fmt"
+	"os"
 
 	"goblin.org/main/frontend/ast"
 )
@@ -9,13 +10,16 @@ import (
 type ValueType string
 
 const (
-	Number      ValueType = "Number"
-	Array       ValueType = "Array"
-	Map         ValueType = "Map"
-	Null        ValueType = "Null"
-	Boolean     ValueType = "Boolean"
-	String      ValueType = "String"
-	Object      ValueType = "Object"
+	// Types
+	Number     ValueType = "Number"
+	Array      ValueType = "Array"
+	Map        ValueType = "Map"
+	Null       ValueType = "Null"
+	Boolean    ValueType = "Boolean"
+	String     ValueType = "String"
+	Object     ValueType = "Object"
+	FileObject ValueType = "FileObject"
+
 	NativeFn    ValueType = "NativeFn"
 	UserFn      ValueType = "UserFn"
 	Conditional ValueType = "Contitional"
@@ -121,6 +125,17 @@ type WhileValue struct {
 }
 
 func (w WhileValue) runtime() {}
+
+type FileObjectValue struct {
+	Type          string
+	Path          string
+	File          *os.File
+	Mode          int
+	IsOpen        bool
+	CursorPointer *int
+}
+
+func (f FileObjectValue) runtime() {}
 
 /* -- MACROS --*/
 

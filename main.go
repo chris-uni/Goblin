@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	program "goblin.org/main/program"
@@ -14,7 +15,8 @@ import (
 func main() {
 
 	env := runtime.Environment{
-		Stdout:     os.Stdout, // Set the stdout as os.stdout
+		Stdout:     os.Stdout,
+		Stdin:      os.Stdin,
 		Variables:  map[string]runtime.RuntimeValue{},
 		Constants:  map[string]bool{},
 		Namespaces: map[string]runtime.Namespace{},
@@ -45,6 +47,9 @@ func main() {
 		}
 		defer file.Close()
 
+		// Since loading from source, point the entry point to containing folder.
+		env.EntryLocation = filepath.Dir(file.Name())
+
 		// Read the contents of the file.
 		content, err := os.ReadFile(executable)
 		if err != nil {
@@ -69,6 +74,15 @@ func main() {
 
 		// REPL Mode.
 		fmt.Println("Goblin v0.1")
+
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Println("Error getting current working directory:", err)
+			// Handle the error appropriately (e.g., exit)
+		}
+
+		// Set the Entry location to wherever the users terminal currently is.
+		env.EntryLocation = cwd
 
 		for {
 

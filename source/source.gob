@@ -1,4 +1,9 @@
 using "io";
+let f = io.open("test.txt", "r");
 
-let x = io.sprintf("Hello, %v", "World");
-io.println(x);
+for(let i = 1; i < 3; i++;){
+
+    let line = io.readlines(f);
+
+    io.println(line);
+}
