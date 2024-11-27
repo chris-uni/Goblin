@@ -1,0 +1,8 @@
+using "io";
+
+fn main(){
+
+    io.println("Hello, World!");
+}
+
+main();

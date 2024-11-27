@@ -1,7 +1,7 @@
 using "io";
-let f = io.open("test.txt", "r");
+let f = io.open("main.gob", "r");
 
-for(let i = 1; i < 3; i++;){
+for(let i = 0; i < 3; i++;){
 
     let line = io.readlines(f);
 

@@ -58,6 +58,38 @@ let x = {
 
 let var = x.foo;
 
-To-Do:
-- Fix functions when params are passed in and we want to return a value
-- For loops
+-- file io
+
+Inspiration from pyhton?
+
+
+with open("file-path.txt", "r") as file {
+
+}
+
+Or this? 
+
+// Dedicated file-io iterator
+let file = io.open("file-path.txt", "r");
+
+it line in file {
+
+    // Do stuff with line?
+}
+
+// -- Bootstrapping Goblin, notes:
+
+- More debug support, things like:
+    - Capturing line numbers so that developers can identify which line a particular error is on
+    - A standardised error message
+- A better Lexer, find a way to make use of Go Routines to add concurrent threads
+- In a similar vein, improve the parser too, there are sections that definitely could do with some revision.
+- In order to Bootstrap Goblin with itself, the language needs some core features:
+    - A robust way to read from a file line by line (in fact, more robust file io)
+    - Better support for built-in data types (i.e. stdlib for arrays, maps)
+    - Split strings into individual characters
+    - Ability to compare characters to one another (i.e. for the lexer)
+    - Ability to define custom Types (at leeast, classes would be nice, but that involved thinking about OOP principles etc)
+    - Ability to compare Types (i.e. for the parser, interpreter)
+    - Ability to call/execute `file-b.gob` from within `file-a.gob`.
+
