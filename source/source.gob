@@ -1,8 +1,5 @@
 using "data";
 using "io";
 
-let arr = [1];
-data.push(arr, 2);
-let size = data.size(arr);
-
-io.println(size);
+let arr = [];
+let size = data.size(arr, 1);

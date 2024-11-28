@@ -63,7 +63,7 @@ func (a ArrayValue) runtime() {
 
 type MapValue struct {
 	Type  ValueType
-	Value map[RuntimeValue]RuntimeValue
+	Value *map[RuntimeValue]RuntimeValue
 }
 
 func (m MapValue) runtime() {
@@ -159,7 +159,7 @@ func MK_MAP(elements map[RuntimeValue]RuntimeValue) MapValue {
 
 	return MapValue{
 		Type:  "Map",
-		Value: elements,
+		Value: &elements,
 	}
 }
 

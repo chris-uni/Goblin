@@ -11,7 +11,7 @@ var Data = Namespace{
 		},
 		"put": {
 			Type: "NativeFn",
-			Call: println,
+			Call: put,
 		},
 		"pop": {
 			Type: "NativeFn",
@@ -46,6 +46,31 @@ var push FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue
 	return MK_NULL(), nil
 }
 
+// put, puts a new key/value pair into a map, inserted at the end
+// data.put(m map, key any, value any)
+var put FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	numArgs := len(args)
+	if numArgs != 3 {
+		return nil, fmt.Errorf("unexpected number of args for data.put, expected 3 got %v", numArgs)
+	}
+
+	m := args[0]
+	mapp, isMap := m.(MapValue)
+	if !isMap {
+		return nil, fmt.Errorf("data.put must be used on map type, %v type given", mapp.Type)
+	}
+
+	// The value we want to push into the array.
+	key := args[1]
+	value := args[2]
+
+	tmp := *mapp.Value
+	tmp[key] = value
+
+	return MK_NULL(), nil
+}
+
 // size, returns the size of the array or map specified
 // data.size(a array), data.size(m map)
 var size FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
@@ -67,7 +92,7 @@ var size FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue
 	if isArr {
 		size = len(*arr.Value)
 	} else if isMap {
-		size = len(mapp.Value)
+		size = len(*mapp.Value)
 	}
 
 	return MK_NUMBER(size), nil

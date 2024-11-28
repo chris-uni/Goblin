@@ -270,8 +270,9 @@ func (e Environment) MapLookup(var_ string, index RuntimeValue) (RuntimeValue, e
 
 	if mapp, ok := mapp_.(MapValue); ok {
 
+		m := *mapp.Value
 		// The specified index value is out of bounds!
-		val, ok := mapp.Value[index]
+		val, ok := m[index]
 		if ok {
 			return val, nil
 		} else {

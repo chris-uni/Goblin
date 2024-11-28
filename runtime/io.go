@@ -449,13 +449,13 @@ func printHelper(arg RuntimeValue) string {
 		builder = "{"
 		counter := 0
 
-		for key, value := range map_.Value {
+		for key, value := range *map_.Value {
 
 			s := fmt.Sprintf("%v : %v", printHelper(key), printHelper(value))
 
 			builder += s
 
-			if counter < (len(map_.Value) - 1) {
+			if counter < (len(*map_.Value) - 1) {
 				builder += ", "
 			}
 
