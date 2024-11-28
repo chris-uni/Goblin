@@ -2,4 +2,7 @@ using "data";
 using "io";
 
 let arr = [];
-let size = data.size(arr, 1);
+let last = data.pop(arr, 1);
+
+io.println(last);
+io.println(arr);

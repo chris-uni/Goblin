@@ -15,7 +15,7 @@ var Data = Namespace{
 		},
 		"pop": {
 			Type: "NativeFn",
-			Call: printf,
+			Call: pop,
 		},
 		"size": {
 			Type: "NativeFn",
@@ -69,6 +69,34 @@ var put FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue,
 	tmp[key] = value
 
 	return MK_NULL(), nil
+}
+
+// pop, returns the last element of the specified array
+// data.pop(a array)
+var pop FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValue, error) {
+
+	numArgs := len(args)
+	if numArgs != 1 {
+		return nil, fmt.Errorf("unexpected number of args for data.pop, expected 1 got %v", numArgs)
+	}
+
+	a := args[0]
+	arr, isArr := a.(ArrayValue)
+
+	if !isArr {
+		return nil, fmt.Errorf("unexpected type provided for data.pop, got %v", a)
+	}
+
+	if len(*arr.Value) > 0 {
+
+		lastIndex := len(*arr.Value) - 1
+		lastItem := (*arr.Value)[lastIndex]
+		*arr.Value = (*arr.Value)[:lastIndex]
+
+		return lastItem, nil
+	}
+
+	return nil, fmt.Errorf("cannot pop an empty array")
 }
 
 // size, returns the size of the array or map specified

@@ -148,6 +148,80 @@ func TestPut(t *testing.T) {
 	}
 }
 
+func TestPop(t *testing.T) {
+
+	// Setup the program env.
+	HarnessSetup()
+
+	var tests = []struct {
+		source      string
+		want        string
+		throwsError bool
+	}{
+		{`using "data";
+		using "io";
+
+		let arr = [1, 2, 3];
+		let last = data.pop(arr);
+		
+		io.println(last);
+		io.println(arr);`, "3\n[1, 2]\n", false},
+		{`using "data";
+		using "io";
+
+		let arrr = [];
+		let lastt = data.pop(arrr);
+		
+		io.println(lastt);
+		io.println(arrr);`, "interpreter error: cannot pop an empty array", true},
+		{`using "data";
+		using "io";
+
+		let arrrr = [1, 2, 3];
+		let lasttt = data.pop(arrrr, 1);
+		
+		io.println(lasttt);
+		io.println(arrrr);`, "interpreter error: unexpected number of args for data.pop, expected 1 got 2", true},
+		{`using "data";
+		using "io";
+
+		let arrrrr = [];
+		let lastttt = data.pop();
+		
+		io.println(lastttt);
+		io.println(arrrrr);`, "interpreter error: unexpected number of args for data.pop, expected 1 got 0", true},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v, %v", tt.source, tt.want)
+		t.Run(testname, func(t *testing.T) {
+
+			// Run the program.
+			_, err := program.Run(string(tt.source), env)
+
+			if !tt.throwsError {
+
+				// When tests aren't supposed to throw an error.
+				if err != nil {
+					t.Errorf(err.Error())
+				}
+
+				if output.String() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
+				}
+			} else {
+
+				// When tests are supposed to throw an error.
+				if err.Error() != tt.want {
+					t.Errorf("expected `%v`, received `%v`", tt.want, err.Error())
+				}
+			}
+
+			FlushBuffer()
+		})
+	}
+}
+
 func TestSize(t *testing.T) {
 
 	// Setup the program env.
