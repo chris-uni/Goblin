@@ -61,3 +61,9 @@ let var = x.foo;
 To-Do:
 - Fix functions when params are passed in and we want to return a value
 - For loops
+
+Re-data structures, need the following functions in stdlib:
+- push(arr, val) -> null;
+- put(map, key, val) -> null;
+- pop(arr) -> last item in array, also removes it.
+- size(arr/ map) -> int, number of elements in array or map

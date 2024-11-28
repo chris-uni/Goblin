@@ -54,7 +54,7 @@ func (n NumberValue) runtime() {
 
 type ArrayValue struct {
 	Type  ValueType
-	Value []RuntimeValue
+	Value *[]RuntimeValue
 }
 
 func (a ArrayValue) runtime() {
@@ -151,7 +151,7 @@ func MK_ARRAY(elements []RuntimeValue) ArrayValue {
 
 	return ArrayValue{
 		Type:  "Array",
-		Value: elements,
+		Value: &elements,
 	}
 }
 

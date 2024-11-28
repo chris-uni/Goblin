@@ -6,7 +6,8 @@ import (
 )
 
 var register = map[string]Namespace{
-	"io": IO,
+	"io":   IO,
+	"data": Data,
 }
 
 type Environment struct {
@@ -248,10 +249,12 @@ func (e Environment) ArrayLookup(var_ string, index int) (RuntimeValue, error) {
 	if arr, ok := arr_.(ArrayValue); ok {
 
 		// The specified index value is out of bounds!
-		if index >= len(arr.Value) {
+		if index >= len(*arr.Value) {
 			return nil, fmt.Errorf("index out of bounds for index %v", index)
 		}
-		return arr.Value[index], nil
+
+		a := *arr.Value
+		return a[index], nil
 	}
 
 	return nil, fmt.Errorf("invalid array: %v", arr_)
