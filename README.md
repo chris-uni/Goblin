@@ -7,7 +7,7 @@ A repository for the Goblin Programming Language.
 
 ### `strings`
 ```
-using "data";
+using "strings";
 
 // split, splits string `s` by delimiter `d`, returns an array of sub-string elements.
 // strings.split(s str, d str)
