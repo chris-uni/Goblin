@@ -5,6 +5,15 @@ A repository for the Goblin Programming Language.
 
 ## Standard Libary
 
+### `strings`
+```
+using "data";
+
+// split, splits string `s` by delimiter `d`, returns an array of sub-string elements.
+// strings.split(s str, d str)
+strings.split("Hello World", " ");
+```
+
 ### `data`
 ```
 using "data";

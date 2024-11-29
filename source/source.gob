@@ -1,8 +1,3 @@
-using "data";
-using "io";
+using "strings";
 
-let arr = [];
-let last = data.pop(arr, 1);
-
-io.println(last);
-io.println(arr);
+let words = strings.split("Hello, world");
