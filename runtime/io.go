@@ -154,7 +154,7 @@ var input FunctionCall = func(args []RuntimeValue, env Environment) (RuntimeValu
 	m := args[0]
 	msg, isStr := m.(StringValue)
 	if !isStr {
-		return nil, fmt.Errorf("os.input message must be string type, got %v", msg.Type)
+		return nil, fmt.Errorf("io.input message must be string type, got %v", msg.Type)
 	}
 
 	reader := bufio.NewReader(env.Stdin)
@@ -431,13 +431,14 @@ func printHelper(arg RuntimeValue) string {
 	} else if arr, ok := arg.(ArrayValue); ok {
 
 		builder = "["
-		for i := 0; i < len(arr.Value); i++ {
+		for i := 0; i < len(*arr.Value); i++ {
 
-			val := fmt.Sprintf("%v", printHelper(arr.Value[i]))
+			a := *arr.Value
+			val := fmt.Sprintf("%v", printHelper(a[i]))
 
 			builder += val
 
-			if i < len(arr.Value)-1 {
+			if i < len(*arr.Value)-1 {
 				builder += ", "
 			}
 		}
@@ -448,13 +449,13 @@ func printHelper(arg RuntimeValue) string {
 		builder = "{"
 		counter := 0
 
-		for key, value := range map_.Value {
+		for key, value := range *map_.Value {
 
 			s := fmt.Sprintf("%v : %v", printHelper(key), printHelper(value))
 
 			builder += s
 
-			if counter < (len(map_.Value) - 1) {
+			if counter < (len(*map_.Value) - 1) {
 				builder += ", "
 			}
 

@@ -1,9 +1,8 @@
+using "data";
 using "io";
-let f = io.open("test.txt", "r");
 
-for(let i = 1; i < 3; i++;){
+let arr = [];
+let last = data.pop(arr, 1);
 
-    let line = io.readlines(f);
-
-    io.println(line);
-}
+io.println(last);
+io.println(arr);

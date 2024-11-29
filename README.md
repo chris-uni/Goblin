@@ -4,6 +4,28 @@
 A repository for the Goblin Programming Language.
 
 ## Standard Libary
+
+### `data`
+```
+using "data";
+
+// push, pushes a new value into an array (top-down)
+// data.push(arr array, val any)
+data.push(arr, "Hello");
+
+// put, puts a new key/value pair into a map, inserted at the end
+// data.put(m map, key any, value any)
+data.put(map, "key", "World!");
+
+// pop, returns the last element of the specified array
+// data.pop(a array)
+data.pop(arr);
+
+// size, returns the size of the array or map specified
+// data.size(a array), data.size(m map)
+let count = data.size(arr);
+```
+
 ### `io`
 ```
 using "io";
