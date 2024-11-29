@@ -6,8 +6,9 @@ import (
 )
 
 var register = map[string]Namespace{
-	"io":   IO,
-	"data": Data,
+	"io":      IO,
+	"data":    Data,
+	"strings": Strings,
 }
 
 type Environment struct {
