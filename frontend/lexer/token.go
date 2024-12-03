@@ -5,6 +5,8 @@ import "fmt"
 type Token struct {
 	Type  TokenType
 	Value string
+	Line  int
+	Col   int
 }
 
 type Tokens []Token

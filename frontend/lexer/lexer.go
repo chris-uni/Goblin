@@ -14,40 +14,61 @@ func Tokenize(sourceCode string) []Token {
 
 	src := strings.Split(sourceCode, "")
 
+	line := 1
+	col := 0
+
 	for len(src) > 0 {
 
+		if src[0] == "\n" {
+			line++
+			col = 0
+		}
+		if src[0] == " " {
+			col++
+		}
+
 		if src[0] == "(" {
-			tokens = append(tokens, token(OpenParen, utils.Shift[string](&src)))
+			tokens = append(tokens, token(OpenParen, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == ")" {
-			tokens = append(tokens, token(CloseParen, utils.Shift[string](&src)))
+			tokens = append(tokens, token(CloseParen, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "{" {
-			tokens = append(tokens, token(OpenBrace, utils.Shift[string](&src)))
+			tokens = append(tokens, token(OpenBrace, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "}" {
-			tokens = append(tokens, token(CloseBrace, utils.Shift[string](&src)))
+			tokens = append(tokens, token(CloseBrace, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "[" {
-			tokens = append(tokens, token(OpenBracket, utils.Shift[string](&src)))
+			tokens = append(tokens, token(OpenBracket, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "]" {
-			tokens = append(tokens, token(CloseBracket, utils.Shift[string](&src)))
+			tokens = append(tokens, token(CloseBracket, utils.Shift[string](&src), line, col))
+			col++
 
 		} else if src[0] == "+" {
 
 			if (src[1] == "+") || (src[1] == "=") {
 				// Shorthand ++ or +=
 				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
-				tokens = append(tokens, token(ShorthandOperator, op))
+				tokens = append(tokens, token(ShorthandOperator, op, line, col))
+				col += 2
 			} else {
 				// Standard + BinOp.
-				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
+				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src), line, col))
+				col++
 			}
 		} else if src[0] == "-" {
 
 			if (src[1] == "-") || (src[1] == "=") {
 				// Shorthand -- or -=
 				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
-				tokens = append(tokens, token(ShorthandOperator, op))
+				tokens = append(tokens, token(ShorthandOperator, op, line, col))
+				col += 2
 			} else {
 				// Standard - BinOp.
-				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
+				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src), line, col))
+				col++
 			}
 		} else if src[0] == "/" || src[0] == "*" || src[0] == "%" {
 
@@ -55,25 +76,34 @@ func Tokenize(sourceCode string) []Token {
 			if src[1] == "=" {
 				// Shorthand operator.
 				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
-				tokens = append(tokens, token(ShorthandOperator, op))
+				tokens = append(tokens, token(ShorthandOperator, op, line, col))
+				col += 2
 			} else {
 				// Standard BinOp.
-				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
+				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src), line, col))
+				col++
 			}
 		} else if src[0] == ">" || src[0] == "<" {
-			tokens = append(tokens, token(ConditionalOperator, utils.Shift[string](&src)))
+			tokens = append(tokens, token(ConditionalOperator, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "=" && src[1] != "=" {
-			tokens = append(tokens, token(Equals, utils.Shift[string](&src)))
+			tokens = append(tokens, token(Equals, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == ";" {
-			tokens = append(tokens, token(EOL, utils.Shift[string](&src)))
+			tokens = append(tokens, token(EOL, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == ":" {
-			tokens = append(tokens, token(Colon, utils.Shift[string](&src)))
+			tokens = append(tokens, token(Colon, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "," {
-			tokens = append(tokens, token(Comma, utils.Shift[string](&src)))
+			tokens = append(tokens, token(Comma, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "." {
-			tokens = append(tokens, token(Period, utils.Shift[string](&src)))
+			tokens = append(tokens, token(Period, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "?" {
-			tokens = append(tokens, token(Ternary, utils.Shift[string](&src)))
+			tokens = append(tokens, token(Ternary, utils.Shift[string](&src), line, col))
+			col++
 		} else {
 
 			// Multicharacter tokens (<=, >=...)
@@ -84,7 +114,8 @@ func Tokenize(sourceCode string) []Token {
 				symbol := utils.Shift[string](&src)
 				symbol += utils.Shift[string](&src)
 
-				tokens = append(tokens, token(Equality, symbol))
+				tokens = append(tokens, token(Equality, symbol, line, col))
+				col += 2
 
 			} else if isInt(src[0]) {
 				// Builds a number token.
@@ -94,7 +125,8 @@ func Tokenize(sourceCode string) []Token {
 					num += utils.Shift[string](&src)
 				}
 
-				tokens = append(tokens, token(Number, num))
+				tokens = append(tokens, token(Number, num, line, col))
+				col += len(num)
 
 			} else if isQuote(src[0]) {
 
@@ -112,7 +144,8 @@ func Tokenize(sourceCode string) []Token {
 				// Shift past '"'.
 				utils.Shift[string](&src)
 
-				tokens = append(tokens, token(String, str))
+				tokens = append(tokens, token(String, str, line, col))
+				col += (len(str) + 2) // Lenght of string + 2 for the quotes either side.
 
 			} else if isAlpha(src[0]) {
 				// Builds an identifier token.
@@ -129,14 +162,18 @@ func Tokenize(sourceCode string) []Token {
 					// If not exist, check to see is this is a bool value.
 					bVal, err := truthValue(iden)
 					if err == nil {
-						tokens = append(tokens, token(Boolean, utils.BtoS(bVal)))
+						bsv := utils.BtoS(bVal)
+						tokens = append(tokens, token(Boolean, bsv, line, col))
+						col += len(bsv)
 					} else {
 
 						// Really is an identifier.
-						tokens = append(tokens, token(Identifier, iden))
+						tokens = append(tokens, token(Identifier, iden, line, col))
+						col += len(iden)
 					}
 				} else {
-					tokens = append(tokens, token(t, iden))
+					tokens = append(tokens, token(t, iden, line, col))
+					col += len(iden)
 				}
 
 			} else if isSkippable(src[0]) {
@@ -150,7 +187,7 @@ func Tokenize(sourceCode string) []Token {
 	}
 
 	// Add in the EOF token.
-	tokens = append(tokens, token(EOF, "EOF"))
+	tokens = append(tokens, token(EOF, "EOF", line, col))
 
 	return tokens
 }
@@ -198,11 +235,13 @@ func isSkippable(src string) bool {
 }
 
 // Builds and returns a new token.
-func token(tknType TokenType, value string) Token {
+func token(tknType TokenType, value string, line int, col int) Token {
 
 	token := Token{
 		Type:  tknType,
 		Value: value,
+		Line:  line,
+		Col:   col,
 	}
 
 	return token

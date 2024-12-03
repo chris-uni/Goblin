@@ -54,7 +54,7 @@ func ProduceAST(source string) (ast.Program, error) {
 	// Convert source code into tokens.
 	tokens = lexer.Tokenize(source)
 
-	// fmt.Printf("Tokens: %v\n", tokens)
+	fmt.Printf("Tokens: %v\n", tokens)
 
 	program := ast.Program{
 		Kind: "Program",
