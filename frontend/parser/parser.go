@@ -55,12 +55,10 @@ func expect(t lexer.TokenType) (lexer.Token, error) {
 	return prev, nil
 }
 
-func ProduceAST(source string) (ast.Program, error) {
+func ProduceAST(t []lexer.Token, a map[int]string) (ast.Program, error) {
 
-	// Convert source code into tokens.
-	tokens, audit = lexer.Tokenize(source)
-
-	// fmt.Printf("Tokens: %v\n", tokens)
+	tokens = t
+	audit = a
 
 	program := ast.Program{
 		Kind: "Program",

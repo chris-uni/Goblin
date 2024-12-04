@@ -2,3 +2,4 @@ using "io";
 using "data";
 
 let arr = [];
+let size = data.size(arr, 1);
