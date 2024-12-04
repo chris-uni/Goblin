@@ -66,3 +66,30 @@ func Stdout(s string, buff io.Writer) {
 
 	fmt.Fprintf(buff, "%v", s)
 }
+
+// Formats an error string to help with debugging.
+/*
+i.e.
+parse error: using io
+             ~~~~~~~~^
+expecting 'EOL' on line 1 col 10
+*/
+func GenerateFormattedError(line string, col int, origin string) string {
+
+	underline := ""
+
+	for i := 0; i < len(origin); i++ {
+		underline += " "
+	}
+
+	for i := 0; i < len(line)+1; i++ {
+
+		if i == col {
+			underline += "^"
+		} else {
+			underline += "~"
+		}
+	}
+
+	return underline
+}

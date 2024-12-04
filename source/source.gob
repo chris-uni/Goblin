@@ -1,3 +1,4 @@
 using "io";
+using "data";
 
-let x = 0;
+let arr = [];

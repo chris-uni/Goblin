@@ -21,6 +21,7 @@ Orders of prescidence
 */
 
 var tokens = make([]lexer.Token, 0)
+var audit = make(map[int]string, 0)
 
 // Simple returns the current token.
 func at() lexer.Token {
@@ -43,7 +44,12 @@ func expect(t lexer.TokenType) (lexer.Token, error) {
 	prev := utils.Shift[lexer.Token](&tokens)
 
 	if &prev == nil || prev.Type != t {
-		return lexer.Token{}, fmt.Errorf("expecting type '%v'", t)
+
+		line := audit[prev.Line]
+		formattedError := utils.GenerateFormattedError(line, prev.Col, "parse error:")
+
+		errorStmtBuilder := fmt.Sprintf("%v\n%v\nexpecting '%v' on line %v col %v", line, formattedError, t, prev.Line, prev.Col)
+		return lexer.Token{}, fmt.Errorf("%v", errorStmtBuilder)
 	}
 
 	return prev, nil
@@ -52,9 +58,9 @@ func expect(t lexer.TokenType) (lexer.Token, error) {
 func ProduceAST(source string) (ast.Program, error) {
 
 	// Convert source code into tokens.
-	tokens = lexer.Tokenize(source)
+	tokens, audit = lexer.Tokenize(source)
 
-	fmt.Printf("Tokens: %v\n", tokens)
+	// fmt.Printf("Tokens: %v\n", tokens)
 
 	program := ast.Program{
 		Kind: "Program",
