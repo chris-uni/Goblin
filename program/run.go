@@ -15,7 +15,7 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 	// Stage 1. Lex the input.
 	tokens, audit := lexer.Tokenize(input)
 
-	fmt.Printf("Tokens: %v\n\n", tokens)
+	// fmt.Printf("Tokens: %v\n\n", tokens)
 
 	// Stage 2. Produce the Abstract Syntax Tree.
 	program, err := parser.ProduceAST(tokens, audit)

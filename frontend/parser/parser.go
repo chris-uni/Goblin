@@ -34,8 +34,9 @@ func at() lexer.Token {
 func eat() lexer.Token {
 
 	// prev := utils.Shift[lexer.Token](&tokens)
+	prev := at()
 	tokenPointer++
-	return at()
+	return prev
 }
 
 // Returns the current token and shifts the pointer along to
@@ -63,7 +64,6 @@ func ErrorGenerator(message string) error {
 	m := utils.GenerateParserError(audit[tmp.Line], tmp.Value, tmp.Line, tmp.Col, message)
 
 	return fmt.Errorf("%v", m)
-
 }
 
 func ProduceAST(t []lexer.Token, a map[int]string) (ast.Program, error) {
@@ -1273,14 +1273,11 @@ func parse_primary_expression() (ast.Expression, error) {
 
 	default:
 		message := fmt.Sprintf("unexpected token found during parsing '%v'", at().Value)
-		tmp := tokens[tokenPointer-1]
-		formattedError := utils.GenerateParserError(audit[at().Line], tmp.Value, at().Line, at().Col, message)
-
-		return ast.Expr{}, fmt.Errorf("%v", formattedError)
+		return ast.Expr{}, fmt.Errorf("%v", ErrorGenerator(message))
 	}
 }
 
 // Checks to see if we have hit the end of the file.
 func notEof() bool {
-	return tokens[0].Type != lexer.EOF
+	return tokens[tokenPointer].Type != lexer.EOF
 }
