@@ -22,14 +22,19 @@ func Tokenize(sourceCode string) ([]Token, map[int]string) {
 	for len(src) > 0 {
 
 		if src[0] == "\n" {
-			// Capture the line we just lexed.
-			audit[line] = auditBuilder
+
+			// Only capture a line if there is anything there.
+			if auditBuilder != "" {
+
+				// Capture the line we just lexed.
+				audit[line] = auditBuilder
+
+				// Increment the line count.
+				line++
+			}
 
 			// Reset the builder
 			auditBuilder = ""
-
-			// Increment the line count.
-			line++
 
 			// Reset the col counter.
 			col = 0
@@ -180,7 +185,7 @@ func Tokenize(sourceCode string) ([]Token, map[int]string) {
 
 				tokens = append(tokens, token(String, str, line, col))
 				auditBuilder += str
-				col += (len(str) + 2) // Lenght of string + 2 for the quotes either side.
+				col += (len(str) + 2) // Length of string + 2 for the quotes either side.
 
 			} else if isAlpha(src[0]) {
 				// Builds an identifier token.

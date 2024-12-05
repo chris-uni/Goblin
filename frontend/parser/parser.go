@@ -21,19 +21,21 @@ Orders of prescidence
 */
 
 var tokens = make([]lexer.Token, 0)
+var tokenPointer = 0
 var audit = make(map[int]string, 0)
 
 // Simple returns the current token.
 func at() lexer.Token {
-	return tokens[0]
+	return tokens[tokenPointer]
 }
 
 // Returns the current token and shifts the pointer along to
 // the next in the list.
 func eat() lexer.Token {
 
-	prev := utils.Shift[lexer.Token](&tokens)
-	return prev
+	// prev := utils.Shift[lexer.Token](&tokens)
+	tokenPointer++
+	return at()
 }
 
 // Returns the current token and shifts the pointer along to
@@ -41,18 +43,27 @@ func eat() lexer.Token {
 // type of the token about to be returned.
 func expect(t lexer.TokenType) (lexer.Token, error) {
 
-	prev := utils.Shift[lexer.Token](&tokens)
+	prev := at()
+	// this := utils.Shift[lexer.Token](&tokens)
 
 	if &prev == nil || prev.Type != t {
 
-		line := audit[prev.Line]
-		formattedError := utils.GenerateFormattedError(line, prev.Col, "parse error:")
-
-		errorStmtBuilder := fmt.Sprintf("%v\n%v\nexpecting '%v' on line %v col %v", line, formattedError, t, prev.Line, prev.Col)
-		return lexer.Token{}, fmt.Errorf("%v", errorStmtBuilder)
+		message := fmt.Sprintf("unexpected token found during parsing '%v'", t)
+		return lexer.Token{}, fmt.Errorf("%v", ErrorGenerator(message))
 	}
 
-	return prev, nil
+	return eat(), nil
+}
+
+// Generates a formatted error message, complete with underline and error-point identification.
+func ErrorGenerator(message string) error {
+
+	tmp := tokens[tokenPointer-1]
+
+	m := utils.GenerateParserError(audit[tmp.Line], tmp.Value, tmp.Line, tmp.Col, message)
+
+	return fmt.Errorf("%v", m)
+
 }
 
 func ProduceAST(t []lexer.Token, a map[int]string) (ast.Program, error) {
@@ -838,7 +849,7 @@ func parse_array_decleration(identifier string, isConst bool) (ast.Expression, e
 
 		value, err := parse_expression()
 		if err != nil {
-			return ast.Expr{}, err
+			return ast.Expr{}, ErrorGenerator(err.Error())
 		}
 
 		expressions = append(expressions, value)
@@ -1261,7 +1272,11 @@ func parse_primary_expression() (ast.Expression, error) {
 		return value, nil
 
 	default:
-		return ast.Expr{}, fmt.Errorf("unexpected token found during parsing - %v", at().ToString())
+		message := fmt.Sprintf("unexpected token found during parsing '%v'", at().Value)
+		tmp := tokens[tokenPointer-1]
+		formattedError := utils.GenerateParserError(audit[at().Line], tmp.Value, at().Line, at().Col, message)
+
+		return ast.Expr{}, fmt.Errorf("%v", formattedError)
 	}
 }
 

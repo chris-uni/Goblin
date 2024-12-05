@@ -1,5 +1,4 @@
 using "io";
 using "data";
 
-let arr = [];
-let size = data.size(arr, 1);
+let arr = [1, 2, 3]

@@ -15,15 +15,13 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 	// Stage 1. Lex the input.
 	tokens, audit := lexer.Tokenize(input)
 
-	fmt.Printf("Audit: %v\n\n", audit)
+	fmt.Printf("Tokens: %v\n\n", tokens)
 
 	// Stage 2. Produce the Abstract Syntax Tree.
 	program, err := parser.ProduceAST(tokens, audit)
 	if err != nil {
 		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
-
-	fmt.Printf("Program: %v\n\n", program.Body)
 
 	// Stage 3. Interprete the AST.
 	evaluation, err := runtime.Evaluate(program, env)
