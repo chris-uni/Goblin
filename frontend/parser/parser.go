@@ -899,7 +899,7 @@ func parse_additive_expression() (ast.Expression, error) {
 		return ast.Expr{}, err
 	}
 
-	for at().Value == "+" || at().Value == "-" || at().Value == "<" || at().Value == ">" || at().Value == "==" {
+	for at().Value == "+" || at().Value == "-" || at().Value == "<" || at().Value == ">" || at().Value == "==" || at().Value == "!=" {
 
 		operator := eat().Value
 

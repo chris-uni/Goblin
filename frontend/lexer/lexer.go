@@ -142,7 +142,7 @@ func Tokenize(sourceCode string) ([]Token, map[int]string) {
 			col++
 		} else {
 
-			// Multicharacter tokens (<=, >=...)
+			// Multicharacter tokens (<=, >=, ==, !=, etc...)
 
 			if src[0] == "=" && src[1] == "=" {
 
@@ -153,6 +153,17 @@ func Tokenize(sourceCode string) ([]Token, map[int]string) {
 				symbol += utils.Shift[string](&src)
 
 				tokens = append(tokens, token(Equality, symbol, line, col))
+				col += 2
+
+			} else if src[0] == "!" && src[1] == "=" {
+
+				auditBuilder += src[0] + src[1]
+
+				// This is an '!=' operator.
+				symbol := utils.Shift[string](&src)
+				symbol += utils.Shift[string](&src)
+
+				tokens = append(tokens, token(NotEquality, symbol, line, col))
 				col += 2
 
 			} else if isInt(src[0]) {

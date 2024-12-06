@@ -45,6 +45,7 @@ const (
 	CloseBracket TokenType = "]"
 	Period       TokenType = "."
 	Equality     TokenType = "=="
+	NotEquality  TokenType = "!="
 	Ternary      TokenType = "?"
 
 	// Operators.
