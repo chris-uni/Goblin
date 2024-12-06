@@ -51,7 +51,6 @@ func TestSimpleIfCondition(t *testing.T) {
 				t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
 			}
 
-			fmt.Printf("Output buffer: %v\n", env.Stdout)
 			FlushBuffer()
 		})
 	}

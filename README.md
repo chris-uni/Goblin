@@ -81,6 +81,18 @@ io.write(f, b"information")
 ```
 ## Language Design
 
+### Error handling
+Support for front-end error handling at the parser level. For example:
+```
+let x = 10
+```
+Yields the following:
+```
+parse error: let x = 10
+             ~~~~~~~~~~^
+expecting token `;` on line 1 col 10
+```
+
 ### Variable decleration
 ```
 let x = 10;

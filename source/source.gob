@@ -1,5 +1,5 @@
 using "io";
 
-if (10 > 5){
-    io.print(10);
-}
+let x = [1, 2, 3];
+
+io.println(x[2]);

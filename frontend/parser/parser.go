@@ -33,7 +33,6 @@ func at() lexer.Token {
 // the next in the list.
 func eat() lexer.Token {
 
-	// prev := utils.Shift[lexer.Token](&tokens)
 	prev := at()
 	tokenPointer++
 	return prev
@@ -45,12 +44,11 @@ func eat() lexer.Token {
 func expect(t lexer.TokenType) (lexer.Token, error) {
 
 	prev := at()
-	// this := utils.Shift[lexer.Token](&tokens)
 
 	if &prev == nil || prev.Type != t {
 
 		message := fmt.Sprintf("expecting token `%v`", t)
-		return lexer.Token{}, fmt.Errorf("%v", ErrorGenerator(message))
+		return lexer.Token{}, fmt.Errorf("%v", message)
 	}
 
 	return eat(), nil
@@ -68,12 +66,14 @@ func ErrorGenerator(message string) error {
 
 func ProduceAST(t []lexer.Token, a map[int]string) (ast.Program, error) {
 
+	// Setup & store the list of tokans.
 	tokens = make([]lexer.Token, 0)
 	tokens = append(tokens, t...)
 
-	audit = make(map[int]string, 0)
+	// Capture the audit trail of tokens.
 	audit = a
 
+	// Set token stack pointer to zero.
 	tokenPointer = 0
 
 	program := ast.Program{
@@ -85,7 +85,7 @@ func ProduceAST(t []lexer.Token, a map[int]string) (ast.Program, error) {
 
 		parsed_statement, err := parse_statement()
 		if err != nil {
-			return ast.Program{}, err
+			return ast.Program{}, ErrorGenerator(err.Error())
 		}
 
 		program.Body = append(program.Body, parsed_statement)
@@ -1278,7 +1278,7 @@ func parse_primary_expression() (ast.Expression, error) {
 
 	default:
 		message := fmt.Sprintf("unexpected token found during parsing '%v'", at().Value)
-		return ast.Expr{}, fmt.Errorf("%v", ErrorGenerator(message))
+		return ast.Expr{}, fmt.Errorf("%v", message)
 	}
 }
 

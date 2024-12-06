@@ -85,14 +85,14 @@ func GenerateParserError(auditLine string, specificToken string, line int, col i
 
 	for i := 0; i < len(auditLine)+1; i++ {
 
-		if i == (col + (len(specificToken))) {
+		if i == (col + len(specificToken)) {
 			underlines += "^"
 		} else {
 			underlines += "~"
 		}
 	}
 
-	msg := fmt.Sprintf("%v\n%v\n%v on line %v col %v", auditLine, underlines, message, line, col)
+	msg := fmt.Sprintf("%v\n%v\n%v on line %v col %v", auditLine, underlines, message, line, col+len(specificToken))
 
 	return msg
 }
