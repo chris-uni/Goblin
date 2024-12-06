@@ -131,6 +131,10 @@ else {
     println("1 is smaller than 2");
 }
 ```
+With supported operators:
+```
+<, >, ==, !=
+```
 
 ### Loops
 #### while
