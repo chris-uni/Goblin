@@ -76,10 +76,10 @@ expecting 'EOL' on line 1 col 10
 */
 func GenerateParserError(auditLine string, specificToken string, line int, col int, message string) string {
 
-	origin := "parse error:"
+	origin := "parse error: "
 	underlines := ""
 
-	for i := 0; i < len(origin)+1; i++ {
+	for i := 0; i < len(origin); i++ {
 		underlines += " "
 	}
 

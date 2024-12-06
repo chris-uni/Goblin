@@ -17,13 +17,13 @@ func TestSimpleIfCondition(t *testing.T) {
 		want   string
 	}{
 		{`using "io";
-		if (10 > 5){
-			io.println(10);
-		}`, "10\n"},
-		{`using "io";
 		if (10 < 20){
-			io.println(11);
-		}`, "11\n"},
+			io.print(11);
+		}`, "11"},
+		{`using "io";
+		if (10 > 5){
+			io.print(10);
+		}`, "10"},
 		{`using "io";
 		if (10 == 10){
 			io.println(10);
@@ -51,6 +51,7 @@ func TestSimpleIfCondition(t *testing.T) {
 				t.Errorf("expected `%v`, received `%v`", tt.want, output.String())
 			}
 
+			fmt.Printf("Output buffer: %v\n", env.Stdout)
 			FlushBuffer()
 		})
 	}

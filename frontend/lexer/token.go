@@ -34,18 +34,18 @@ const (
 	String     TokenType = "String"
 
 	// Symbols.
-	Equals       TokenType = "Equals"
-	OpenParen    TokenType = "OpenParen"
-	CloseParen   TokenType = "CloseParen"
-	Comma        TokenType = "Comma"
-	Colon        TokenType = "Colon"
-	OpenBrace    TokenType = "OpenBrace"
-	CloseBrace   TokenType = "CloseBrace"
-	OpenBracket  TokenType = "OpenBracket"
-	CloseBracket TokenType = "CloseBracket"
-	Period       TokenType = "Period"
-	Equality     TokenType = "Equality"
-	Ternary      TokenType = "Ternary"
+	Equals       TokenType = "="
+	OpenParen    TokenType = "("
+	CloseParen   TokenType = ")"
+	Comma        TokenType = ","
+	Colon        TokenType = ":"
+	OpenBrace    TokenType = "{"
+	CloseBrace   TokenType = "}"
+	OpenBracket  TokenType = "["
+	CloseBracket TokenType = "]"
+	Period       TokenType = "."
+	Equality     TokenType = "=="
+	Ternary      TokenType = "?"
 
 	// Operators.
 	BinaryOperator      TokenType = "BinaryOperator"      // e.g. '+, -, /, *, etc'
@@ -63,7 +63,7 @@ const (
 	Using TokenType = "Using"
 
 	// End of Line.
-	EOL TokenType = "EOL"
+	EOL TokenType = ";"
 	// End of file.
 	EOF TokenType = "EOF"
 )

@@ -20,9 +20,9 @@ Orders of prescidence
 // PrimaryExpr
 */
 
-var tokens = make([]lexer.Token, 0)
-var tokenPointer = 0
-var audit = make(map[int]string, 0)
+var tokens []lexer.Token
+var tokenPointer int
+var audit map[int]string
 
 // Simple returns the current token.
 func at() lexer.Token {
@@ -49,7 +49,7 @@ func expect(t lexer.TokenType) (lexer.Token, error) {
 
 	if &prev == nil || prev.Type != t {
 
-		message := fmt.Sprintf("unexpected token found during parsing '%v'", t)
+		message := fmt.Sprintf("expecting token `%v`", t)
 		return lexer.Token{}, fmt.Errorf("%v", ErrorGenerator(message))
 	}
 
@@ -68,8 +68,13 @@ func ErrorGenerator(message string) error {
 
 func ProduceAST(t []lexer.Token, a map[int]string) (ast.Program, error) {
 
-	tokens = t
+	tokens = make([]lexer.Token, 0)
+	tokens = append(tokens, t...)
+
+	audit = make(map[int]string, 0)
 	audit = a
+
+	tokenPointer = 0
 
 	program := ast.Program{
 		Kind: "Program",
@@ -689,7 +694,7 @@ func parse_var_decleration() (ast.Expression, error) {
 
 		if isConst {
 			// Current token is an EOL however trying to define const. Error.
-			return ast.Expr{}, fmt.Errorf("no value provided for const decleration")
+			return ast.Expr{}, ErrorGenerator("no value provided for const decleration")
 		}
 
 		// E.g. 'let x;'
@@ -849,7 +854,7 @@ func parse_array_decleration(identifier string, isConst bool) (ast.Expression, e
 
 		value, err := parse_expression()
 		if err != nil {
-			return ast.Expr{}, ErrorGenerator(err.Error())
+			return ast.Expr{}, err
 		}
 
 		expressions = append(expressions, value)
@@ -1032,7 +1037,7 @@ func parse_using_decleration() (ast.Expression, error) {
 
 	str, ok := val.(ast.StringLiteral)
 	if !ok {
-		return nil, fmt.Errorf("string type required with using directives, got %v", val)
+		return nil, ErrorGenerator("string type required with using directives")
 	}
 
 	// Always expect to see a ';' after a using directive.

@@ -1,5 +1,5 @@
 using "io";
 
-let arr = [1, 2, 3];
-
-io.println(arr[0])
+if (10 > 5){
+    io.print(10);
+}
