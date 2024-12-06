@@ -1,5 +1,19 @@
 using "io";
+using "data";
+using "strings";
 
-let x = [1, 2, 3];
+let source = "using io;";
+let chars = strings.split(source, "");
+let count = data.size(chars);
 
-io.println(x[2]);
+for(let i = 0; i < count; i++;){
+
+    let char = chars[i];
+
+    if(char != "s"){
+        io.println("It works!");
+    }
+    else {
+        io.println(char);
+    }
+}

@@ -35,6 +35,14 @@ func TestSimpleIfCondition(t *testing.T) {
 		else {
 			io.println(10);
 		}`, "10\n"},
+		{`using "io";
+		if ("c" == "c"){
+			io.print("c");
+		}`, "c"},
+		{`using "io";
+		if ("c" != "a"){
+			io.print("a");
+		}`, "a"},
 	}
 
 	for _, tt := range tests {

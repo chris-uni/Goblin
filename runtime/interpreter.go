@@ -559,15 +559,28 @@ func eval_if_condition_expression(iif ast.IfCondition, env Environment) (Runtime
 			return nil, err
 		}
 
-		lhs, ok1 := left.(NumberValue)
-		rhs, ok2 := right.(NumberValue)
+		lhi, ok1i := left.(NumberValue)
+		rhi, ok2i := right.(NumberValue)
 
-		if ok1 && ok2 {
-			b, err := eval_numeric_boolean_expression(lhs, rhs, binop.Operator)
+		lhs, ok1s := left.(StringValue)
+		rhs, ok2s := right.(StringValue)
+
+		// Int comparision.
+		if ok1i && ok2i {
+			b, err := eval_numeric_boolean_expression(lhi, rhi, binop.Operator)
 			isConditionTrue = b.Value
 			if err != nil {
 				return nil, err
 			}
+		} else if ok1s && ok2s {
+			// String comparision.
+
+			b, err := eval_string_boolean_expression(lhs, rhs, binop.Operator)
+			isConditionTrue = b.Value
+			if err != nil {
+				return nil, err
+			}
+
 		} else {
 			return nil, fmt.Errorf("conditions must be of same type, got %v %v", lhs, rhs)
 		}
@@ -960,6 +973,29 @@ func eval_numeric_boolean_expression(lhs NumberValue, rhs NumberValue, opp strin
 		Type:  Boolean,
 		Value: b,
 	}, nil
+}
+
+// Returns a boolean evaluiation of a string expression. E.g. "c" == "c", or "C" != "e"
+func eval_string_boolean_expression(lhs StringValue, rhs StringValue, opp string) (BooleanValue, error) {
+
+	var b bool = false
+
+	if opp == "==" || opp == "!=" {
+
+		if opp == "==" {
+			b = lhs.Value == rhs.Value
+		} else if opp == "!=" {
+			b = lhs.Value != rhs.Value
+		}
+
+		return BooleanValue{
+			Type:  Boolean,
+			Value: b,
+		}, nil
+	}
+
+	return BooleanValue{}, fmt.Errorf("string comparision operator must be `==` or `!=`, %v given", opp)
+
 }
 
 // Evaluates an assignment expression, e.g. x = 10
