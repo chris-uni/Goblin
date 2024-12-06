@@ -21,10 +21,10 @@ func Shift[T any](slice *[]T) T {
 
 // Converts a string into a number.
 func ToNumber(str string) (int, error) {
+
 	num, err := strconv.Atoi(str)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return 0, fmt.Errorf("could not convert %v to int", str)
+		return 0, fmt.Errorf("could not convert `%v` to int", str)
 	}
 
 	return num, nil
@@ -65,4 +65,34 @@ func StoB(s string) bool {
 func Stdout(s string, buff io.Writer) {
 
 	fmt.Fprintf(buff, "%v", s)
+}
+
+// Formats an error string to help with debugging.
+/*
+i.e.
+parse error: using io
+             ~~~~~~~~^
+expecting 'EOL' on line 1 col 10
+*/
+func GenerateParserError(auditLine string, specificToken string, line int, col int, message string) string {
+
+	origin := "parse error: "
+	underlines := ""
+
+	for i := 0; i < len(origin); i++ {
+		underlines += " "
+	}
+
+	for i := 0; i < len(auditLine)+1; i++ {
+
+		if i == (col + len(specificToken)) {
+			underlines += "^"
+		} else {
+			underlines += "~"
+		}
+	}
+
+	msg := fmt.Sprintf("%v\n%v\n%v on line %v col %v", auditLine, underlines, message, line, col+len(specificToken))
+
+	return msg
 }

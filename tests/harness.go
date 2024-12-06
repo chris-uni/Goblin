@@ -26,5 +26,5 @@ func HarnessSetup() {
 }
 
 func FlushBuffer() {
-	output = bytes.Buffer{}
+	output.Reset()
 }

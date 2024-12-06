@@ -20,18 +20,21 @@ Orders of prescidence
 // PrimaryExpr
 */
 
-var tokens = make([]lexer.Token, 0)
+var tokens []lexer.Token
+var tokenPointer int
+var audit map[int]string
 
 // Simple returns the current token.
 func at() lexer.Token {
-	return tokens[0]
+	return tokens[tokenPointer]
 }
 
 // Returns the current token and shifts the pointer along to
 // the next in the list.
 func eat() lexer.Token {
 
-	prev := utils.Shift[lexer.Token](&tokens)
+	prev := at()
+	tokenPointer++
 	return prev
 }
 
@@ -40,21 +43,38 @@ func eat() lexer.Token {
 // type of the token about to be returned.
 func expect(t lexer.TokenType) (lexer.Token, error) {
 
-	prev := utils.Shift[lexer.Token](&tokens)
+	prev := at()
 
 	if &prev == nil || prev.Type != t {
-		return lexer.Token{}, fmt.Errorf("expecting type '%v'", t)
+
+		message := fmt.Sprintf("expecting token `%v`", t)
+		return lexer.Token{}, fmt.Errorf("%v", message)
 	}
 
-	return prev, nil
+	return eat(), nil
 }
 
-func ProduceAST(source string) (ast.Program, error) {
+// Generates a formatted error message, complete with underline and error-point identification.
+func ErrorGenerator(message string) error {
 
-	// Convert source code into tokens.
-	tokens = lexer.Tokenize(source)
+	tmp := tokens[tokenPointer-1]
 
-	// fmt.Printf("Tokens: %v\n", tokens)
+	m := utils.GenerateParserError(audit[tmp.Line], tmp.Value, tmp.Line, tmp.Col, message)
+
+	return fmt.Errorf("%v", m)
+}
+
+func ProduceAST(t []lexer.Token, a map[int]string) (ast.Program, error) {
+
+	// Setup & store the list of tokans.
+	tokens = make([]lexer.Token, 0)
+	tokens = append(tokens, t...)
+
+	// Capture the audit trail of tokens.
+	audit = a
+
+	// Set token stack pointer to zero.
+	tokenPointer = 0
 
 	program := ast.Program{
 		Kind: "Program",
@@ -65,7 +85,7 @@ func ProduceAST(source string) (ast.Program, error) {
 
 		parsed_statement, err := parse_statement()
 		if err != nil {
-			return ast.Program{}, err
+			return ast.Program{}, ErrorGenerator(err.Error())
 		}
 
 		program.Body = append(program.Body, parsed_statement)
@@ -674,7 +694,7 @@ func parse_var_decleration() (ast.Expression, error) {
 
 		if isConst {
 			// Current token is an EOL however trying to define const. Error.
-			return ast.Expr{}, fmt.Errorf("no value provided for const decleration")
+			return ast.Expr{}, ErrorGenerator("no value provided for const decleration")
 		}
 
 		// E.g. 'let x;'
@@ -1017,7 +1037,7 @@ func parse_using_decleration() (ast.Expression, error) {
 
 	str, ok := val.(ast.StringLiteral)
 	if !ok {
-		return nil, fmt.Errorf("string type required with using directives, got %v", val)
+		return nil, ErrorGenerator("string type required with using directives")
 	}
 
 	// Always expect to see a ';' after a using directive.
@@ -1257,11 +1277,12 @@ func parse_primary_expression() (ast.Expression, error) {
 		return value, nil
 
 	default:
-		return ast.Expr{}, fmt.Errorf("unexpected token found during parsing - %v", at().ToString())
+		message := fmt.Sprintf("unexpected token found during parsing '%v'", at().Value)
+		return ast.Expr{}, fmt.Errorf("%v", message)
 	}
 }
 
 // Checks to see if we have hit the end of the file.
 func notEof() bool {
-	return tokens[0].Type != lexer.EOF
+	return tokens[tokenPointer].Type != lexer.EOF
 }

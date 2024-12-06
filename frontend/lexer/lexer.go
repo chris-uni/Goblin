@@ -8,83 +8,152 @@ import (
 	"goblin.org/main/utils"
 )
 
-func Tokenize(sourceCode string) []Token {
+func Tokenize(sourceCode string) ([]Token, map[int]string) {
 
 	tokens := make(Tokens, 0)
+	audit := make(map[int]string)
+	auditBuilder := ""
 
 	src := strings.Split(sourceCode, "")
 
+	line := 1
+	col := 0
+
 	for len(src) > 0 {
 
+		if src[0] == "\n" {
+
+			// Only capture a line if there is anything there.
+			if auditBuilder != "" {
+
+				// Capture the line we just lexed.
+				audit[line] = auditBuilder
+
+				// Increment the line count.
+				line++
+			}
+
+			// Reset the builder
+			auditBuilder = ""
+
+			// Reset the col counter.
+			col = 0
+		}
+		if src[0] == " " {
+			auditBuilder += src[0]
+			col++
+		}
+
 		if src[0] == "(" {
-			tokens = append(tokens, token(OpenParen, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(OpenParen, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == ")" {
-			tokens = append(tokens, token(CloseParen, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(CloseParen, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "{" {
-			tokens = append(tokens, token(OpenBrace, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(OpenBrace, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "}" {
-			tokens = append(tokens, token(CloseBrace, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(CloseBrace, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "[" {
-			tokens = append(tokens, token(OpenBracket, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(OpenBracket, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "]" {
-			tokens = append(tokens, token(CloseBracket, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(CloseBracket, utils.Shift[string](&src), line, col))
+			col++
 
 		} else if src[0] == "+" {
 
 			if (src[1] == "+") || (src[1] == "=") {
 				// Shorthand ++ or +=
+				auditBuilder += src[0] + src[1]
 				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
-				tokens = append(tokens, token(ShorthandOperator, op))
+				tokens = append(tokens, token(ShorthandOperator, op, line, col))
+				col += 2
 			} else {
 				// Standard + BinOp.
-				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
+				auditBuilder += src[0]
+				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src), line, col))
+				col++
 			}
 		} else if src[0] == "-" {
 
 			if (src[1] == "-") || (src[1] == "=") {
 				// Shorthand -- or -=
+				auditBuilder += src[0] + src[1]
 				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
-				tokens = append(tokens, token(ShorthandOperator, op))
+				tokens = append(tokens, token(ShorthandOperator, op, line, col))
+				col += 2
 			} else {
 				// Standard - BinOp.
-				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
+				auditBuilder += src[0]
+				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src), line, col))
+				col++
 			}
 		} else if src[0] == "/" || src[0] == "*" || src[0] == "%" {
 
 			// Shorthand operator or standard BinaryOperator?
 			if src[1] == "=" {
 				// Shorthand operator.
+				auditBuilder += src[0] + src[1]
 				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
-				tokens = append(tokens, token(ShorthandOperator, op))
+				tokens = append(tokens, token(ShorthandOperator, op, line, col))
+				col += 2
 			} else {
 				// Standard BinOp.
-				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src)))
+				auditBuilder += src[0]
+				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src), line, col))
+				col++
 			}
 		} else if src[0] == ">" || src[0] == "<" {
-			tokens = append(tokens, token(ConditionalOperator, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(ConditionalOperator, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "=" && src[1] != "=" {
-			tokens = append(tokens, token(Equals, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(Equals, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == ";" {
-			tokens = append(tokens, token(EOL, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(EOL, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == ":" {
-			tokens = append(tokens, token(Colon, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(Colon, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "," {
-			tokens = append(tokens, token(Comma, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(Comma, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "." {
-			tokens = append(tokens, token(Period, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(Period, utils.Shift[string](&src), line, col))
+			col++
 		} else if src[0] == "?" {
-			tokens = append(tokens, token(Ternary, utils.Shift[string](&src)))
+			auditBuilder += src[0]
+			tokens = append(tokens, token(Ternary, utils.Shift[string](&src), line, col))
+			col++
 		} else {
 
 			// Multicharacter tokens (<=, >=...)
 
 			if src[0] == "=" && src[1] == "=" {
 
+				auditBuilder += src[0] + src[1]
+
 				// This is an '==' operator.
 				symbol := utils.Shift[string](&src)
 				symbol += utils.Shift[string](&src)
 
-				tokens = append(tokens, token(Equality, symbol))
+				tokens = append(tokens, token(Equality, symbol, line, col))
+				col += 2
 
 			} else if isInt(src[0]) {
 				// Builds a number token.
@@ -94,7 +163,9 @@ func Tokenize(sourceCode string) []Token {
 					num += utils.Shift[string](&src)
 				}
 
-				tokens = append(tokens, token(Number, num))
+				tokens = append(tokens, token(Number, num, line, col))
+				auditBuilder += num
+				col += len(num)
 
 			} else if isQuote(src[0]) {
 
@@ -112,7 +183,9 @@ func Tokenize(sourceCode string) []Token {
 				// Shift past '"'.
 				utils.Shift[string](&src)
 
-				tokens = append(tokens, token(String, str))
+				tokens = append(tokens, token(String, str, line, col))
+				auditBuilder += str
+				col += (len(str) + 2) // Length of string + 2 for the quotes either side.
 
 			} else if isAlpha(src[0]) {
 				// Builds an identifier token.
@@ -129,14 +202,21 @@ func Tokenize(sourceCode string) []Token {
 					// If not exist, check to see is this is a bool value.
 					bVal, err := truthValue(iden)
 					if err == nil {
-						tokens = append(tokens, token(Boolean, utils.BtoS(bVal)))
+						bsv := utils.BtoS(bVal)
+						tokens = append(tokens, token(Boolean, bsv, line, col))
+						auditBuilder += bsv
+						col += len(bsv)
 					} else {
 
 						// Really is an identifier.
-						tokens = append(tokens, token(Identifier, iden))
+						tokens = append(tokens, token(Identifier, iden, line, col))
+						auditBuilder += iden
+						col += len(iden)
 					}
 				} else {
-					tokens = append(tokens, token(t, iden))
+					tokens = append(tokens, token(t, iden, line, col))
+					auditBuilder += iden
+					col += len(iden)
 				}
 
 			} else if isSkippable(src[0]) {
@@ -150,9 +230,12 @@ func Tokenize(sourceCode string) []Token {
 	}
 
 	// Add in the EOF token.
-	tokens = append(tokens, token(EOF, "EOF"))
+	tokens = append(tokens, token(EOF, "EOF", line, col))
 
-	return tokens
+	// Add the final of the lexer audit.
+	audit[line] = auditBuilder
+
+	return tokens, audit
 }
 
 // Checks to see if we are starting a new string.
@@ -198,11 +281,13 @@ func isSkippable(src string) bool {
 }
 
 // Builds and returns a new token.
-func token(tknType TokenType, value string) Token {
+func token(tknType TokenType, value string, line int, col int) Token {
 
 	token := Token{
 		Type:  tknType,
 		Value: value,
+		Line:  line,
+		Col:   col,
 	}
 
 	return token

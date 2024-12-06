@@ -1,3 +1,5 @@
-using "strings";
+using "io";
 
-let words = strings.split("Hello, world");
+let x = [1, 2, 3];
+
+io.println(x[2]);

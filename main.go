@@ -66,6 +66,7 @@ func main() {
 			// Only really want to print to console if its a statement that needs returning.
 			if result != nil {
 				r := fmt.Sprintf("%v", result)
+				fmt.Printf("Debug: %v\n", result)
 				utils.Stdout(r, env.Stdout)
 			}
 		}
