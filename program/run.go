@@ -13,9 +13,10 @@ import (
 func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 
 	// Stage 1. Lex the input.
-	tokens, audit := lexer.Tokenize(input)
-
-	// fmt.Printf("Audit: %v\nTokens: %v\n", audit, tokens)
+	tokens, audit, err := lexer.Lex(input)
+	if err != nil {
+		return nil, err
+	}
 
 	// Stage 2. Produce the Abstract Syntax Tree.
 	program, err := parser.ProduceAST(tokens, audit)
@@ -30,8 +31,6 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 	if err != nil {
 		return nil, fmt.Errorf("interpreter error: %v", err.Error())
 	}
-
-	// fmt.Printf("Eval: %v\n\n", evaluation)
 
 	if f, isNum := evaluation.(runtime.NativeFunction); isNum {
 

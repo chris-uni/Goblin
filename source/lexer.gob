@@ -1,0 +1,8 @@
+using "io";
+
+let i = 10;
+let j = 20;
+
+const k = i + j;
+
+io.print(k);
