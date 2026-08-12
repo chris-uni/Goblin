@@ -5,6 +5,65 @@ import (
 	"unicode"
 )
 
+const lexerErrorOne = "lexer error on"
+const lexerErrorTwo = "message "
+const lexerErrorThree = "code "
+
+type LexerError struct {
+	Code    int
+	Message string
+	Line    int
+	Col     int
+}
+
+func (e *LexerError) Error() string {
+	return fmt.Sprintf("%v line %v col %v\n%v%v\n%v %v\n", lexerErrorOne, e.Line, e.Col, lexerErrorTwo, e.Message, lexerErrorThree, e.Code)
+}
+
+/*
+Experminental. Formats a length dependant line and arrow, pointing to specific part of error in source.
+*/
+func ErrorUnderlineFormatter(message string, subject string) string {
+
+	underline := ""
+
+	lenPrefixAndMessage := len(lexerErrorTwo) + len(message)
+
+	for i := 0; i < lenPrefixAndMessage; i++ {
+		underline += " "
+	}
+
+	for i := 0; i < len(subject); i++ {
+		underline += "~"
+	}
+
+	underline += "^"
+
+	return underline
+}
+
+var lexerErrorCodes = map[int]string{
+
+	// Lexer struct codes.
+	100: "peekNext cannot overflow past end of file",
+	101: "peekNextN cannot overflow past end of file",
+
+	// Unexpected character/rune codes
+	200: "unsupported rune found",
+
+	// Unterminated string codes
+	300: "unterminated string detected",
+
+	// Invalid number codes
+	// 400
+
+	// Invalid Identifier codes
+	// 500
+
+	// Malformed multi-character token codes
+	// 600
+}
+
 type Lexer struct {
 	Source []rune
 
@@ -35,7 +94,7 @@ func (l *Lexer) peekNext() (rune, error) {
 
 	if newPos >= len(l.Source) {
 
-		return 0, fmt.Errorf("peekNext cannot overflow past end of file.")
+		return 0, &LexerError{100, lexerErrorCodes[100], l.Line, l.Col}
 	}
 
 	return l.Source[newPos], nil
@@ -50,7 +109,7 @@ func (l *Lexer) peekNextN(n int) (string, error) {
 
 	if newPos > len(l.Source) {
 
-		return "", fmt.Errorf("peekNextN cannot overflow past end of file.")
+		return "", &LexerError{101, lexerErrorCodes[101], l.Line, l.Col}
 	}
 
 	return string(l.Source[l.Pos:newPos]), nil
@@ -99,6 +158,20 @@ func (l *Lexer) match(ch rune) bool {
 }
 
 /*
+Non-comsuming. Returns true if any of the argument values match the value of __peek__.
+*/
+func (l *Lexer) matchAny(chs ...rune) bool {
+	for _, ch := range chs {
+
+		if l.peek() == ch {
+			return true
+		}
+	}
+
+	return false
+}
+
+/*
 Non-consuming. Returns true if pointer __Pos__ is at the end of the Source list.
 */
 func (l *Lexer) EOF() bool {
@@ -122,13 +195,6 @@ func (l *Lexer) createToken(tkntyp TokenType, val string, line int, col int) Tok
 }
 
 // Methods.
-
-/*
-Characters that are effectively ignored in Goblin.
-*/
-func (l *Lexer) isSkippable(ch rune) bool {
-	return ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r'
-}
 
 func (l *Lexer) processNumber() {
 
@@ -155,7 +221,9 @@ func (l *Lexer) processString() error {
 	}
 
 	if l.EOF() {
-		return fmt.Errorf("incomplete string detected, line %v col %v", l.Line, l.Col)
+
+		subject := string(l.Source[start:l.Pos])
+		return &LexerError{300, fmt.Sprintf("%v \"%v\n%v", lexerErrorCodes[300], subject, ErrorUnderlineFormatter(lexerErrorCodes[300], subject)), l.Line, l.Col}
 	}
 
 	value := l.Source[start:l.Pos]
@@ -208,20 +276,101 @@ func (l *Lexer) processIdentifier() {
 
 func (l *Lexer) processSymbol() error {
 
+	var candidate string
+	var err error
+
 	for _, length := range availableTokenLengths {
 
-		candidate, err := l.peekNextN(length)
+		// Prevents the lexer looking for tokens larger than the source of the file.
+		if length > len(l.Source) {
+			continue
+		}
+
+		candidate, err = l.peekNextN(length)
 		if err != nil {
 			return err
 		}
 
 		tokenType, ok := tokenListByLength[length][string(candidate)]
-		if !ok {
-			continue
+		if ok {
+			l.Tokens = append(l.Tokens, l.createToken(tokenType, string(candidate), l.Line, l.Pos))
+			l.consumeN(length)
+			return nil
+		}
+	}
+
+	subject := string(candidate)
+	return &LexerError{200, fmt.Sprintf("%v %v\n%v", lexerErrorCodes[200], subject, ErrorUnderlineFormatter(lexerErrorCodes[200], subject)), l.Line, l.Col}
+}
+
+func (l *Lexer) processComment() error {
+
+	nextRune, err := l.peekNext()
+	if err != nil {
+		return err
+	}
+
+	var err_ error
+
+	switch nextRune {
+	case '/':
+		err_ = l.processSingleLineComment()
+	case '*':
+		err_ = l.processMultiLineComment()
+	}
+
+	return err_
+}
+
+func (l *Lexer) processSingleLineComment() error {
+
+	nextRune, err := l.peekNext()
+	if err != nil {
+		return err
+	}
+
+	if l.peek() == '/' && nextRune == '/' {
+
+		// Loop until EOF or a new line starts.
+		for !l.EOF() && !l.match('\n') {
+			l.consume()
+		}
+	}
+
+	return nil
+}
+
+func (l *Lexer) processMultiLineComment() error {
+
+	nextRune, err := l.peekNext()
+	if err != nil {
+		return err
+	}
+
+	if l.peek() == '/' && nextRune == '*' {
+
+		// Move past '/'
+		l.consume()
+
+		// Move past '*'
+		l.consume()
+
+		for !l.EOF() {
+
+			nextPeek, err := l.peekNext()
+			if err != nil {
+				return err
+			}
+
+			if l.peek() == '*' && nextPeek == '/' {
+				l.consume()
+				l.consume()
+				break
+			}
+
+			l.consume()
 		}
 
-		l.Tokens = append(l.Tokens, l.createToken(tokenType, string(candidate), l.Line, l.Pos))
-		l.consumeN(length)
 	}
 
 	return nil
@@ -233,7 +382,7 @@ func Lex(source string) ([]Token, map[int]string, error) {
 		Source: []rune(source),
 
 		Pos:  0,
-		Line: 0,
+		Line: 1,
 		Col:  0,
 
 		Audit:  make(map[int]string),
@@ -244,12 +393,19 @@ func Lex(source string) ([]Token, map[int]string, error) {
 
 		switch ch := lexer.peek(); {
 
-		case lexer.isSkippable(ch):
+		case lexer.matchAny(' ', '\n', '\t', '\r'):
 			lexer.consume()
 			continue
 		case lexer.match(';'):
 			lexer.Tokens = append(lexer.Tokens, lexer.createToken(EOL, ";", lexer.Line, lexer.Col))
 			lexer.consume()
+			continue
+		case lexer.match('/'):
+			err := lexer.processComment()
+			if err != nil {
+				return nil, nil, err
+			}
+			continue
 		case unicode.IsDigit(ch):
 			lexer.processNumber()
 			continue
@@ -263,7 +419,10 @@ func Lex(source string) ([]Token, map[int]string, error) {
 			}
 			continue
 		default:
-			lexer.processSymbol()
+			err := lexer.processSymbol()
+			if err != nil {
+				return nil, nil, err
+			}
 			continue
 		}
 	}
