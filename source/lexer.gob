@@ -1,6 +1,1 @@
-// This is a single line comment
-/*
-This is a block comment.
-*/
-let i = "Hello, 'world'!"; // This is another comment
-let j = 10; // This is another line of code.
+const j = 10;

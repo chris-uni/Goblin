@@ -1,3 +1,23 @@
+/*
+Goblin Lexer v0.1
+Author: Chris J.M. Wing
+
+Input:
+	UTF-8 Goblin source code
+Output:
+	Ordered sequence of tokens representing the original Goblin source
+
+Guarantees:
+	- Tokens appear in source order
+	- Every token has a source position (line/ col)
+	- Fixed length tokens use Maximal Munch
+	- Identifiers consume valid identifier runes
+	- Numbers consume valid number runes
+	- Strings terminate _only_ on an unescaped quote
+	- Invalid lexical constructs produce a LexerError object
+	- EOF is always emitted
+*/
+
 package lexer
 
 import (
@@ -127,7 +147,7 @@ func (l *Lexer) consume() string {
 	// New line detection.
 	if value == '\n' {
 		l.Line++
-		l.Col = 0
+		l.Col = 1
 	} else {
 		l.Col++
 	}
@@ -282,7 +302,7 @@ func (l *Lexer) processSymbol() error {
 	for _, length := range availableTokenLengths {
 
 		// Prevents the lexer looking for tokens larger than the source of the file.
-		if length > len(l.Source) {
+		if length > len(l.Source[l.Pos:]) {
 			continue
 		}
 
@@ -317,6 +337,8 @@ func (l *Lexer) processComment() error {
 		err_ = l.processSingleLineComment()
 	case '*':
 		err_ = l.processMultiLineComment()
+	default:
+		return nil
 	}
 
 	return err_
@@ -383,7 +405,7 @@ func Lex(source string) ([]Token, map[int]string, error) {
 
 		Pos:  0,
 		Line: 1,
-		Col:  0,
+		Col:  1,
 
 		Audit:  make(map[int]string),
 		Tokens: make([]Token, 0),
@@ -400,12 +422,6 @@ func Lex(source string) ([]Token, map[int]string, error) {
 			lexer.Tokens = append(lexer.Tokens, lexer.createToken(EOL, ";", lexer.Line, lexer.Col))
 			lexer.consume()
 			continue
-		case lexer.match('/'):
-			err := lexer.processComment()
-			if err != nil {
-				return nil, nil, err
-			}
-			continue
 		case unicode.IsDigit(ch):
 			lexer.processNumber()
 			continue
@@ -418,6 +434,13 @@ func Lex(source string) ([]Token, map[int]string, error) {
 				return nil, nil, err
 			}
 			continue
+		case lexer.match('/') && lexer.Pos+1 < len(lexer.Source):
+			// Only check for comments if there is sufficient lookahead runes available.
+			err := lexer.processComment()
+			if err != nil {
+				return nil, nil, err
+			}
+			fallthrough
 		default:
 			err := lexer.processSymbol()
 			if err != nil {
