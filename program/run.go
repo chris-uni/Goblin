@@ -6,7 +6,6 @@ import (
 	"goblin.org/main/frontend/lexer"
 	"goblin.org/main/frontend/parser"
 	runtime "goblin.org/main/runtime"
-	"goblin.org/main/utils"
 )
 
 // Where the source goes to be lexed, parsed, interpreted, and returned.
@@ -15,7 +14,7 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 	// Stage 1. Lex the input.
 	tokens, audit := lexer.Tokenize(input)
 
-	// fmt.Printf("Audit: %v\nTokens: %v\n", audit, tokens)
+	fmt.Printf("lexed tokens: %v\naudit: %v\n", tokens, audit)
 
 	// Stage 2. Produce the Abstract Syntax Tree.
 	program, err := parser.ProduceAST(tokens, audit)
@@ -23,22 +22,23 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
 
-	// fmt.Printf("Program: %v\n", program)
+	fmt.Printf("Program: %v\n", program)
 
-	// Stage 3. Interprete the AST.
-	evaluation, err := runtime.Evaluate(program, env)
-	if err != nil {
-		return nil, fmt.Errorf("interpreter error: %v", err.Error())
-	}
+	/*
+		// Stage 3. Interprete the AST.
+		evaluation, err := runtime.Evaluate(program, env)
+		if err != nil {
+			return nil, fmt.Errorf("interpreter error: %v", err.Error())
+		}
 
-	// fmt.Printf("Eval: %v\n\n", evaluation)
+		// fmt.Printf("Eval: %v\n\n", evaluation)
 
-	if f, isNum := evaluation.(runtime.NativeFunction); isNum {
+		if f, isNum := evaluation.(runtime.NativeFunction); isNum {
 
-		r := fmt.Sprintf("%v\n", f.Call)
-		utils.Stdout(r, env.Stdout)
-		return nil, nil
-	}
-
+			r := fmt.Sprintf("%v\n", f.Call)
+			utils.Stdout(r, env.Stdout)
+			return nil, nil
+		}
+	*/
 	return nil, nil
 }
