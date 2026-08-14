@@ -25,7 +25,7 @@ fn FnAsVariable () => {
     return 10;
 }
 
--- Single line comment
+// Single line comment
 /* ... */ Multi-line comment
 
 -- Conditionals

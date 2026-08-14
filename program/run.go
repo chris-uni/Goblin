@@ -17,7 +17,7 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 	fmt.Printf("lexed tokens: %v\naudit: %v\n", tokens, audit)
 
 	// Stage 2. Produce the Abstract Syntax Tree.
-	program, err := parser.ProduceAST(tokens, audit)
+	program, err := parser.ParseTokens(tokens)
 	if err != nil {
 		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
