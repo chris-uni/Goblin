@@ -1,305 +1,457 @@
+/*
+Goblin Lexer v0.1
+Author: Chris J.M. Wing
+
+Input:
+	UTF-8 Goblin source code
+Output:
+	Ordered sequence of tokens representing the original Goblin source
+
+Guarantees:
+	- Tokens appear in source order
+	- Every token has a source position (line/ col)
+	- Fixed length tokens use Maximal Munch
+	- Identifiers consume valid identifier runes
+	- Numbers consume valid number runes
+	- Strings terminate _only_ on an unescaped quote
+	- Invalid lexical constructs produce a LexerError object
+	- EOF is always emitted
+*/
+
 package lexer
 
 import (
 	"fmt"
-	"strings"
 	"unicode"
-
-	"goblin.org/main/utils"
 )
 
-func Tokenize(sourceCode string) ([]Token, map[int]string) {
+const lexerErrorOne = "lexer error on"
+const lexerErrorTwo = "message "
+const lexerErrorThree = "code "
 
-	tokens := make(Tokens, 0)
-	audit := make(map[int]string)
-	auditBuilder := ""
+type LexerError struct {
+	Code    int
+	Message string
+	Line    int
+	Col     int
+}
 
-	src := strings.Split(sourceCode, "")
+func (e *LexerError) Error() string {
+	return fmt.Sprintf("%v line %v col %v\n%v%v\n%v %v\n", lexerErrorOne, e.Line, e.Col, lexerErrorTwo, e.Message, lexerErrorThree, e.Code)
+}
 
-	line := 1
-	col := 0
+/*
+Experminental. Formats a length dependant line and arrow, pointing to specific part of error in source.
+*/
+func ErrorUnderlineFormatter(message string, subject string) string {
 
-	for len(src) > 0 {
+	underline := ""
 
-		if src[0] == "\n" {
+	lenPrefixAndMessage := len(lexerErrorTwo) + len(message)
 
-			// Only capture a line if there is anything there.
-			if auditBuilder != "" {
+	for i := 0; i < lenPrefixAndMessage; i++ {
+		underline += " "
+	}
 
-				// Capture the line we just lexed.
-				audit[line] = auditBuilder
+	for i := 0; i < len(subject); i++ {
+		underline += "~"
+	}
 
-				// Increment the line count.
-				line++
-			}
+	underline += "^"
 
-			// Reset the builder
-			auditBuilder = ""
+	return underline
+}
 
-			// Reset the col counter.
-			col = 0
-		}
-		if src[0] == " " {
-			auditBuilder += src[0]
-			col++
-		}
+var lexerErrorCodes = map[int]string{
 
-		if src[0] == "(" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(OpenParen, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == ")" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(CloseParen, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == "{" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(OpenBrace, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == "}" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(CloseBrace, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == "[" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(OpenBracket, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == "]" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(CloseBracket, utils.Shift[string](&src), line, col))
-			col++
+	// Lexer struct codes.
+	100: "peekNext cannot overflow past end of file",
+	101: "peekNextN cannot overflow past end of file",
 
-		} else if src[0] == "+" {
+	// Unexpected character/rune codes
+	200: "unsupported rune found",
 
-			if (src[1] == "+") || (src[1] == "=") {
-				// Shorthand ++ or +=
-				auditBuilder += src[0] + src[1]
-				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
-				tokens = append(tokens, token(ShorthandOperator, op, line, col))
-				col += 2
-			} else {
-				// Standard + BinOp.
-				auditBuilder += src[0]
-				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src), line, col))
-				col++
-			}
-		} else if src[0] == "-" {
+	// Unterminated string codes
+	300: "unterminated string detected",
 
-			if (src[1] == "-") || (src[1] == "=") {
-				// Shorthand -- or -=
-				auditBuilder += src[0] + src[1]
-				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
-				tokens = append(tokens, token(ShorthandOperator, op, line, col))
-				col += 2
-			} else {
-				// Standard - BinOp.
-				auditBuilder += src[0]
-				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src), line, col))
-				col++
-			}
-		} else if src[0] == "/" || src[0] == "*" || src[0] == "%" {
+	// Invalid number codes
+	// 400
 
-			// Shorthand operator or standard BinaryOperator?
-			if src[1] == "=" {
-				// Shorthand operator.
-				auditBuilder += src[0] + src[1]
-				op := fmt.Sprintf("%v%v", utils.Shift[string](&src), utils.Shift[string](&src))
-				tokens = append(tokens, token(ShorthandOperator, op, line, col))
-				col += 2
-			} else {
-				// Standard BinOp.
-				auditBuilder += src[0]
-				tokens = append(tokens, token(BinaryOperator, utils.Shift[string](&src), line, col))
-				col++
-			}
-		} else if src[0] == ">" || src[0] == "<" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(ConditionalOperator, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == "=" && src[1] != "=" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(Equals, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == ";" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(EOL, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == ":" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(Colon, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == "," {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(Comma, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == "." {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(Period, utils.Shift[string](&src), line, col))
-			col++
-		} else if src[0] == "?" {
-			auditBuilder += src[0]
-			tokens = append(tokens, token(Ternary, utils.Shift[string](&src), line, col))
-			col++
-		} else {
+	// Invalid Identifier codes
+	// 500
 
-			// Multicharacter tokens (<=, >=, ==, !=, etc...)
+	// Malformed multi-character token codes
+	// 600
+}
 
-			if src[0] == "=" && src[1] == "=" {
+type Lexer struct {
+	Source []rune
 
-				auditBuilder += src[0] + src[1]
+	Pos  int
+	Line int
+	Col  int
 
-				// This is an '==' operator.
-				symbol := utils.Shift[string](&src)
-				symbol += utils.Shift[string](&src)
+	Audit  map[int]string
+	Tokens []Token
+}
 
-				tokens = append(tokens, token(Equality, symbol, line, col))
-				col += 2
+// API
 
-			} else if src[0] == "!" && src[1] == "=" {
+/*
+Non-consuming. Returns the current rune in the Source list.
+*/
+func (l *Lexer) peek() rune {
 
-				auditBuilder += src[0] + src[1]
+	return l.Source[l.Pos]
+}
 
-				// This is an '!=' operator.
-				symbol := utils.Shift[string](&src)
-				symbol += utils.Shift[string](&src)
+/*
+Non-consuming. Returns the next rune (if available) in the Source list.
+*/
+func (l *Lexer) peekNext() (rune, error) {
 
-				tokens = append(tokens, token(NotEquality, symbol, line, col))
-				col += 2
+	newPos := l.Pos + 1
 
-			} else if isInt(src[0]) {
-				// Builds a number token.
-				num := ""
+	if newPos >= len(l.Source) {
 
-				for len(src) > 0 && isInt(src[0]) {
-					num += utils.Shift[string](&src)
-				}
+		return 0, &LexerError{100, lexerErrorCodes[100], l.Line, l.Col}
+	}
 
-				tokens = append(tokens, token(Number, num, line, col))
-				auditBuilder += num
-				col += len(num)
+	return l.Source[newPos], nil
+}
 
-			} else if isQuote(src[0]) {
+/*
+Non-consuming. Returns the next n'th rune (if available) in the Source list.
+*/
+func (l *Lexer) peekNextN(n int) (string, error) {
 
-				// Start of a string literal.
-				str := ""
+	newPos := l.Pos + n
 
-				// Shift past '"'.
-				utils.Shift[string](&src)
+	if newPos > len(l.Source) {
 
-				for len(src) > 0 && !isQuote(src[0]) {
-					c := utils.Shift[string](&src)
-					str += c
-				}
+		return "", &LexerError{101, lexerErrorCodes[101], l.Line, l.Col}
+	}
 
-				// Shift past '"'.
-				utils.Shift[string](&src)
+	return string(l.Source[l.Pos:newPos]), nil
+}
 
-				tokens = append(tokens, token(String, str, line, col))
-				auditBuilder += str
-				col += (len(str) + 2) // Length of string + 2 for the quotes either side.
+/*
+Consuming. Returns the current rune in the Source list and incremenets Source pointer, line and col indexes.
+*/
+func (l *Lexer) consume() string {
 
-			} else if isAlpha(src[0]) {
-				// Builds an identifier token.
-				iden := ""
+	value := l.Source[l.Pos]
 
-				for len(src) > 0 && isAlpha(src[0]) {
-					iden += utils.Shift[string](&src)
-				}
+	l.Pos++
 
-				// Check for reserved keyword.
-				t, ok := Keywords[iden]
-				if !ok {
+	// New line detection.
+	if value == '\n' {
+		l.Line++
+		l.Col = 1
+	} else {
+		l.Col++
+	}
 
-					// If not exist, check to see is this is a bool value.
-					bVal, err := truthValue(iden)
-					if err == nil {
-						bsv := utils.BtoS(bVal)
-						tokens = append(tokens, token(Boolean, bsv, line, col))
-						auditBuilder += bsv
-						col += len(bsv)
-					} else {
+	return string(value)
+}
 
-						// Really is an identifier.
-						tokens = append(tokens, token(Identifier, iden, line, col))
-						auditBuilder += iden
-						col += len(iden)
-					}
-				} else {
-					tokens = append(tokens, token(t, iden, line, col))
-					auditBuilder += iden
-					col += len(iden)
-				}
+/*
+Consuming. Wrapper for __consume__, called 'n' number of times. Collects returned runes and returns as string.
+*/
+func (l *Lexer) consumeN(n int) string {
 
-			} else if isSkippable(src[0]) {
-				// Skips to next character.
-				utils.Shift(&src)
-			} else {
-				fmt.Printf("Unrecognised token in source: %v \n", src[0])
-				panic("Program exit.")
-			}
+	s := ""
+	for i := 0; i < n; i++ {
+
+		s += l.consume()
+	}
+
+	return s
+}
+
+/*
+Non-consuming. Returns true if the argument matches the value of __peek__.
+*/
+func (l *Lexer) match(ch rune) bool {
+
+	return l.peek() == ch
+}
+
+/*
+Non-comsuming. Returns true if any of the argument values match the value of __peek__.
+*/
+func (l *Lexer) matchAny(chs ...rune) bool {
+	for _, ch := range chs {
+
+		if l.peek() == ch {
+			return true
 		}
 	}
 
-	// Add in the EOF token.
-	tokens = append(tokens, token(EOF, "EOF", line, col))
-
-	// Add the final of the lexer audit.
-	audit[line] = auditBuilder
-
-	return tokens, audit
+	return false
 }
 
-// Checks to see if we are starting a new string.
-func isQuote(src string) bool {
+/*
+Non-consuming. Returns true if pointer __Pos__ is at the end of the Source list.
+*/
+func (l *Lexer) EOF() bool {
 
-	q := []rune(src)
-	return q[0] == '"'
+	return l.Pos >= len(l.Source)
 }
 
-// Checks to see if the src[0] contains alpha characters only.
-func isAlpha(src string) bool {
+/*
+Non-consuming. Returns a new Token object.
+*/
+func (l *Lexer) createToken(tkntyp TokenType, val string, line int, col int) Token {
 
-	r := []rune(src)
+	l.Audit[l.Line] += val
 
-	return unicode.IsLetter(r[0])
-}
-
-// Checks to see if the src[0] is numeric.
-func isInt(src string) bool {
-
-	r := []rune(src)
-
-	return unicode.IsDigit(r[0])
-}
-
-// Determined that this is a bool value, so getting its value.
-func truthValue(src string) (bool, error) {
-
-	if src == "true" {
-		return true, nil
-	} else if src == "false" {
-		return false, nil
-	}
-
-	// Dont need an error message here, as not being a boolean value means
-	// this is actually an identifier
-	return false, fmt.Errorf("")
-}
-
-// Checks to see if this is a skippable token.
-func isSkippable(src string) bool {
-	return src == " " || src == "\n" || src == "\t" || src == "\r"
-}
-
-// Builds and returns a new token.
-func token(tknType TokenType, value string, line int, col int) Token {
-
-	token := Token{
-		Type:  tknType,
-		Value: value,
+	return Token{
+		Type:  tkntyp,
+		Value: val,
 		Line:  line,
 		Col:   col,
 	}
+}
 
-	return token
+// Methods.
+
+func (l *Lexer) processNumber() {
+
+	start := l.Pos
+
+	for !l.EOF() && unicode.IsDigit(l.peek()) {
+		l.consume()
+	}
+
+	value := l.Source[start:l.Pos]
+
+	l.Tokens = append(l.Tokens, l.createToken(Number, string(value), l.Line, l.Col))
+}
+
+func (l *Lexer) processString() error {
+
+	// Move past initial '"'.
+	l.consume()
+
+	start := l.Pos
+
+	for !l.EOF() && !l.match('"') {
+		l.consume()
+	}
+
+	if l.EOF() {
+
+		subject := string(l.Source[start:l.Pos])
+		return &LexerError{300, fmt.Sprintf("%v \"%v\n%v", lexerErrorCodes[300], subject, ErrorUnderlineFormatter(lexerErrorCodes[300], subject)), l.Line, l.Col}
+	}
+
+	value := l.Source[start:l.Pos]
+	l.Tokens = append(l.Tokens, l.createToken(String, string(value), l.Line, l.Col))
+
+	// Move past closing '"'.
+	l.consume()
+
+	return nil
+}
+
+/*
+Does the target rune belong to the valid set of chars that form the start of an iden/keyword?
+*/
+func (l *Lexer) isIdentifierStart(ch rune) bool {
+
+	return unicode.IsLetter(ch) || ch == '_'
+}
+
+/*
+Does the target rune belong to the valid set of chars that form the rest of an iden/keyword?
+*/
+func (l *Lexer) isIdentifierPart(ch rune) bool {
+
+	return unicode.IsLetter(ch) ||
+		unicode.IsDigit(ch) ||
+		ch == '_'
+}
+
+func (l *Lexer) processIdentifier() {
+
+	start := l.Pos
+
+	for !l.EOF() && l.isIdentifierPart(l.peek()) {
+		l.consume()
+	}
+
+	value := l.Source[start:l.Pos]
+
+	if tokenType, ok := Keywords[string(value)]; ok {
+
+		// Keyword found.
+		l.Tokens = append(l.Tokens, l.createToken(tokenType, string(value), l.Line, l.Col))
+	} else {
+		// Identifier found.
+		l.Tokens = append(l.Tokens, l.createToken(Identifier, string(value), l.Line, l.Col))
+	}
+
+}
+
+func (l *Lexer) processSymbol() error {
+
+	var candidate string
+	var err error
+
+	for _, length := range availableTokenLengths {
+
+		// Prevents the lexer looking for tokens larger than the source of the file.
+		if length > len(l.Source[l.Pos:]) {
+			continue
+		}
+
+		candidate, err = l.peekNextN(length)
+		if err != nil {
+			return err
+		}
+
+		tokenType, ok := tokenListByLength[length][string(candidate)]
+		if ok {
+			l.Tokens = append(l.Tokens, l.createToken(tokenType, string(candidate), l.Line, l.Pos))
+			l.consumeN(length)
+			return nil
+		}
+	}
+
+	subject := string(candidate)
+	return &LexerError{200, fmt.Sprintf("%v %v\n%v", lexerErrorCodes[200], subject, ErrorUnderlineFormatter(lexerErrorCodes[200], subject)), l.Line, l.Col}
+}
+
+func (l *Lexer) processComment() error {
+
+	nextRune, err := l.peekNext()
+	if err != nil {
+		return err
+	}
+
+	var err_ error
+
+	switch nextRune {
+	case '/':
+		err_ = l.processSingleLineComment()
+	case '*':
+		err_ = l.processMultiLineComment()
+	default:
+		return nil
+	}
+
+	return err_
+}
+
+func (l *Lexer) processSingleLineComment() error {
+
+	nextRune, err := l.peekNext()
+	if err != nil {
+		return err
+	}
+
+	if l.peek() == '/' && nextRune == '/' {
+
+		// Loop until EOF or a new line starts.
+		for !l.EOF() && !l.match('\n') {
+			l.consume()
+		}
+	}
+
+	return nil
+}
+
+func (l *Lexer) processMultiLineComment() error {
+
+	nextRune, err := l.peekNext()
+	if err != nil {
+		return err
+	}
+
+	if l.peek() == '/' && nextRune == '*' {
+
+		// Move past '/'
+		l.consume()
+
+		// Move past '*'
+		l.consume()
+
+		for !l.EOF() {
+
+			nextPeek, err := l.peekNext()
+			if err != nil {
+				return err
+			}
+
+			if l.peek() == '*' && nextPeek == '/' {
+				l.consume()
+				l.consume()
+				break
+			}
+
+			l.consume()
+		}
+
+	}
+
+	return nil
+}
+
+func Lex(source string) ([]Token, map[int]string, error) {
+
+	lexer := Lexer{
+		Source: []rune(source),
+
+		Pos:  0,
+		Line: 1,
+		Col:  1,
+
+		Audit:  make(map[int]string),
+		Tokens: make([]Token, 0),
+	}
+
+	for !lexer.EOF() {
+
+		switch ch := lexer.peek(); {
+
+		case lexer.matchAny(' ', '\n', '\t', '\r'):
+			lexer.consume()
+			continue
+		case lexer.match(';'):
+			lexer.Tokens = append(lexer.Tokens, lexer.createToken(EOL, ";", lexer.Line, lexer.Col))
+			lexer.consume()
+			continue
+		case unicode.IsDigit(ch):
+			lexer.processNumber()
+			continue
+		case lexer.isIdentifierStart(ch):
+			lexer.processIdentifier()
+			continue
+		case lexer.match('"'):
+			err := lexer.processString()
+			if err != nil {
+				return nil, nil, err
+			}
+			continue
+		case lexer.match('/') && lexer.Pos+1 < len(lexer.Source):
+			// Only check for comments if there is sufficient lookahead runes available.
+			err := lexer.processComment()
+			if err != nil {
+				return nil, nil, err
+			}
+			fallthrough
+		default:
+			err := lexer.processSymbol()
+			if err != nil {
+				return nil, nil, err
+			}
+			continue
+		}
+	}
+
+	// Add EOF to token list.
+	lexer.Tokens = append(lexer.Tokens, lexer.createToken(EOF, "EOF", lexer.Line, lexer.Col))
+
+	return lexer.Tokens, lexer.Audit, nil
 }

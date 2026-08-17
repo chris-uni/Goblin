@@ -1,5 +1,5 @@
-test:
-	go test ./tests/... -v
+test-lexer:
+	clear && go test ./frontend/lexer -v
 
 run:
-	clear && go run ./... source/source.gob
+	go run main.go source/lexer.gob
