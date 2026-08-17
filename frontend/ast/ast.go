@@ -5,7 +5,7 @@ type NodeType string
 const (
 	// Statements.
 	ProgramNode             NodeType = "ProgramNode"
-	VariableDeclerationNode NodeType = "VariableDeclerationNode"
+	VariableDeclarationNode NodeType = "VariableDeclarationNode"
 	FunctionDeclerationNode NodeType = "FunctionDeclerationNode"
 	ArrayDeclerationNode    NodeType = "ArrayDeclerationNode"
 	MapDeclerationNode      NodeType = "MapDeclerationNode"
