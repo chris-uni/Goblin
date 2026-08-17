@@ -66,7 +66,7 @@ func (p *Parser) parseAssignmentExpression() (ast.Expression, error) {
 	// Else this is an assignment, so enforce that lhs is an identifier.
 	_, isIdentifier := lhs.(ast.Identifier)
 	if !isIdentifier {
-		return ast.Expr{}, fmt.Errorf("epecting lhs of assignment to be identifier type, got %v\n", lhs)
+		return ast.Expr{}, fmt.Errorf("expecting lhs of assignment to be identifier type, got %v", lhs)
 	}
 
 	p.consume() // Consume the '='
