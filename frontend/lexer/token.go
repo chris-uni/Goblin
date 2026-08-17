@@ -50,8 +50,8 @@ const (
 
 	// Operators.
 	BinaryOperator      TokenType = "BinaryOperator"      // e.g. '+, -, /, *, etc'
-	ConditionalOperator TokenType = "ConditionalOperator" // e.g. '==, <=, >=, etc'
-	ShorthandOperator   TokenType = "ShorthandOperator"   // e.g. '++, --'
+	ConditionalOperator TokenType = "ConditionalOperator" // e.g. '<, >, <=, >=, etc'
+	ShorthandOperator   TokenType = "ShorthandOperator"   // e.g. '++, --, +=, -=, etc'
 
 	// Keywords.
 	Let   TokenType = "Let"   // declaring new variables
@@ -61,7 +61,7 @@ const (
 	Else  TokenType = "Else"  // standard else condition
 	While TokenType = "While" // standard while loop
 	For   TokenType = "For"   // standard for loop
-	Using TokenType = "Using"
+	Using TokenType = "Using" // for importing goblin api libs
 
 	// End of Line.
 	EOL TokenType = ";"
@@ -69,8 +69,46 @@ const (
 	EOF TokenType = "EOF"
 )
 
+var availableTokenLengths = []int{2, 1}
+var tokenListByLength = map[int]map[string]TokenType{
+	2: {
+		"==": Equality,
+		"!=": NotEquality,
+		"<=": ConditionalOperator,
+		">=": ConditionalOperator,
+		"++": ConditionalOperator,
+		"--": ConditionalOperator,
+		"+=": ShorthandOperator,
+		"-=": ShorthandOperator,
+		"*=": ShorthandOperator,
+		"/=": ShorthandOperator,
+	},
+	1: {
+		"<": ConditionalOperator,
+		">": ConditionalOperator,
+		"+": BinaryOperator,
+		"-": BinaryOperator,
+		"/": BinaryOperator,
+		"*": BinaryOperator,
+		"?": Ternary,
+		"(": OpenParen,
+		")": CloseParen,
+		"{": OpenBrace,
+		"}": CloseBrace,
+		"[": OpenBracket,
+		"]": CloseBracket,
+		".": Period,
+		":": Colon,
+		"=": Equals,
+		",": Comma,
+		";": EOL,
+	},
+}
+
 // Map of languages keywords.
 var Keywords = map[string]TokenType{
+	"true":  Boolean,
+	"false": Boolean,
 	"let":   Let,
 	"const": Const,
 	"fn":    Fn,
