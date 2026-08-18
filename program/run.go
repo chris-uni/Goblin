@@ -5,6 +5,7 @@ import (
 
 	"goblin.org/main/frontend/lexer"
 	"goblin.org/main/frontend/parser"
+	"goblin.org/main/middleware"
 	runtime "goblin.org/main/runtime"
 )
 
@@ -25,6 +26,14 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 	}
 
 	fmt.Printf("Program: %v\n", program)
+
+	// Stage 3. Reduce to GoblinIR
+	ir_layer, err := middleware.Reduce(program)
+	if err != nil {
+		return nil, fmt.Errorf("ir error: %v\n", err.Error())
+	}
+
+	middleware.PrintIR(ir_layer)
 
 	/*
 		// Stage 3. Interprete the AST.
