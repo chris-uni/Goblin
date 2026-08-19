@@ -14,8 +14,33 @@ type IRAddress struct {
 	Index int
 }
 
+func (c *IRContext) allocateAddress() IRAddress {
+
+	storage := IRAddress{
+		Index: len(c.Storage),
+	}
+
+	c.Storage = append(c.Storage, nil)
+	return storage
+}
+
+func (c *IRContext) storeSymbol(name string, address IRAddress) {
+
+	c.Symbols[name] = address
+}
+
 type IRTemporary struct {
 	Index int
+}
+
+func (c *IRContext) allocateTemporary() IRTemporary {
+
+	temporary := IRTemporary{
+		Index: len(c.Temporaries),
+	}
+
+	c.Temporaries = append(c.Temporaries, nil)
+	return temporary
 }
 
 type IRLabel struct {
@@ -57,16 +82,20 @@ type Add struct {
 	Rhs         IRValue
 }
 
-func (a *Add) String() string {
-	return fmt.Sprintf("add %v %v %v", a.Destination, a.Lhs, a.Rhs)
+func (v *Add) String() string {
+	return fmt.Sprintf("add %v %v %v", v.Destination, v.Lhs, v.Rhs)
 }
 
-func (a *Add) Exec(context *IRContext) {}
+func (v *Add) Exec(context *IRContext) {}
 
 type Sub struct {
 	Destination IRTemporary
 	Lhs         IRValue
 	Rhs         IRValue
+}
+
+func (v *Sub) String() string {
+	return fmt.Sprintf("sub %v %v %v", v.Destination, v.Lhs, v.Rhs)
 }
 
 func (Sub) Exec(context *IRContext) {}
@@ -77,6 +106,10 @@ type Mul struct {
 	Rhs         IRValue
 }
 
+func (v *Mul) String() string {
+	return fmt.Sprintf("mul %v %v %v", v.Destination, v.Lhs, v.Rhs)
+}
+
 func (a *Mul) Exec(context *IRContext) {}
 
 type Div struct {
@@ -85,12 +118,20 @@ type Div struct {
 	Rhs         IRValue
 }
 
+func (v *Div) String() string {
+	return fmt.Sprintf("div %v %v %v", v.Destination, v.Lhs, v.Rhs)
+}
+
 func (a *Div) Exec(context *IRContext) {}
 
 type Mod struct {
 	Destination IRTemporary
 	Lhs         IRValue
 	Rhs         IRValue
+}
+
+func (v *Mod) String() string {
+	return fmt.Sprintf("mod %v %v %v", v.Destination, v.Lhs, v.Rhs)
 }
 
 func (a *Mod) Exec(context *IRContext) {}
@@ -138,6 +179,10 @@ func (Store) Exec(context *IRContext) {}
 type Load struct {
 	Destination IRTemporary
 	Source      IRAddress
+}
+
+func (v *Load) String() string {
+	return fmt.Sprintf("load %v %v", v.Destination, v.Source)
 }
 
 func (Load) Exec(context *IRContext) {}

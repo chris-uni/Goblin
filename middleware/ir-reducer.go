@@ -1,3 +1,13 @@
+/*
+Goblin IR Reducer v0.1
+Author: Chris J.M. Wing
+
+Input:
+	AST Generated from frontend.Parser.
+Output:
+	A set of IRCommands that represent the original source program in GoblinIR.
+*/
+
 package middleware
 
 import (
@@ -6,9 +16,20 @@ import (
 	"goblin.org/main/frontend/ast"
 )
 
+/*
+Main reducer switch-board. Orchestrates where each ast.Expression goes to be reduced down into GoblinIR.
+*/
 func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error) {
 
 	switch value := expr.(type) {
+
+	case ast.AssignmentExpr:
+
+		ir, err := reduceAssignmentExpr(value, context)
+		if err != nil {
+			return IRResult{}, err
+		}
+		return ir, nil
 
 	case ast.VariableDecleration:
 
@@ -21,6 +42,14 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 	case ast.BinaryExpr:
 
 		ir, err := reduceBinaryExpr(value, context)
+		if err != nil {
+			return IRResult{}, err
+		}
+		return ir, nil
+
+	case ast.Identifier:
+
+		ir, err := reduceIdentifierExpr(value, context)
 		if err != nil {
 			return IRResult{}, err
 		}
@@ -64,9 +93,10 @@ func reduceVariableDecleration(expr ast.VariableDecleration, context *IRContext)
 		return IRResult{}, err
 	}
 
-	address := IRAddress{
-		Index: len(context.Storage),
-	}
+	address := context.allocateAddress()
+	fmt.Printf("looking to store symbol %v at address %v\n", expr.Identifier, address)
+
+	context.storeSymbol(expr.Identifier, address)
 
 	result := IRResult{
 		Commands: value.Commands,
@@ -79,6 +109,62 @@ func reduceVariableDecleration(expr ast.VariableDecleration, context *IRContext)
 			Value:       value.Value,
 		},
 	)
+
+	return result, nil
+}
+
+/*
+Reduces an identifier expression down into GoblinIR.
+*/
+func reduceIdentifierExpr(expr ast.Identifier, context *IRContext) (IRResult, error) {
+
+	fmt.Printf("looking to pull symbol %v from symbol table\n", expr.Symbol)
+
+	address, ok := context.Symbols[expr.Symbol]
+	if !ok {
+		return IRResult{}, fmt.Errorf("undefined symbol %v\n", expr.Symbol)
+	}
+
+	fmt.Printf("pulled %v address from symbol table for identifier %v\n", address, expr.Symbol)
+
+	temp := context.allocateTemporary()
+	result := IRResult{}
+	result.Commands = make([]IRCommand, 0)
+	result.Commands = append(result.Commands, &Load{Destination: temp, Source: address})
+	result.Value = temp
+
+	return result, nil
+}
+
+/*
+Reduces an assigmnet expression down into GoblinIR.
+*/
+func reduceAssignmentExpr(expr ast.AssignmentExpr, context *IRContext) (IRResult, error) {
+
+	iden, ok := expr.Assigne.(ast.Identifier)
+	if !ok {
+		return IRResult{}, fmt.Errorf("invalid assignment target")
+	}
+
+	address, ok := context.Symbols[iden.Symbol]
+	if !ok {
+		return IRResult{}, fmt.Errorf("undefined symbol %v\n", iden.Symbol)
+	}
+
+	rhs, err := reduceExpression(expr.Value, context)
+	if err != nil {
+		return IRResult{}, nil
+	}
+
+	result := IRResult{
+		Commands: rhs.Commands,
+		Value:    address,
+	}
+
+	result.Commands = append(result.Commands, &Store{
+		Destination: address,
+		Value:       rhs.Value,
+	})
 
 	return result, nil
 }
@@ -103,13 +189,35 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *IRContext) (IRResult, error)
 	result.Commands = append(result.Commands, lhs.Commands...)
 	result.Commands = append(result.Commands, rhs.Commands...)
 
-	destination := IRTemporary{
-		Index: len(context.Temporaries),
-	}
+	destination := context.allocateTemporary()
 
 	switch expr.Operator {
 	case "+":
 		result.Commands = append(result.Commands, &Add{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		})
+	case "-":
+		result.Commands = append(result.Commands, &Sub{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		})
+	case "*":
+		result.Commands = append(result.Commands, &Mul{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		})
+	case "/":
+		result.Commands = append(result.Commands, &Div{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		})
+	case "%":
+		result.Commands = append(result.Commands, &Mod{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
@@ -153,12 +261,16 @@ func reduceBooleanExpr(expr ast.BooleanLiteral, _ *IRContext) (IRResult, error) 
 	return result, nil
 }
 
+/*
+Entry for Reducer called by main program.
+*/
 func Reduce(program ast.Program) ([]IRCommand, error) {
 
 	context := IRContext{
 		Commands:    make([]IRCommand, 0),
 		Storage:     make([]IRValue, 0),
 		Temporaries: make([]IRValue, 0),
+		Symbols:     make(map[string]IRAddress),
 		PC:          0,
 	}
 
@@ -175,7 +287,11 @@ func Reduce(program ast.Program) ([]IRCommand, error) {
 	return context.Commands, nil
 }
 
+/*
+Utility function for pretty-printing the generated GoblinIR.
+*/
 func PrintIR(commands []IRCommand) {
+	fmt.Printf("IR: \n\n")
 	for i, command := range commands {
 		fmt.Printf("%d:\t%s\n", i, command)
 	}

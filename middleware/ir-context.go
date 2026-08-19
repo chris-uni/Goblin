@@ -10,6 +10,8 @@ type IRContext struct {
 	Storage     []IRValue
 	Temporaries []IRValue
 
+	Symbols map[string]IRAddress
+
 	PC int
 }
 
