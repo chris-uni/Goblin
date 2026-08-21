@@ -1,6 +1,8 @@
 package middleware
 
-import "goblin.org/main/frontend/ast"
+import (
+	"goblin.org/main/frontend/ast"
+)
 
 func OrchestrateIRLayer(program ast.Program) ([]IRCommand, error) {
 
@@ -9,6 +11,8 @@ func OrchestrateIRLayer(program ast.Program) ([]IRCommand, error) {
 	if err != nil {
 		return []IRCommand{}, err
 	}
+
+	PrintIR("raw ir:", rawIR)
 
 	// 2. Validate the Raw GoblinIR into Validated GoblinIR.
 	validatedIR, err := Validate(rawIR)

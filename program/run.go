@@ -12,12 +12,12 @@ import (
 // Where the source goes to be lexed, parsed, interpreted, and returned.
 func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 	// Stage 1. Lex the input.
-	tokens, audit, err := lexer.Lex(input)
+	tokens, _, err := lexer.Lex(input)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("Lexed tokens: %v\nAudit: %v\n", tokens, audit)
+	// fmt.Printf("Lexed tokens: %v\nAudit: %v\n", tokens, audit)
 
 	// Stage 2. Produce the Abstract Syntax Tree.
 	program, err := parser.ParseTokens(tokens)
@@ -25,7 +25,7 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
 
-	fmt.Printf("Program: %v\n", program)
+	// fmt.Printf("Program: %v\n", program)
 
 	// Stage 3. Reduce to GoblinIR
 	validatedIR, err := middleware.OrchestrateIRLayer(program)
@@ -33,7 +33,7 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 		return nil, fmt.Errorf("ir error: %v\n", err.Error())
 	}
 
-	middleware.PrintIR(validatedIR)
+	middleware.PrintIR("validated ir:", validatedIR)
 
 	/*
 		// Stage 3. Interprete the AST.

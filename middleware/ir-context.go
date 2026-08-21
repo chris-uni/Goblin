@@ -4,6 +4,28 @@ import (
 	"fmt"
 )
 
+type IRType int
+
+const (
+	IRTypeNumber IRType = iota
+	IRTypeString
+	IRTypeBoolean
+	IRTypeUndefined
+)
+
+func (t IRType) String() string {
+	switch t {
+	case IRTypeNumber:
+		return "number"
+	case IRTypeString:
+		return "string"
+	case IRTypeBoolean:
+		return "boolean"
+	default:
+		return "unknown"
+	}
+}
+
 type IRContext struct {
 	Commands []IRCommand
 

@@ -94,8 +94,6 @@ func reduceVariableDecleration(expr ast.VariableDecleration, context *IRContext)
 	}
 
 	address := context.allocateAddress()
-	fmt.Printf("looking to store symbol %v at address %v\n", expr.Identifier, address)
-
 	context.storeSymbol(expr.Identifier, address)
 
 	result := IRResult{
@@ -118,14 +116,10 @@ Reduces an identifier expression down into GoblinIR.
 */
 func reduceIdentifierExpr(expr ast.Identifier, context *IRContext) (IRResult, error) {
 
-	fmt.Printf("looking to pull symbol %v from symbol table\n", expr.Symbol)
-
 	address, ok := context.Symbols[expr.Symbol]
 	if !ok {
 		return IRResult{}, fmt.Errorf("undefined symbol %v\n", expr.Symbol)
 	}
-
-	fmt.Printf("pulled %v address from symbol table for identifier %v\n", address, expr.Symbol)
 
 	temp := context.allocateTemporary()
 	result := IRResult{}
@@ -278,7 +272,7 @@ func Reduce(program ast.Program) ([]IRCommand, error) {
 
 		val, err := reduceExpression(expr, &context)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("reducer error: %v\n", err)
 		}
 
 		context.Commands = append(context.Commands, val.Commands...)
@@ -290,9 +284,11 @@ func Reduce(program ast.Program) ([]IRCommand, error) {
 /*
 Utility function for pretty-printing the generated GoblinIR.
 */
-func PrintIR(commands []IRCommand) {
-	fmt.Printf("IR: \n\n")
+func PrintIR(prefix string, commands []IRCommand) {
+
+	fmt.Printf("%v\n", prefix)
 	for i, command := range commands {
 		fmt.Printf("%d:\t%s\n", i, command)
 	}
+	fmt.Print("\n")
 }

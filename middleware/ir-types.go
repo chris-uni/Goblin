@@ -76,17 +76,24 @@ type IRCommand interface {
 	String() string
 }
 
+type IRBinaryCommand interface {
+	IRCommand
+	Dest() IRTemporary
+	Left() IRValue
+	Right() IRValue
+}
+
 type Add struct {
 	Destination IRTemporary
 	Lhs         IRValue
 	Rhs         IRValue
 }
 
-func (v *Add) String() string {
-	return fmt.Sprintf("add %v %v %v", v.Destination, v.Lhs, v.Rhs)
-}
-
+func (v *Add) String() string          { return fmt.Sprintf("add %v %v %v", v.Destination, v.Lhs, v.Rhs) }
 func (v *Add) Exec(context *IRContext) {}
+func (v *Add) Left() IRValue           { return v.Lhs }
+func (v *Add) Right() IRValue          { return v.Rhs }
+func (v *Add) Dest() IRTemporary       { return v.Destination }
 
 type Sub struct {
 	Destination IRTemporary
@@ -94,11 +101,11 @@ type Sub struct {
 	Rhs         IRValue
 }
 
-func (v *Sub) String() string {
-	return fmt.Sprintf("sub %v %v %v", v.Destination, v.Lhs, v.Rhs)
-}
-
-func (Sub) Exec(context *IRContext) {}
+func (v *Sub) String() string          { return fmt.Sprintf("sub %v %v %v", v.Destination, v.Lhs, v.Rhs) }
+func (v *Sub) Exec(context *IRContext) {}
+func (v *Sub) Left() IRValue           { return v.Lhs }
+func (v *Sub) Right() IRValue          { return v.Rhs }
+func (v *Sub) Dest() IRTemporary       { return v.Destination }
 
 type Mul struct {
 	Destination IRTemporary
@@ -106,11 +113,11 @@ type Mul struct {
 	Rhs         IRValue
 }
 
-func (v *Mul) String() string {
-	return fmt.Sprintf("mul %v %v %v", v.Destination, v.Lhs, v.Rhs)
-}
-
-func (a *Mul) Exec(context *IRContext) {}
+func (v *Mul) String() string          { return fmt.Sprintf("mul %v %v %v", v.Destination, v.Lhs, v.Rhs) }
+func (v *Mul) Exec(context *IRContext) {}
+func (v *Mul) Left() IRValue           { return v.Lhs }
+func (v *Mul) Right() IRValue          { return v.Rhs }
+func (v *Mul) Dest() IRTemporary       { return v.Destination }
 
 type Div struct {
 	Destination IRTemporary
@@ -118,11 +125,11 @@ type Div struct {
 	Rhs         IRValue
 }
 
-func (v *Div) String() string {
-	return fmt.Sprintf("div %v %v %v", v.Destination, v.Lhs, v.Rhs)
-}
-
-func (a *Div) Exec(context *IRContext) {}
+func (v *Div) String() string          { return fmt.Sprintf("div %v %v %v", v.Destination, v.Lhs, v.Rhs) }
+func (v *Div) Exec(context *IRContext) {}
+func (v *Div) Left() IRValue           { return v.Lhs }
+func (v *Div) Right() IRValue          { return v.Rhs }
+func (v *Div) Dest() IRTemporary       { return v.Destination }
 
 type Mod struct {
 	Destination IRTemporary
@@ -130,11 +137,11 @@ type Mod struct {
 	Rhs         IRValue
 }
 
-func (v *Mod) String() string {
-	return fmt.Sprintf("mod %v %v %v", v.Destination, v.Lhs, v.Rhs)
-}
-
-func (a *Mod) Exec(context *IRContext) {}
+func (v *Mod) String() string          { return fmt.Sprintf("mod %v %v %v", v.Destination, v.Lhs, v.Rhs) }
+func (v *Mod) Exec(context *IRContext) {}
+func (v *Mod) Left() IRValue           { return v.Lhs }
+func (v *Mod) Right() IRValue          { return v.Rhs }
+func (v *Mod) Dest() IRTemporary       { return v.Destination }
 
 type Neg struct {
 	Destination IRTemporary
