@@ -1,0 +1,99 @@
+// Definitions
+
+@N              = storage location
+%X              = temporary value
+L0              = section label
+10              = numeric literal
+"hello"         = string literal
+true | false    = boolean literal
+value           = stored value | temporary value | numeric literal | string literal | boolean literal
+
+// Opcodes design
+
+add destination val1 val2
+    destination     = temporary value
+    val1            = value (numeric)
+    val2            = value (numeric)
+
+sub destination val1 val2
+    destination     = temporary value
+    val1            = value (numeric)
+    val2            = value (numeric)
+
+mul destination val1 val2
+    destination     = temporary value
+    val1            = value (numeric)
+    val2            = value (numeric)
+
+div destination val1 val2
+    destination     = temporary value
+    val1            = value (numeric)
+    val2            = value (numeric)
+
+mod destination val1 val2
+    destination     = temporary value
+    val1            = value (numeric)
+    val2            = value (numeric)
+
+neg destination val
+    destination     = temporary value
+    val             = value (numeric)
+
+not destination val
+    destination     = temporary value
+    val             = value (boolean)
+
+and destination val
+    destination     = temporary value
+    val1            = value (boolean)
+    val2            = value (boolean)
+
+or destination val
+    destination     = temporary value
+    val1            = value (boolean)
+    val2            = value (boolean)
+
+store destination val
+    destination     = stored value
+    val             = value
+
+load destination val
+    destination     = temporary value
+    val             = stored value
+
+jmp destination
+    destination     = section label
+
+jmpif destination condition
+    destination     = section label
+    condition       = value (boolean)
+
+eq
+    destination     = temporary value (boolean)
+    val1            = value
+    val2            = value
+
+neq
+    destination     = temporary value (boolean)
+    val1            = value
+    val2            = value
+
+lt
+    destination     = temporary value (boolean)
+    val1            = value
+    val2            = value
+
+lte
+    destination     = temporary value (boolean)
+    val1            = value
+    val2            = value
+
+gt
+    destination     = temporary value (boolean)
+    val1            = value
+    val2            = value
+
+gte
+    destination     = temporary value (boolean)
+    val1            = value
+    val2            = value

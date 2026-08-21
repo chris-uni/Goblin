@@ -1,6 +1,7 @@
 /*
 Goblin Parser v0.1
 Author: Chris J.M. Wing
+Date: 17/08/2026
 
 Input:
 	Slice of Goblin source-code represented by Goblins Lexer as Lexical Tokens.
@@ -19,8 +20,8 @@ Guarantees:
 	7. Additive
 	8. Multiplicative
 	9. Unary
-	10. Call			} Part of the parsePostfix collection
-	11. Member			}
+	10. Call
+	11. Member
 	12. Primary
 */
 
