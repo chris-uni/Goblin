@@ -1,6 +1,7 @@
 /*
 Goblin Lexer v0.1
 Author: Chris J.M. Wing
+Date: 17/08/2026
 
 Input:
 	UTF-8 Goblin source code
