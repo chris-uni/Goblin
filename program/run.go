@@ -25,15 +25,13 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
 
-	fmt.Printf("Program: %v\n", program)
+	// fmt.Printf("Program: %v\n", program)
 
 	// Stage 3. Reduce to GoblinIR
-	validatedIR, err := middleware.OrchestrateIRLayer(program)
+	_, err = middleware.OrchestrateIRLayer(program)
 	if err != nil {
 		return nil, fmt.Errorf("ir error: %v\n", err.Error())
 	}
-
-	middleware.PrintIR("validated ir:", validatedIR)
 
 	/*
 		// Stage 3. Interprete the AST.

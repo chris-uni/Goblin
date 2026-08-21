@@ -20,5 +20,15 @@ func OrchestrateIRLayer(program ast.Program) ([]IRCommand, error) {
 		return []IRCommand{}, err
 	}
 
-	return validatedIR, nil
+	PrintIR("validated ir:", validatedIR)
+
+	// 3. Run passes through the Optimiser for optimal GoblinIR.
+	optimisedIR, err := Optimise(validatedIR)
+	if err != nil {
+		return []IRCommand{}, err
+	}
+
+	PrintIR("optimised ir: ", optimisedIR)
+
+	return optimisedIR, nil
 }
