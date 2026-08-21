@@ -90,6 +90,7 @@ var tokenListByLength = map[int]map[string]TokenType{
 		"-": BinaryOperator,
 		"/": BinaryOperator,
 		"*": BinaryOperator,
+		"%": BinaryOperator,
 		"?": Ternary,
 		"(": OpenParen,
 		")": CloseParen,

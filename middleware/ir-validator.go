@@ -105,17 +105,17 @@ func validateAdd(a *Add, context *IRContext) (IRCommand, error) {
 		return nil, err
 	}
 
+	if !(lhsType == IRTypeNumber || lhsType == IRTypeString) &&
+		!(rhsType == IRTypeNumber || rhsType == IRTypeString) {
+		return nil, fmt.Errorf("type error: add: operands of invalid type\n")
+	}
+
 	if lhsType != rhsType {
 		return nil, fmt.Errorf("type error: add: incompatible types\n")
 	}
 
-	/*
-		Since for the Add operation we can perform on any type (number, string, boolean), and we can only,
-		perform an add operation on two values of the same type, we simply commit the lhs value to temporaries.
-
-		This is because, simply commiting a dummy number value might cause validation errors in more complex
-		assemblies (i.e. pulling a temp of dummy IRNumber{} when in reality it resolves to an IRString{}).
-	*/
+	// Since we know add can only perform calculation on a number or string, lets just add the lhs value in
+	// as a place holder.
 	context.Temporaries = append(context.Temporaries, a.Lhs)
 
 	return a, nil
@@ -227,6 +227,39 @@ func validateMod(m *Mod, context *IRContext) (IRCommand, error) {
 	context.Temporaries = append(context.Temporaries, m.Lhs)
 
 	return m, nil
+}
+
+/*
+Resolves incoming IRValue type to a compariable IRType value. Will recursively resolve IRAddress and IRTemporary values.
+*/
+func resolveIRType(value IRValue, context *IRContext) (IRType, error) {
+
+	switch value := value.(type) {
+
+	case IRNumber:
+		return IRTypeNumber, nil
+
+	case IRString:
+		return IRTypeString, nil
+
+	case IRBoolean:
+		return IRTypeBoolean, nil
+
+	case IRAddress:
+		if value.Index < 0 || value.Index >= len(context.Storage) {
+			return IRTypeUndefined, fmt.Errorf("undefined storage address @%d\n", value.Index)
+		}
+		return resolveIRType(context.Storage[value.Index], context)
+
+	case IRTemporary:
+		if value.Index < 0 || value.Index >= len(context.Temporaries) {
+			return IRTypeUndefined, fmt.Errorf("undefined temporary address %%%d\n", value.Index)
+		}
+		return resolveIRType(context.Temporaries[value.Index], context)
+
+	default:
+		return IRTypeUndefined, fmt.Errorf("unrecognised type %v\n", value)
+	}
 }
 
 func Validate(commands []IRCommand) ([]IRCommand, error) {

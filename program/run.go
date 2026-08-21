@@ -25,7 +25,7 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
 
-	// fmt.Printf("Program: %v\n", program)
+	fmt.Printf("Program: %v\n", program)
 
 	// Stage 3. Reduce to GoblinIR
 	validatedIR, err := middleware.OrchestrateIRLayer(program)
