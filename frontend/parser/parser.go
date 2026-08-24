@@ -253,7 +253,7 @@ func (p *Parser) parseComparisionExpression() (ast.Expression, error) {
 	}
 
 	// Not a comparision expression.
-	if !p.match(lexer.ConditionalOperator) {
+	if !p.match(lexer.ConditionalOperator) && !p.match(lexer.Equality) && !p.match(lexer.NotEquality) {
 		return lhs, nil
 	}
 

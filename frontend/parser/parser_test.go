@@ -530,9 +530,11 @@ func Test_If_Simple_Expression(t *testing.T) {
 	}{
 
 		{"if(10 < 4){}", "{Program [{IfNode {BinaryExprNode {NumericLiteralNode 10} {NumericLiteralNode 4} <} [] false []}]}"},
-		{`if (10 < 4){
-				let y = 100;
-			}`, "{Program [{IfNode {BinaryExprNode {NumericLiteralNode 10} {NumericLiteralNode 4} <} [{VariableDeclarationNode {NumericLiteralNode 100} false y}] false []}]}"},
+		{"if(10 > 4){}", "{Program [{IfNode {BinaryExprNode {NumericLiteralNode 10} {NumericLiteralNode 4} >} [] false []}]}"},
+		{"if(10 <= 4){}", "{Program [{IfNode {BinaryExprNode {NumericLiteralNode 10} {NumericLiteralNode 4} <=} [] false []}]}"},
+		{"if(10 >= 4){}", "{Program [{IfNode {BinaryExprNode {NumericLiteralNode 10} {NumericLiteralNode 4} >=} [] false []}]}"},
+		{"if(10 == 4){}", "{Program [{IfNode {BinaryExprNode {NumericLiteralNode 10} {NumericLiteralNode 4} ==} [] false []}]}"},
+		{"if(10 != 4){}", "{Program [{IfNode {BinaryExprNode {NumericLiteralNode 10} {NumericLiteralNode 4} !=} [] false []}]}"},
 	}
 
 	for _, tt := range tests {

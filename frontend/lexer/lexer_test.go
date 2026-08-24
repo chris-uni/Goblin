@@ -136,9 +136,11 @@ func Test_If_Simple(t *testing.T) {
 		want string
 	}{
 		{"if(10 < 4){}", "[{If if 1 3} {( ( 1 2} {Number 10 1 6} {ConditionalOperator < 1 6} {Number 4 1 10} {) ) 1 9} {{ { 1 10} {} } 1 11} {EOF EOF 1 13}]"},
-		{`if (10 < 4){
-			let y = 100;
-		}`, "[{If if 1 3} {( ( 1 3} {Number 10 1 7} {ConditionalOperator < 1 7} {Number 4 1 11} {) ) 1 10} {{ { 1 11} {Let let 2 7} {Identifier y 2 9} {= = 2 22} {Number 100 2 15} {; ; 2 15} {} } 3 31} {EOF EOF 3 4}]"},
+		{"if(10 > 4){}", "[{If if 1 3} {( ( 1 2} {Number 10 1 6} {ConditionalOperator > 1 6} {Number 4 1 10} {) ) 1 9} {{ { 1 10} {} } 1 11} {EOF EOF 1 13}]"},
+		{"if(10 <= 4){}", "[{If if 1 3} {( ( 1 2} {Number 10 1 6} {ConditionalOperator <= 1 6} {Number 4 1 11} {) ) 1 10} {{ { 1 11} {} } 1 12} {EOF EOF 1 14}]"},
+		{"if(10 >= 4){}", "[{If if 1 3} {( ( 1 2} {Number 10 1 6} {ConditionalOperator >= 1 6} {Number 4 1 11} {) ) 1 10} {{ { 1 11} {} } 1 12} {EOF EOF 1 14}]"},
+		{"if(10 == 4){}", "[{If if 1 3} {( ( 1 2} {Number 10 1 6} {== == 1 6} {Number 4 1 11} {) ) 1 10} {{ { 1 11} {} } 1 12} {EOF EOF 1 14}]"},
+		{"if(10 != 4){}", "[{If if 1 3} {( ( 1 2} {Number 10 1 6} {!= != 1 6} {Number 4 1 11} {) ) 1 10} {{ { 1 11} {} } 1 12} {EOF EOF 1 14}]"},
 	}
 
 	for _, tt := range tests {

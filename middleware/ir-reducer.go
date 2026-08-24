@@ -297,6 +297,18 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *IRContext) (IRResult, error)
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		})
+	case "==":
+		result.Commands = append(result.Commands, &Eq{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		})
+	case "!=":
+		result.Commands = append(result.Commands, &Neq{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		})
 	}
 
 	result.Value = destination

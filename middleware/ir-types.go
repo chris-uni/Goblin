@@ -239,16 +239,24 @@ func (Lbl) Exec(context *IRContext) {}
 
 type Eq struct {
 	Destination IRTemporary
-	Val1        IRValue
-	Val2        IRValue
+	Lhs         IRValue
+	Rhs         IRValue
+}
+
+func (s *Eq) String() string {
+	return fmt.Sprintf("eq %v %v %v", s.Destination, s.Lhs, s.Rhs)
 }
 
 func (Eq) Exec(context *IRContext) {}
 
 type Neq struct {
 	Destination IRTemporary
-	Val1        IRValue
-	Val2        IRValue
+	Lhs         IRValue
+	Rhs         IRValue
+}
+
+func (s *Neq) String() string {
+	return fmt.Sprintf("neq %v %v %v", s.Destination, s.Lhs, s.Rhs)
 }
 
 func (Neq) Exec(context *IRContext) {}

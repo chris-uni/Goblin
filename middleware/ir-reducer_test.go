@@ -298,3 +298,132 @@ func Test_Assignment_Expression_Invalid(t *testing.T) {
 		t.Errorf("\ngot %v\nwant %v\n", got, want)
 	}
 }
+
+/*
+If Tests.
+*/
+func Test_If_Expression_Lt(t *testing.T) {
+
+	ast, err := assembleAST(`if(10 < 5){}`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	out, err := Reduce(ast)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[lt %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_If_Expression_Lte(t *testing.T) {
+
+	ast, err := assembleAST(`if(10 <= 5){}`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	out, err := Reduce(ast)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[lte %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_If_Expression_Gt(t *testing.T) {
+
+	ast, err := assembleAST(`if(10 > 5){}`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	out, err := Reduce(ast)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[gt %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_If_Expression_Gte(t *testing.T) {
+
+	ast, err := assembleAST(`if(10 >= 5){}`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	out, err := Reduce(ast)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[gte %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_If_Expression_Eq(t *testing.T) {
+
+	ast, err := assembleAST(`if(10 == 5){}`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	out, err := Reduce(ast)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[eq %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_If_Expression_Neq(t *testing.T) {
+
+	ast, err := assembleAST(`if(10 != 5){}`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	out, err := Reduce(ast)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[neq %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
