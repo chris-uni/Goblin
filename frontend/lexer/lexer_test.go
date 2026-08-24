@@ -7,12 +7,12 @@ import (
 
 func Test_BinaryOperators(t *testing.T) {
 
-	out, _, err := Lex("+-*/")
+	out, _, err := Lex("+-*/%")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
-	want := "[{BinaryOperator + 1 0} {BinaryOperator - 1 1} {BinaryOperator * 1 2} {BinaryOperator / 1 3} {EOF EOF 1 5}]"
+	want := "[{BinaryOperator + 1 0} {BinaryOperator - 1 1} {BinaryOperator * 1 2} {BinaryOperator / 1 3} {BinaryOperator % 1 4} {EOF EOF 1 6}]"
 	tokens := fmt.Sprintf("%v", out)
 
 	if tokens != want {
@@ -23,12 +23,12 @@ func Test_BinaryOperators(t *testing.T) {
 
 func Test_ContitionalOperators(t *testing.T) {
 
-	out, _, err := Lex("==!=<=>=++--<>")
+	out, _, err := Lex("==!=<=>=<>")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
-	want := "[{== == 1 0} {!= != 1 2} {ConditionalOperator <= 1 4} {ConditionalOperator >= 1 6} {ConditionalOperator ++ 1 8} {ConditionalOperator -- 1 10} {ConditionalOperator < 1 12} {ConditionalOperator > 1 13} {EOF EOF 1 15}]"
+	want := "[{== == 1 0} {!= != 1 2} {ConditionalOperator <= 1 4} {ConditionalOperator >= 1 6} {ConditionalOperator < 1 8} {ConditionalOperator > 1 9} {EOF EOF 1 11}]"
 	tokens := fmt.Sprintf("%v", out)
 
 	if tokens != want {
@@ -39,12 +39,12 @@ func Test_ContitionalOperators(t *testing.T) {
 
 func Test_ShorthandOperators(t *testing.T) {
 
-	out, _, err := Lex("+=-=*=/=")
+	out, _, err := Lex("+=-=*=++--/=")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
-	want := "[{ShorthandOperator += 1 0} {ShorthandOperator -= 1 2} {ShorthandOperator *= 1 4} {ShorthandOperator /= 1 6} {EOF EOF 1 9}]"
+	want := "[{ShorthandOperator += 1 0} {ShorthandOperator -= 1 2} {ShorthandOperator *= 1 4} {ShorthandOperator ++ 1 6} {ShorthandOperator -- 1 8} {ShorthandOperator /= 1 10} {EOF EOF 1 13}]"
 	tokens := fmt.Sprintf("%v", out)
 
 	if tokens != want {
@@ -109,6 +109,36 @@ func Test_VariableAssignment(t *testing.T) {
 	}{
 		{"let i = 0;", "[{Let let 1 4} {Identifier i 1 6} {= = 1 6} {Number 0 1 10} {; ; 1 10} {EOF EOF 1 11}]"},
 		{"const j = 10;", "[{Const const 1 6} {Identifier j 1 8} {= = 1 8} {Number 10 1 13} {; ; 1 13} {EOF EOF 1 14}]"},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v", tt.in)
+		t.Run(testname, func(t *testing.T) {
+
+			out, _, err := Lex(tt.in)
+			tokens := fmt.Sprintf("%v", out)
+
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+
+			if tokens != tt.want {
+				t.Errorf("\ngot %v\nwant %v", tokens, tt.want)
+			}
+		})
+	}
+}
+
+func Test_If_Simple(t *testing.T) {
+
+	var tests = []struct {
+		in   string
+		want string
+	}{
+		{"if(10 < 4){}", "[{If if 1 3} {( ( 1 2} {Number 10 1 6} {ConditionalOperator < 1 6} {Number 4 1 10} {) ) 1 9} {{ { 1 10} {} } 1 11} {EOF EOF 1 13}]"},
+		{`if (10 < 4){
+			let y = 100;
+		}`, "[{If if 1 3} {( ( 1 3} {Number 10 1 7} {ConditionalOperator < 1 7} {Number 4 1 11} {) ) 1 10} {{ { 1 11} {Let let 2 7} {Identifier y 2 9} {= = 2 22} {Number 100 2 15} {; ; 2 15} {} } 3 31} {EOF EOF 3 4}]"},
 	}
 
 	for _, tt := range tests {

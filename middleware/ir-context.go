@@ -31,6 +31,7 @@ type IRContext struct {
 
 	Storage     []IRValue
 	Temporaries []IRValue
+	Labels      []IRLabel
 
 	Symbols map[string]IRAddress
 

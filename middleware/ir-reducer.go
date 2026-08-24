@@ -24,6 +24,14 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 
 	switch value := expr.(type) {
 
+	case ast.IfCondition:
+
+		ir, err := reduceIfExpr(value, context)
+		if err != nil {
+			return IRResult{}, err
+		}
+		return ir, nil
+
 	case ast.AssignmentExpr:
 
 		ir, err := reduceAssignmentExpr(value, context)
@@ -82,6 +90,54 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 	}
 
 	return IRResult{}, nil
+}
+
+/*
+Reduces an IfExpression down into GoblinIR.
+*/
+func reduceIfExpr(expr ast.IfCondition, context *IRContext) (IRResult, error) {
+
+	condition, err := reduceExpression(expr.Condition, context)
+	if err != nil {
+		return IRResult{}, err
+	}
+
+	result := IRResult{
+		Commands: condition.Commands,
+	}
+
+	// If Body label.
+	bodyTrueLabel := context.allocateLabel()
+
+	result.Commands = append(result.Commands, &JmpIf{
+		Destination: bodyTrueLabel,
+		Condition:   condition.Value,
+	})
+
+	endLabel := context.allocateLabel()
+	result.Commands = append(result.Commands, &Jmp{
+		Destination: endLabel,
+	})
+
+	result.Commands = append(result.Commands, &Lbl{
+		Destination: bodyTrueLabel.Value,
+	})
+
+	for _, stmt := range expr.Body {
+
+		res, err := reduceExpression(stmt, context)
+		if err != nil {
+			return IRResult{}, err
+		}
+
+		result.Commands = append(result.Commands, res.Commands...)
+	}
+
+	result.Commands = append(result.Commands, &Lbl{
+		Destination: endLabel.Value,
+	})
+
+	return result, nil
 }
 
 /*
@@ -217,6 +273,30 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *IRContext) (IRResult, error)
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		})
+	case ">":
+		result.Commands = append(result.Commands, &Gt{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		})
+	case ">=":
+		result.Commands = append(result.Commands, &Gte{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		})
+	case "<":
+		result.Commands = append(result.Commands, &Lt{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		})
+	case "<=":
+		result.Commands = append(result.Commands, &Lte{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		})
 	}
 
 	result.Value = destination
@@ -265,6 +345,7 @@ func Reduce(program ast.Program) ([]IRCommand, error) {
 		Commands:    make([]IRCommand, 0),
 		Storage:     make([]IRValue, 0),
 		Temporaries: make([]IRValue, 0),
+		Labels:      make([]IRLabel, 0),
 		Symbols:     make(map[string]IRAddress),
 		PC:          0,
 	}
