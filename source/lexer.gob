@@ -1,1 +1,1 @@
-let x = true == "false";
+if(10 == 10){}

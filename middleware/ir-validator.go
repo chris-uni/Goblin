@@ -108,8 +108,23 @@ func validateCommand(command IRCommand, context *IRContext) (IRCommand, error) {
 		}
 		return com, nil
 
-	default:
+	case *JmpIf:
+		_, err := validateJmpIf(com, context)
+		if err != nil {
+			return nil, err
+		}
+
 		return com, nil
+
+	case *Jmp:
+		_, err := validateJmp(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	default:
+		return nil, fmt.Errorf("unrecognised ir command %v\n", com)
 	}
 }
 
@@ -307,7 +322,7 @@ func validateEquality(m *Eq, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: eq: incompatible types\n")
 	}
 
-	context.Temporaries = append(context.Temporaries, m.Lhs)
+	context.Temporaries = append(context.Temporaries, IRBoolean{})
 
 	return m, nil
 }
@@ -337,7 +352,7 @@ func validateNotEquality(m *Neq, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: eq: incompatible types\n")
 	}
 
-	context.Temporaries = append(context.Temporaries, m.Lhs)
+	context.Temporaries = append(context.Temporaries, IRBoolean{})
 
 	return m, nil
 }
@@ -362,7 +377,7 @@ func validateLessThan(m *Lt, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: lt: operands of invalid type\n")
 	}
 
-	context.Temporaries = append(context.Temporaries, m.Lhs)
+	context.Temporaries = append(context.Temporaries, IRBoolean{})
 
 	return m, nil
 }
@@ -387,7 +402,7 @@ func validateLessThanEqualTo(m *Lte, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: lte: operands of invalid type\n")
 	}
 
-	context.Temporaries = append(context.Temporaries, m.Lhs)
+	context.Temporaries = append(context.Temporaries, IRBoolean{})
 
 	return m, nil
 }
@@ -412,7 +427,7 @@ func validateGreaterThan(m *Gt, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: gt: operands of invalid type\n")
 	}
 
-	context.Temporaries = append(context.Temporaries, m.Lhs)
+	context.Temporaries = append(context.Temporaries, IRBoolean{})
 
 	return m, nil
 }
@@ -437,9 +452,40 @@ func validateGreaterThanEqualTo(m *Gte, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: gte: operands of invalid type\n")
 	}
 
-	context.Temporaries = append(context.Temporaries, m.Lhs)
+	context.Temporaries = append(context.Temporaries, IRBoolean{})
 
 	return m, nil
+}
+
+/*
+Validates JmpIf, performs type checking on provided operands, resolving where needed.
+*/
+func validateJmpIf(ji *JmpIf, context *IRContext) (IRCommand, error) {
+
+	conditionType, err := resolveIRType(ji.Condition, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if conditionType != IRTypeBoolean {
+		return nil, fmt.Errorf("type error: jmpif: condition of invalid type\n")
+	}
+
+	// Register the label
+	context.Labels = append(context.Labels, ji.Destination)
+
+	return ji, nil
+}
+
+/*
+Validates JmpIf, performs type checking on provided operands, resolving where needed.
+*/
+func validateJmp(j *Jmp, context *IRContext) (IRCommand, error) {
+
+	// Register the label
+	context.Labels = append(context.Labels, j.Destination)
+
+	return j, nil
 }
 
 /*
@@ -481,6 +527,7 @@ func Validate(commands []IRCommand) ([]IRCommand, error) {
 		Commands:    make([]IRCommand, 0),
 		Storage:     make([]IRValue, 0),
 		Temporaries: make([]IRValue, 0),
+		Labels:      make([]IRLabel, 0),
 		Symbols:     make(map[string]IRAddress),
 		PC:          0,
 	}

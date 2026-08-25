@@ -263,6 +263,10 @@ func Test_Mod_Expression_Numeric_Invalid_Boolean(t *testing.T) {
 	}
 }
 
+/*
+Comparision Operator Tests
+*/
+
 func Test_Eq_Expression_Invalid_String(t *testing.T) {
 
 	rawIR, err := assembleRawIR(`let x = "true" == "false";`)
@@ -518,16 +522,37 @@ func Test_Gte_Expression_Invalid_Boolean(t *testing.T) {
 	}
 }
 
-func Test_Gte_Expression_Invalid_Multi(t *testing.T) {
+/*
+JmpIf Tests
+*/
 
-	rawIR, err := assembleRawIR(`let x = "hello" >= 10;`)
+func Test_JmpIf_Expression_String(t *testing.T) {
+
+	rawIR, err := assembleRawIR(`if("string"){}`)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 	_, err = Validate(rawIR)
 
-	want := "validation error: type error: gte: operands of invalid type\n\n"
+	want := "validation error: type error: jmpif: condition of invalid type\n\n"
+	got := fmt.Sprintf("%v", err)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_JmpIf_Expression_Number(t *testing.T) {
+
+	rawIR, err := assembleRawIR(`if(10){}`)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	_, err = Validate(rawIR)
+
+	want := "validation error: type error: jmpif: condition of invalid type\n\n"
 	got := fmt.Sprintf("%v", err)
 
 	if got != want {
