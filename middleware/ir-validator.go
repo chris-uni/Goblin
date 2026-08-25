@@ -66,6 +66,48 @@ func validateCommand(command IRCommand, context *IRContext) (IRCommand, error) {
 		}
 		return com, nil
 
+	case *Eq:
+		_, err := validateEquality(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	case *Neq:
+		_, err := validateNotEquality(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	case *Lt:
+		_, err := validateLessThan(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	case *Lte:
+		_, err := validateLessThanEqualTo(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	case *Gt:
+		_, err := validateGreaterThan(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	case *Gte:
+		_, err := validateGreaterThanEqualTo(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
 	default:
 		return com, nil
 	}
@@ -235,6 +277,166 @@ func validateMod(m *Mod, context *IRContext) (IRCommand, error) {
 
 	// Since we know mod can only perform calculation on a number, lets just add the lhs value in
 	// as a place holder.
+	context.Temporaries = append(context.Temporaries, m.Lhs)
+
+	return m, nil
+}
+
+/*
+Validates Eq, performs type checking on provided operands, resolving where needed.
+*/
+func validateEquality(m *Eq, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if !(lhsType == IRTypeNumber || lhsType == IRTypeBoolean) &&
+		!(rhsType == IRTypeNumber || rhsType == IRTypeBoolean) {
+		return nil, fmt.Errorf("type error: eq: operands of invalid type\n")
+	}
+
+	if lhsType != rhsType {
+		return nil, fmt.Errorf("type error: eq: incompatible types\n")
+	}
+
+	context.Temporaries = append(context.Temporaries, m.Lhs)
+
+	return m, nil
+}
+
+/*
+Validates Neq, performs type checking on provided operands, resolving where needed.
+*/
+func validateNotEquality(m *Neq, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if !(lhsType == IRTypeNumber || lhsType == IRTypeBoolean) &&
+		!(rhsType == IRTypeNumber || rhsType == IRTypeBoolean) {
+		return nil, fmt.Errorf("type error: eq: operands of invalid type\n")
+	}
+
+	if lhsType != rhsType {
+		return nil, fmt.Errorf("type error: eq: incompatible types\n")
+	}
+
+	context.Temporaries = append(context.Temporaries, m.Lhs)
+
+	return m, nil
+}
+
+/*
+Validates Lt, performs type checking on provided operands, resolving where needed.
+*/
+func validateLessThan(m *Lt, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
+		return nil, fmt.Errorf("type error: lt: operands of invalid type\n")
+	}
+
+	context.Temporaries = append(context.Temporaries, m.Lhs)
+
+	return m, nil
+}
+
+/*
+Validates Lte, performs type checking on provided operands, resolving where needed.
+*/
+func validateLessThanEqualTo(m *Lte, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
+		return nil, fmt.Errorf("type error: lte: operands of invalid type\n")
+	}
+
+	context.Temporaries = append(context.Temporaries, m.Lhs)
+
+	return m, nil
+}
+
+/*
+Validates Gt, performs type checking on provided operands, resolving where needed.
+*/
+func validateGreaterThan(m *Gt, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
+		return nil, fmt.Errorf("type error: gt: operands of invalid type\n")
+	}
+
+	context.Temporaries = append(context.Temporaries, m.Lhs)
+
+	return m, nil
+}
+
+/*
+Validates Gte, performs type checking on provided operands, resolving where needed.
+*/
+func validateGreaterThanEqualTo(m *Gte, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
+		return nil, fmt.Errorf("type error: gte: operands of invalid type\n")
+	}
+
 	context.Temporaries = append(context.Temporaries, m.Lhs)
 
 	return m, nil
