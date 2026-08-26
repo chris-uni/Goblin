@@ -10,6 +10,7 @@ const (
 	IRTypeNumber IRType = iota
 	IRTypeString
 	IRTypeBoolean
+	IRTypeLabel
 	IRTypeUndefined
 )
 
@@ -43,7 +44,7 @@ type IRResult struct {
 	Value    IRValue
 }
 
-func (engine *IRContext) resolve(i IRValue) (IRValue, error) {
+func (context *IRContext) resolve(i IRValue) (IRValue, error) {
 
 	switch value := i.(type) {
 
@@ -58,28 +59,36 @@ func (engine *IRContext) resolve(i IRValue) (IRValue, error) {
 
 	case IRAddress:
 
-		if value.Index < 0 || value.Index >= len(engine.Storage) {
+		if value.Index < 0 || value.Index >= len(context.Storage) {
 			return nil, fmt.Errorf("invalid IR address: @%v\n", value.Index)
 		}
 
-		if engine.Storage[value.Index] == nil {
+		if context.Storage[value.Index] == nil {
 			return nil, fmt.Errorf("null pointer at IR address: @%v\n", value.Index)
 		}
 
-		return engine.Storage[value.Index], nil
+		return context.Storage[value.Index], nil
 
 	case IRTemporary:
 
-		if value.Index < 0 || value.Index >= len(engine.Temporaries) {
+		if value.Index < 0 || value.Index >= len(context.Temporaries) {
 			return nil, fmt.Errorf("invalid IR temporary: %%%v\n", value.Index)
 		}
 
-		if engine.Temporaries[value.Index] == nil {
+		if context.Temporaries[value.Index] == nil {
 			return nil, fmt.Errorf("null pointer at IR temporary: @%v\n", value.Index)
 		}
 
-		return engine.Temporaries[value.Index], nil
+		return context.Temporaries[value.Index], nil
 	}
 
 	return nil, fmt.Errorf("no IRValue type found for %v\n", i)
+}
+
+/*
+Pushes a new command into the context.
+*/
+func (context *IRContext) push(com IRCommand) {
+	context.Commands = append(context.Commands, com)
+	context.PC++
 }

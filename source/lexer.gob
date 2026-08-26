@@ -1,1 +1,13 @@
-if(10 == 10){}
+if(true){
+
+    let x = 10;
+
+    if(false){
+
+        let y = 100;
+    }
+
+    let z = 1000;
+}
+
+let w = 11;

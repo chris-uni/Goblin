@@ -80,6 +80,7 @@ func (i IRBoolean) String() string   { return strconv.FormatBool(i.Value) }
 func (IRAddress) isIRValue()   {}
 func (IRTemporary) isIRValue() {}
 func (IRNumber) isIRValue()    {}
+func (IRLabel) isIRValue()     {}
 func (IRString) isIRValue()    {}
 func (IRBoolean) isIRValue()   {}
 
@@ -226,16 +227,6 @@ func (v *JmpIf) String() string {
 }
 
 func (JmpIf) Exec(context *IRContext) {}
-
-type Lbl struct {
-	Destination int
-}
-
-func (v *Lbl) String() string {
-	return fmt.Sprintf("L%v:", v.Destination)
-}
-
-func (Lbl) Exec(context *IRContext) {}
 
 type Eq struct {
 	Destination IRTemporary

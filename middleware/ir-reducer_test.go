@@ -24,6 +24,17 @@ func assembleAST(source string) (ast.Program, error) {
 	return program, nil
 }
 
+func newIRContext() IRContext {
+	return IRContext{
+		Commands:    make([]IRCommand, 0),
+		Storage:     make([]IRValue, 0),
+		Temporaries: make([]IRValue, 0),
+		Labels:      make([]IRLabel, 0),
+		Symbols:     make(map[string]IRAddress),
+		PC:          0,
+	}
+}
+
 /*
 Arithemetic Tests
 */
@@ -36,7 +47,9 @@ func Test_Add_Expression_Numeric(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -57,7 +70,8 @@ func Test_Add_Expression_String(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -78,7 +92,8 @@ func Test_Sub_Expression_Numeric(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -99,7 +114,8 @@ func Test_Mul_Expression_Numeric(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -120,7 +136,8 @@ func Test_Div_Expression_Numeric(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -141,7 +158,8 @@ func Test_Mod_Expression_Numeric(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -164,7 +182,8 @@ func Test_StoreValue_Single(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -188,7 +207,8 @@ func Test_StoreValue_Multiple(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -215,7 +235,8 @@ func Test_LoadValue_Simple(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -241,7 +262,8 @@ func Test_LoadValue_Multiple(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -268,7 +290,8 @@ func Test_Assignment_Expression_Valid(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -289,7 +312,8 @@ func Test_Assignment_Expression_Invalid(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	_, err = Reduce(ast)
+	context := newIRContext()
+	_, err = Reduce(ast, &context)
 
 	want := "reducer error: undefined symbol x\n\n"
 	got := fmt.Sprintf("%v", err)
@@ -310,7 +334,8 @@ func Test_If_Expression_Lt(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -331,7 +356,8 @@ func Test_If_Expression_Lte(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -352,7 +378,8 @@ func Test_If_Expression_Gt(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -373,7 +400,8 @@ func Test_If_Expression_Gte(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -394,7 +422,8 @@ func Test_If_Expression_Eq(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -415,7 +444,8 @@ func Test_If_Expression_Neq(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	out, err := Reduce(ast)
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
 	if err != nil {
 		t.Errorf(err.Error())
 	}

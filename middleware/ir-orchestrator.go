@@ -20,8 +20,17 @@ import (
 
 func OrchestrateIRLayer(program ast.Program) ([]IRCommand, error) {
 
+	context := IRContext{
+		Commands:    make([]IRCommand, 0),
+		Storage:     make([]IRValue, 0),
+		Temporaries: make([]IRValue, 0),
+		Labels:      make([]IRLabel, 0),
+		Symbols:     make(map[string]IRAddress),
+		PC:          0,
+	}
+
 	// 1. Reduce the AST down into GoblinIR.
-	rawIR, err := Reduce(program)
+	rawIR, err := Reduce(program, &context)
 	if err != nil {
 		return []IRCommand{}, err
 	}
@@ -29,7 +38,7 @@ func OrchestrateIRLayer(program ast.Program) ([]IRCommand, error) {
 	PrintIR("raw ir:", rawIR)
 
 	// 2. Validate the Raw GoblinIR into Validated GoblinIR.
-	validatedIR, err := Validate(rawIR)
+	validatedIR, err := Validate(rawIR, &context)
 	if err != nil {
 		return []IRCommand{}, err
 	}

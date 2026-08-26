@@ -124,7 +124,7 @@ func validateCommand(command IRCommand, context *IRContext) (IRCommand, error) {
 		return com, nil
 
 	default:
-		return nil, fmt.Errorf("unrecognised ir command %v\n", com)
+		return nil, fmt.Errorf("unrecognised ir command %v\n", command)
 	}
 }
 
@@ -132,11 +132,6 @@ func validateCommand(command IRCommand, context *IRContext) (IRCommand, error) {
 Validates Store, simply commits value to storage.
 */
 func validateStore(s *Store, context *IRContext) (IRCommand, error) {
-
-	/*
-		For store, we are effectively creating a new variable, so we dont need to check if the address exists, as it probably doesnt.
-	*/
-	context.Storage = append(context.Storage, s.Value)
 	return s, nil
 }
 
@@ -153,7 +148,6 @@ func validateLoad(l *Load, context *IRContext) (IRCommand, error) {
 		return nil, err
 	}
 
-	context.Temporaries = append(context.Temporaries, l.Source)
 	return l, nil
 }
 
@@ -182,10 +176,6 @@ func validateAdd(a *Add, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: add: incompatible types\n")
 	}
 
-	// Since we know add can only perform calculation on a number or string, lets just add the lhs value in
-	// as a place holder.
-	context.Temporaries = append(context.Temporaries, a.Lhs)
-
 	return a, nil
 }
 
@@ -208,10 +198,6 @@ func validateSub(s *Sub, context *IRContext) (IRCommand, error) {
 	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
 		return nil, fmt.Errorf("type error: sub: operands of invalid type\n")
 	}
-
-	// Since we know sub can only perform calculation on a number, lets just add the lhs value in
-	// as a place holder.
-	context.Temporaries = append(context.Temporaries, s.Lhs)
 
 	return s, nil
 }
@@ -236,10 +222,6 @@ func validateMul(m *Mul, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: mul: operands of invalid type\n")
 	}
 
-	// Since we know mul can only perform calculation on a number, lets just add the lhs value in
-	// as a place holder.
-	context.Temporaries = append(context.Temporaries, m.Lhs)
-
 	return m, nil
 }
 
@@ -263,10 +245,6 @@ func validateDiv(d *Div, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: div: operands of invalid type\n")
 	}
 
-	// Since we know div can only perform calculation on a number, lets just add the lhs value in
-	// as a place holder.
-	context.Temporaries = append(context.Temporaries, d.Lhs)
-
 	return d, nil
 }
 
@@ -289,10 +267,6 @@ func validateMod(m *Mod, context *IRContext) (IRCommand, error) {
 	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
 		return nil, fmt.Errorf("type error: mod: operands of invalid type\n")
 	}
-
-	// Since we know mod can only perform calculation on a number, lets just add the lhs value in
-	// as a place holder.
-	context.Temporaries = append(context.Temporaries, m.Lhs)
 
 	return m, nil
 }
@@ -322,8 +296,6 @@ func validateEquality(m *Eq, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: eq: incompatible types\n")
 	}
 
-	context.Temporaries = append(context.Temporaries, IRBoolean{})
-
 	return m, nil
 }
 
@@ -352,8 +324,6 @@ func validateNotEquality(m *Neq, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: eq: incompatible types\n")
 	}
 
-	context.Temporaries = append(context.Temporaries, IRBoolean{})
-
 	return m, nil
 }
 
@@ -376,8 +346,6 @@ func validateLessThan(m *Lt, context *IRContext) (IRCommand, error) {
 	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
 		return nil, fmt.Errorf("type error: lt: operands of invalid type\n")
 	}
-
-	context.Temporaries = append(context.Temporaries, IRBoolean{})
 
 	return m, nil
 }
@@ -402,8 +370,6 @@ func validateLessThanEqualTo(m *Lte, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: lte: operands of invalid type\n")
 	}
 
-	context.Temporaries = append(context.Temporaries, IRBoolean{})
-
 	return m, nil
 }
 
@@ -426,8 +392,6 @@ func validateGreaterThan(m *Gt, context *IRContext) (IRCommand, error) {
 	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
 		return nil, fmt.Errorf("type error: gt: operands of invalid type\n")
 	}
-
-	context.Temporaries = append(context.Temporaries, IRBoolean{})
 
 	return m, nil
 }
@@ -452,8 +416,6 @@ func validateGreaterThanEqualTo(m *Gte, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: gte: operands of invalid type\n")
 	}
 
-	context.Temporaries = append(context.Temporaries, IRBoolean{})
-
 	return m, nil
 }
 
@@ -467,12 +429,15 @@ func validateJmpIf(ji *JmpIf, context *IRContext) (IRCommand, error) {
 		return nil, err
 	}
 
+	_, err = resolveIRType(ji.Destination, context)
+	if err != nil {
+		return nil, err
+	}
+
+	// Is the condition a truthy type?
 	if conditionType != IRTypeBoolean {
 		return nil, fmt.Errorf("type error: jmpif: condition of invalid type\n")
 	}
-
-	// Register the label
-	context.Labels = append(context.Labels, ji.Destination)
 
 	return ji, nil
 }
@@ -482,8 +447,10 @@ Validates JmpIf, performs type checking on provided operands, resolving where ne
 */
 func validateJmp(j *Jmp, context *IRContext) (IRCommand, error) {
 
-	// Register the label
-	context.Labels = append(context.Labels, j.Destination)
+	_, err := resolveIRType(j.Destination, context)
+	if err != nil {
+		return nil, err
+	}
 
 	return j, nil
 }
@@ -493,7 +460,7 @@ Resolves incoming IRValue type to a compariable IRType value. Will recursively r
 */
 func resolveIRType(value IRValue, context *IRContext) (IRType, error) {
 
-	switch value := value.(type) {
+	switch val := value.(type) {
 
 	case IRNumber:
 		return IRTypeNumber, nil
@@ -505,41 +472,46 @@ func resolveIRType(value IRValue, context *IRContext) (IRType, error) {
 		return IRTypeBoolean, nil
 
 	case IRAddress:
-		if value.Index < 0 || value.Index >= len(context.Storage) {
-			return IRTypeUndefined, fmt.Errorf("undefined storage address @%d\n", value.Index)
+		if val.Index < 0 || val.Index >= len(context.Storage) {
+			return IRTypeUndefined, fmt.Errorf("undefined storage address @%d\n", val.Index)
 		}
-		return resolveIRType(context.Storage[value.Index], context)
+		return resolveIRType(context.Storage[val.Index], context)
 
 	case IRTemporary:
-		if value.Index < 0 || value.Index >= len(context.Temporaries) {
-			return IRTypeUndefined, fmt.Errorf("undefined temporary address %%%d\n", value.Index)
+		if val.Index < 0 || val.Index >= len(context.Temporaries) {
+			return IRTypeUndefined, fmt.Errorf("undefined temporary address %%%d\n", val.Index)
 		}
-		return resolveIRType(context.Temporaries[value.Index], context)
+		return resolveIRType(context.Temporaries[val.Index], context)
+
+	case IRLabel:
+
+		if val.Value < 0 || val.Value >= len(context.Labels) {
+			return IRTypeUndefined, fmt.Errorf("label[%v] index out of bounds for value %v\n", val, val.Value)
+		}
+
+		if val.PCOffset < 0 || val.PCOffset > len(context.Commands) {
+			return IRTypeUndefined, fmt.Errorf("label[%v] offset out of bounds for offset %v\n", val, val.PCOffset)
+		}
+
+		fmt.Printf("pc offset stored at label %v is %v\n", val.Value, val.PCOffset)
+
+		return IRTypeLabel, nil
 
 	default:
 		return IRTypeUndefined, fmt.Errorf("unrecognised type %v\n", value)
 	}
 }
 
-func Validate(commands []IRCommand) ([]IRCommand, error) {
+func Validate(commands []IRCommand, context *IRContext) ([]IRCommand, error) {
 
-	context := IRContext{
-		Commands:    make([]IRCommand, 0),
-		Storage:     make([]IRValue, 0),
-		Temporaries: make([]IRValue, 0),
-		Labels:      make([]IRLabel, 0),
-		Symbols:     make(map[string]IRAddress),
-		PC:          0,
-	}
+	context.PC = 0
 
 	for _, command := range commands {
 
-		com, err := validateCommand(command, &context)
+		_, err := validateCommand(command, context)
 		if err != nil {
 			return []IRCommand{}, fmt.Errorf("validation error: %v\n", err)
 		}
-
-		context.Commands = append(context.Commands, com)
 	}
 
 	return context.Commands, nil
