@@ -44,7 +44,18 @@ func (c *IRContext) allocateTemporary() IRTemporary {
 }
 
 type IRLabel struct {
-	Index map[int]int
+	Value    int
+	PCOffset int
+}
+
+func (c *IRContext) allocateLabel() IRLabel {
+
+	label := IRLabel{
+		Value: len(c.Labels),
+	}
+
+	c.Labels = append(c.Labels, label)
+	return label
 }
 
 type IRNumber struct {
@@ -61,6 +72,7 @@ type IRBoolean struct {
 
 func (i IRTemporary) String() string { return fmt.Sprintf("%%%v", i.Index) }
 func (i IRAddress) String() string   { return fmt.Sprintf("@%v", i.Index) }
+func (i IRLabel) String() string     { return fmt.Sprintf("L%v", i.Value) }
 func (i IRNumber) String() string    { return fmt.Sprintf("%v", i.Value) }
 func (i IRString) String() string    { return fmt.Sprintf("%v", i.Value) }
 func (i IRBoolean) String() string   { return strconv.FormatBool(i.Value) }
@@ -68,6 +80,7 @@ func (i IRBoolean) String() string   { return strconv.FormatBool(i.Value) }
 func (IRAddress) isIRValue()   {}
 func (IRTemporary) isIRValue() {}
 func (IRNumber) isIRValue()    {}
+func (IRLabel) isIRValue()     {}
 func (IRString) isIRValue()    {}
 func (IRBoolean) isIRValue()   {}
 
@@ -198,6 +211,10 @@ type Jmp struct {
 	Destination IRLabel
 }
 
+func (v *Jmp) String() string {
+	return fmt.Sprintf("jmp %v", v.Destination)
+}
+
 func (Jmp) Exec(context *IRContext) {}
 
 type JmpIf struct {
@@ -205,52 +222,78 @@ type JmpIf struct {
 	Condition   IRValue
 }
 
+func (v *JmpIf) String() string {
+	return fmt.Sprintf("jmpif %v %v", v.Destination, v.Condition)
+}
+
 func (JmpIf) Exec(context *IRContext) {}
 
 type Eq struct {
 	Destination IRTemporary
-	Val1        IRValue
-	Val2        IRValue
+	Lhs         IRValue
+	Rhs         IRValue
+}
+
+func (s *Eq) String() string {
+	return fmt.Sprintf("eq %v %v %v", s.Destination, s.Lhs, s.Rhs)
 }
 
 func (Eq) Exec(context *IRContext) {}
 
 type Neq struct {
 	Destination IRTemporary
-	Val1        IRValue
-	Val2        IRValue
+	Lhs         IRValue
+	Rhs         IRValue
+}
+
+func (s *Neq) String() string {
+	return fmt.Sprintf("neq %v %v %v", s.Destination, s.Lhs, s.Rhs)
 }
 
 func (Neq) Exec(context *IRContext) {}
 
 type Lt struct {
 	Destination IRTemporary
-	Val1        IRValue
-	Val2        IRValue
+	Lhs         IRValue
+	Rhs         IRValue
+}
+
+func (v *Lt) String() string {
+	return fmt.Sprintf("lt %v %v %v", v.Destination, v.Lhs, v.Rhs)
 }
 
 func (Lt) Exec(context *IRContext) {}
 
 type Lte struct {
 	Destination IRTemporary
-	Val1        IRValue
-	Val2        IRValue
+	Lhs         IRValue
+	Rhs         IRValue
 }
 
+func (v *Lte) String() string {
+	return fmt.Sprintf("lte %v %v %v", v.Destination, v.Lhs, v.Rhs)
+}
 func (Lte) Exec(context *IRContext) {}
 
 type Gt struct {
 	Destination IRTemporary
-	Val1        IRValue
-	Val2        IRValue
+	Lhs         IRValue
+	Rhs         IRValue
 }
 
+func (v *Gt) String() string {
+	return fmt.Sprintf("gt %v %v %v", v.Destination, v.Lhs, v.Rhs)
+}
 func (Gt) Exec(context *IRContext) {}
 
 type Gte struct {
 	Destination IRTemporary
-	Val1        IRValue
-	Val2        IRValue
+	Lhs         IRValue
+	Rhs         IRValue
+}
+
+func (v *Gte) String() string {
+	return fmt.Sprintf("gte %v %v %v", v.Destination, v.Lhs, v.Rhs)
 }
 
 func (Gte) Exec(context *IRContext) {}

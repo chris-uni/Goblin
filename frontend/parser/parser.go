@@ -1,7 +1,7 @@
 /*
 Goblin Parser v0.1
 Author: Chris J.M. Wing
-Date: 17/08/2026
+Date: 28/08/2026
 
 Input:
 	Slice of Goblin source-code represented by Goblins Lexer as Lexical Tokens.
@@ -85,9 +85,35 @@ func (p *Parser) expect(t lexer.TokenType) (lexer.Token, error) {
 func (p *Parser) parseStatement() (ast.Expression, error) {
 
 	if p.match(lexer.Let) {
-		return p.parseVariableDecleration()
+		expr, err := p.parseVariableDecleration()
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		// Each statement should be terminated by an EOL ';'.
+		_, err = p.expect(lexer.EOL)
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		return expr, nil
+
+	} else if p.match(lexer.If) {
+		return p.parseIfStatement()
+
 	} else {
-		return p.parseExpression()
+		expr, err := p.parseExpression()
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		// Each statement should be terminated by an EOL ';'.
+		_, err = p.expect(lexer.EOL)
+		if err != nil {
+			return ast.Program{}, err
+		}
+
+		return expr, nil
 	}
 }
 
@@ -95,19 +121,74 @@ func (p *Parser) parseExpression() (ast.Expression, error) {
 	return p.parseAssignmentExpression()
 }
 
+func (p *Parser) parseIfStatement() (ast.Expression, error) {
+
+	// Consume the if.
+	p.consume()
+
+	// Expect an open paren.
+	_, err := p.expect(lexer.OpenParen)
+	if err != nil {
+		return ast.Expr{}, err
+	}
+
+	// Consume expression
+	condition, err := p.parseExpression()
+	if err != nil {
+		return ast.Expr{}, err
+	}
+
+	// Expext a close paren.
+	_, err = p.expect(lexer.CloseParen)
+	if err != nil {
+		return ast.Expr{}, err
+	}
+
+	// Expect an open brace to denote start of if-body.
+	_, err = p.expect(lexer.OpenBrace)
+	if err != nil {
+		return ast.Expr{}, err
+	}
+
+	bodyExpr := make([]ast.Expression, 0)
+
+	for !p.match(lexer.CloseBrace) && !p.match(lexer.EOF) {
+
+		expr, err := p.parseStatement()
+		if err != nil {
+			return ast.Expr{}, err
+		}
+
+		bodyExpr = append(bodyExpr, expr)
+	}
+
+	// Expect an close brace to denote end of if-body.
+	_, err = p.expect(lexer.CloseBrace)
+	if err != nil {
+		return ast.Expr{}, err
+	}
+
+	return ast.IfCondition{
+		Kind:      ast.IfNode,
+		Condition: condition,
+		Body:      bodyExpr,
+		ElseCatch: false,
+		ElseBody:  nil,
+	}, nil
+}
+
 /*
 -- 1.0 Assignment Section --
 */
 func (p *Parser) parseAssignmentExpression() (ast.Expression, error) {
 
-	lhs, err := p.parseAdditiveExpression()
+	lhs, err := p.parseComparisionExpression()
 	if err != nil {
 		return ast.Expr{}, err
 	}
 
 	// Not necessairly an assignment, so return what we have.
 	if !p.match(lexer.Equals) {
-
 		return lhs, nil
 	}
 
@@ -158,6 +239,37 @@ func (p *Parser) parseVariableDecleration() (ast.Expression, error) {
 		Value:      rhs,
 		Identifier: lhs.Value,
 		Constant:   false,
+	}, nil
+}
+
+/*
+-- 6. Conditional Expression Section --
+*/
+func (p *Parser) parseComparisionExpression() (ast.Expression, error) {
+
+	lhs, err := p.parseAdditiveExpression()
+	if err != nil {
+		return ast.Expr{}, err
+	}
+
+	// Not a comparision expression.
+	if !p.match(lexer.ConditionalOperator) && !p.match(lexer.Equality) && !p.match(lexer.NotEquality) {
+		return lhs, nil
+	}
+
+	// Consume operator.
+	op := p.consume()
+
+	rhs, err := p.parseAdditiveExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.BinaryExpr{
+		Kind:     ast.BinaryExprNode,
+		Left:     lhs,
+		Right:    rhs,
+		Operator: op.Value,
 	}, nil
 }
 
@@ -288,7 +400,7 @@ func (p *Parser) parsePrimaryExpression() (ast.Expression, error) {
 	case tkn == lexer.Identifier:
 		val, err := p.parseIdentifier()
 		if err != nil {
-			return ast.Expr{}, nil
+			return ast.Expr{}, err
 		}
 
 		return val, err
@@ -331,12 +443,6 @@ func ParseTokens(tokens []lexer.Token) (ast.Program, error) {
 		}
 
 		program.Body = append(program.Body, node)
-
-		// Each statement should be terminated by an EOL ';'.
-		_, err = parser.expect(lexer.EOL)
-		if err != nil {
-			return ast.Program{}, err
-		}
 	}
 
 	return program, nil
