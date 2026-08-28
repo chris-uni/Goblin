@@ -1,4 +1,4 @@
-package middleware
+package irtypes
 
 import (
 	"fmt"
@@ -88,7 +88,42 @@ func (context *IRContext) resolve(i IRValue) (IRValue, error) {
 /*
 Pushes a new command into the context.
 */
-func (context *IRContext) push(com IRCommand) {
+func (context *IRContext) Push(com IRCommand) {
 	context.Commands = append(context.Commands, com)
 	context.PC++
+}
+
+func (c *IRContext) AllocateAddress() IRAddress {
+
+	storage := IRAddress{
+		Index: len(c.Storage),
+	}
+
+	c.Storage = append(c.Storage, nil)
+	return storage
+}
+
+func (c *IRContext) AllocateTemporary() IRTemporary {
+
+	temporary := IRTemporary{
+		Index: len(c.Temporaries),
+	}
+
+	c.Temporaries = append(c.Temporaries, nil)
+	return temporary
+}
+
+func (c *IRContext) AllocateLabel() IRLabel {
+
+	label := IRLabel{
+		Value: len(c.Labels),
+	}
+
+	c.Labels = append(c.Labels, label)
+	return label
+}
+
+func (c *IRContext) StoreSymbol(name string, address IRAddress) {
+
+	c.Symbols[name] = address
 }

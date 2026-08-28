@@ -3,20 +3,22 @@ package middleware
 import (
 	"fmt"
 	"testing"
+
+	i "goblin.org/main/middleware/irtypes"
 )
 
-func assembleRawIR(source string) (IRContext, []IRCommand, error) {
+func assembleRawIR(source string) (i.IRContext, []i.IRCommand, error) {
 
 	context := newIRContext()
 	ast, err := assembleAST(source)
 
 	if err != nil {
-		return IRContext{}, nil, err
+		return i.IRContext{}, nil, err
 	}
 
 	rawIR, err := Reduce(ast, &context)
 	if err != nil {
-		return IRContext{}, nil, err
+		return i.IRContext{}, nil, err
 	}
 
 	return context, rawIR, nil
