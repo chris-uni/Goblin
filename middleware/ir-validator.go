@@ -1,7 +1,7 @@
 /*
 Goblin IR Validator v0.1
 Author: Chris J.M. Wing
-Date: 21/08/2026
+Date: 28/08/2026
 
 Input:
 	Raw GoblinIR from the Reducer stage.
@@ -66,8 +66,65 @@ func validateCommand(command IRCommand, context *IRContext) (IRCommand, error) {
 		}
 		return com, nil
 
-	default:
+	case *Eq:
+		_, err := validateEquality(com, context)
+		if err != nil {
+			return nil, err
+		}
 		return com, nil
+
+	case *Neq:
+		_, err := validateNotEquality(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	case *Lt:
+		_, err := validateLessThan(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	case *Lte:
+		_, err := validateLessThanEqualTo(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	case *Gt:
+		_, err := validateGreaterThan(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	case *Gte:
+		_, err := validateGreaterThanEqualTo(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	case *JmpIf:
+		_, err := validateJmpIf(com, context)
+		if err != nil {
+			return nil, err
+		}
+
+		return com, nil
+
+	case *Jmp:
+		_, err := validateJmp(com, context)
+		if err != nil {
+			return nil, err
+		}
+		return com, nil
+
+	default:
+		return nil, fmt.Errorf("unrecognised ir command %v\n", command)
 	}
 }
 
@@ -75,11 +132,6 @@ func validateCommand(command IRCommand, context *IRContext) (IRCommand, error) {
 Validates Store, simply commits value to storage.
 */
 func validateStore(s *Store, context *IRContext) (IRCommand, error) {
-
-	/*
-		For store, we are effectively creating a new variable, so we dont need to check if the address exists, as it probably doesnt.
-	*/
-	context.Storage = append(context.Storage, s.Value)
 	return s, nil
 }
 
@@ -96,7 +148,6 @@ func validateLoad(l *Load, context *IRContext) (IRCommand, error) {
 		return nil, err
 	}
 
-	context.Temporaries = append(context.Temporaries, l.Source)
 	return l, nil
 }
 
@@ -125,10 +176,6 @@ func validateAdd(a *Add, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: add: incompatible types\n")
 	}
 
-	// Since we know add can only perform calculation on a number or string, lets just add the lhs value in
-	// as a place holder.
-	context.Temporaries = append(context.Temporaries, a.Lhs)
-
 	return a, nil
 }
 
@@ -151,10 +198,6 @@ func validateSub(s *Sub, context *IRContext) (IRCommand, error) {
 	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
 		return nil, fmt.Errorf("type error: sub: operands of invalid type\n")
 	}
-
-	// Since we know sub can only perform calculation on a number, lets just add the lhs value in
-	// as a place holder.
-	context.Temporaries = append(context.Temporaries, s.Lhs)
 
 	return s, nil
 }
@@ -179,10 +222,6 @@ func validateMul(m *Mul, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: mul: operands of invalid type\n")
 	}
 
-	// Since we know mul can only perform calculation on a number, lets just add the lhs value in
-	// as a place holder.
-	context.Temporaries = append(context.Temporaries, m.Lhs)
-
 	return m, nil
 }
 
@@ -205,10 +244,6 @@ func validateDiv(d *Div, context *IRContext) (IRCommand, error) {
 	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
 		return nil, fmt.Errorf("type error: div: operands of invalid type\n")
 	}
-
-	// Since we know div can only perform calculation on a number, lets just add the lhs value in
-	// as a place holder.
-	context.Temporaries = append(context.Temporaries, d.Lhs)
 
 	return d, nil
 }
@@ -233,11 +268,191 @@ func validateMod(m *Mod, context *IRContext) (IRCommand, error) {
 		return nil, fmt.Errorf("type error: mod: operands of invalid type\n")
 	}
 
-	// Since we know mod can only perform calculation on a number, lets just add the lhs value in
-	// as a place holder.
-	context.Temporaries = append(context.Temporaries, m.Lhs)
+	return m, nil
+}
+
+/*
+Validates Eq, performs type checking on provided operands, resolving where needed.
+*/
+func validateEquality(m *Eq, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if !(lhsType == IRTypeNumber || lhsType == IRTypeBoolean) &&
+		!(rhsType == IRTypeNumber || rhsType == IRTypeBoolean) {
+		return nil, fmt.Errorf("type error: eq: operands of invalid type\n")
+	}
+
+	if lhsType != rhsType {
+		return nil, fmt.Errorf("type error: eq: incompatible types\n")
+	}
 
 	return m, nil
+}
+
+/*
+Validates Neq, performs type checking on provided operands, resolving where needed.
+*/
+func validateNotEquality(m *Neq, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if !(lhsType == IRTypeNumber || lhsType == IRTypeBoolean) &&
+		!(rhsType == IRTypeNumber || rhsType == IRTypeBoolean) {
+		return nil, fmt.Errorf("type error: eq: operands of invalid type\n")
+	}
+
+	if lhsType != rhsType {
+		return nil, fmt.Errorf("type error: eq: incompatible types\n")
+	}
+
+	return m, nil
+}
+
+/*
+Validates Lt, performs type checking on provided operands, resolving where needed.
+*/
+func validateLessThan(m *Lt, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
+		return nil, fmt.Errorf("type error: lt: operands of invalid type\n")
+	}
+
+	return m, nil
+}
+
+/*
+Validates Lte, performs type checking on provided operands, resolving where needed.
+*/
+func validateLessThanEqualTo(m *Lte, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
+		return nil, fmt.Errorf("type error: lte: operands of invalid type\n")
+	}
+
+	return m, nil
+}
+
+/*
+Validates Gt, performs type checking on provided operands, resolving where needed.
+*/
+func validateGreaterThan(m *Gt, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
+		return nil, fmt.Errorf("type error: gt: operands of invalid type\n")
+	}
+
+	return m, nil
+}
+
+/*
+Validates Gte, performs type checking on provided operands, resolving where needed.
+*/
+func validateGreaterThanEqualTo(m *Gte, context *IRContext) (IRCommand, error) {
+
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := resolveIRType(m.Lhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsType, err := resolveIRType(m.Rhs, context)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhsType != IRTypeNumber || rhsType != IRTypeNumber {
+		return nil, fmt.Errorf("type error: gte: operands of invalid type\n")
+	}
+
+	return m, nil
+}
+
+/*
+Validates JmpIf, performs type checking on provided operands, resolving where needed.
+*/
+func validateJmpIf(ji *JmpIf, context *IRContext) (IRCommand, error) {
+
+	conditionType, err := resolveIRType(ji.Condition, context)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = resolveIRType(ji.Destination, context)
+	if err != nil {
+		return nil, err
+	}
+
+	// Is the condition a truthy type?
+	if conditionType != IRTypeBoolean {
+		return nil, fmt.Errorf("type error: jmpif: condition of invalid type\n")
+	}
+
+	return ji, nil
+}
+
+/*
+Validates JmpIf, performs type checking on provided operands, resolving where needed.
+*/
+func validateJmp(j *Jmp, context *IRContext) (IRCommand, error) {
+
+	_, err := resolveIRType(j.Destination, context)
+	if err != nil {
+		return nil, err
+	}
+
+	return j, nil
 }
 
 /*
@@ -245,7 +460,7 @@ Resolves incoming IRValue type to a compariable IRType value. Will recursively r
 */
 func resolveIRType(value IRValue, context *IRContext) (IRType, error) {
 
-	switch value := value.(type) {
+	switch val := value.(type) {
 
 	case IRNumber:
 		return IRTypeNumber, nil
@@ -257,40 +472,44 @@ func resolveIRType(value IRValue, context *IRContext) (IRType, error) {
 		return IRTypeBoolean, nil
 
 	case IRAddress:
-		if value.Index < 0 || value.Index >= len(context.Storage) {
-			return IRTypeUndefined, fmt.Errorf("undefined storage address @%d\n", value.Index)
+		if val.Index < 0 || val.Index >= len(context.Storage) {
+			return IRTypeUndefined, fmt.Errorf("undefined storage address @%d\n", val.Index)
 		}
-		return resolveIRType(context.Storage[value.Index], context)
+		return resolveIRType(context.Storage[val.Index], context)
 
 	case IRTemporary:
-		if value.Index < 0 || value.Index >= len(context.Temporaries) {
-			return IRTypeUndefined, fmt.Errorf("undefined temporary address %%%d\n", value.Index)
+		if val.Index < 0 || val.Index >= len(context.Temporaries) {
+			return IRTypeUndefined, fmt.Errorf("undefined temporary address %%%d\n", val.Index)
 		}
-		return resolveIRType(context.Temporaries[value.Index], context)
+		return resolveIRType(context.Temporaries[val.Index], context)
+
+	case IRLabel:
+
+		if val.Value < 0 || val.Value >= len(context.Labels) {
+			return IRTypeUndefined, fmt.Errorf("label[%v] index out of bounds for value %v\n", val, val.Value)
+		}
+
+		if val.PCOffset < 0 || val.PCOffset > len(context.Commands) {
+			return IRTypeUndefined, fmt.Errorf("label[%v] offset out of bounds for offset %v\n", val, val.PCOffset)
+		}
+
+		return IRTypeLabel, nil
 
 	default:
 		return IRTypeUndefined, fmt.Errorf("unrecognised type %v\n", value)
 	}
 }
 
-func Validate(commands []IRCommand) ([]IRCommand, error) {
+func Validate(commands []IRCommand, context *IRContext) ([]IRCommand, error) {
 
-	context := IRContext{
-		Commands:    make([]IRCommand, 0),
-		Storage:     make([]IRValue, 0),
-		Temporaries: make([]IRValue, 0),
-		Symbols:     make(map[string]IRAddress),
-		PC:          0,
-	}
+	context.PC = 0
 
 	for _, command := range commands {
 
-		com, err := validateCommand(command, &context)
+		_, err := validateCommand(command, context)
 		if err != nil {
 			return []IRCommand{}, fmt.Errorf("validation error: %v\n", err)
 		}
-
-		context.Commands = append(context.Commands, com)
 	}
 
 	return context.Commands, nil

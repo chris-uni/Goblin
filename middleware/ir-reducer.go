@@ -1,7 +1,7 @@
 /*
 Goblin IR Reducer v0.1
 Author: Chris J.M. Wing
-Date: 21/08/2026
+Date: 28/08/2026
 
 Input:
 	AST Generated from frontend.Parser.
@@ -23,6 +23,14 @@ Main reducer switch-board. Orchestrates where each ast.Expression goes to be red
 func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error) {
 
 	switch value := expr.(type) {
+
+	case ast.IfCondition:
+
+		ir, err := reduceIfExpr(value, context)
+		if err != nil {
+			return IRResult{}, err
+		}
+		return ir, nil
 
 	case ast.AssignmentExpr:
 
@@ -79,9 +87,73 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 			return IRResult{}, err
 		}
 		return ir, nil
+
+	default:
+		return IRResult{}, fmt.Errorf("unknonwn expression found %v\n", expr)
+	}
+}
+
+/*
+Reduces an IfExpression down into GoblinIR.
+*/
+func reduceIfExpr(expr ast.IfCondition, context *IRContext) (IRResult, error) {
+
+	condition, err := reduceExpression(expr.Condition, context)
+	if err != nil {
+		return IRResult{}, err
 	}
 
-	return IRResult{}, nil
+	result := IRResult{
+		Commands: condition.Commands,
+	}
+
+	// If Body label.
+	bodyLabel := context.allocateLabel()
+
+	jmpOffset := context.PC + 2 // 1 for the jmpif and 1 for jmp commands
+	if len(expr.Body) == 0 {
+		jmpOffset = context.PC
+	}
+
+	bodyLabel.PCOffset = jmpOffset
+
+	jmpIf := &JmpIf{
+		Destination: bodyLabel,
+		Condition:   condition.Value,
+	}
+
+	context.push(jmpIf)
+	result.Commands = append(result.Commands, jmpIf)
+
+	endLabel := context.allocateLabel()
+
+	jmp := &Jmp{
+		Destination: endLabel,
+	}
+	context.push(jmp)
+	result.Commands = append(result.Commands, jmp)
+
+	var bodyCmds []IRCommand
+
+	for _, stmt := range expr.Body {
+
+		res, err := reduceExpression(stmt, context)
+		if err != nil {
+			return IRResult{}, err
+		}
+
+		bodyCmds = append(bodyCmds, res.Commands...)
+	}
+
+	jmpOffset = bodyLabel.PCOffset + len(bodyCmds)
+	if len(expr.Body) == 0 {
+		jmpOffset = bodyLabel.PCOffset
+	}
+
+	jmp.Destination.PCOffset = jmpOffset
+
+	result.Commands = append(result.Commands, bodyCmds...)
+	return result, nil
 }
 
 /*
@@ -101,13 +173,15 @@ func reduceVariableDecleration(expr ast.VariableDecleration, context *IRContext)
 		Commands: value.Commands,
 	}
 
-	result.Commands = append(
-		result.Commands,
-		&Store{
-			Destination: address,
-			Value:       value.Value,
-		},
-	)
+	cmd := &Store{
+		Destination: address,
+		Value:       value.Value,
+	}
+
+	context.push(cmd)
+	result.Commands = append(result.Commands, cmd)
+
+	context.Storage[address.Index] = value.Value
 
 	return result, nil
 }
@@ -125,8 +199,12 @@ func reduceIdentifierExpr(expr ast.Identifier, context *IRContext) (IRResult, er
 	temp := context.allocateTemporary()
 	result := IRResult{}
 	result.Commands = make([]IRCommand, 0)
-	result.Commands = append(result.Commands, &Load{Destination: temp, Source: address})
+	cmd := &Load{Destination: temp, Source: address}
+	result.Commands = append(result.Commands, cmd)
 	result.Value = temp
+	context.Temporaries[temp.Index] = context.Storage[address.Index]
+
+	context.push(cmd)
 
 	return result, nil
 }
@@ -156,10 +234,13 @@ func reduceAssignmentExpr(expr ast.AssignmentExpr, context *IRContext) (IRResult
 		Value:    address,
 	}
 
-	result.Commands = append(result.Commands, &Store{
+	cmd := &Store{
 		Destination: address,
 		Value:       rhs.Value,
-	})
+	}
+
+	context.push(cmd)
+	result.Commands = append(result.Commands, cmd)
 
 	return result, nil
 }
@@ -188,35 +269,125 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *IRContext) (IRResult, error)
 
 	switch expr.Operator {
 	case "+":
-		result.Commands = append(result.Commands, &Add{
+		cmd := &Add{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
-		})
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRNumber{Value: 0}
+
 	case "-":
-		result.Commands = append(result.Commands, &Sub{
+		cmd := &Sub{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
-		})
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRNumber{}
+
 	case "*":
-		result.Commands = append(result.Commands, &Mul{
+		cmd := &Mul{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
-		})
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRNumber{}
+
 	case "/":
-		result.Commands = append(result.Commands, &Div{
+		cmd := &Div{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
-		})
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRNumber{}
+
 	case "%":
-		result.Commands = append(result.Commands, &Mod{
+		cmd := &Mod{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
-		})
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRNumber{}
+
+	case ">":
+		cmd := &Gt{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRBoolean{}
+
+	case ">=":
+		cmd := &Gte{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRBoolean{}
+
+	case "<":
+		cmd := &Lt{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRBoolean{}
+
+	case "<=":
+		cmd := &Lte{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRBoolean{}
+
+	case "==":
+		cmd := &Eq{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRBoolean{}
+
+	case "!=":
+		cmd := &Neq{
+			Destination: destination,
+			Lhs:         lhs.Value,
+			Rhs:         rhs.Value,
+		}
+
+		context.push(cmd)
+		result.Commands = append(result.Commands, cmd)
+		context.Temporaries[destination.Index] = IRBoolean{}
 	}
 
 	result.Value = destination
@@ -259,24 +430,14 @@ func reduceBooleanExpr(expr ast.BooleanLiteral, _ *IRContext) (IRResult, error) 
 /*
 Entry for Reducer called by main program.
 */
-func Reduce(program ast.Program) ([]IRCommand, error) {
-
-	context := IRContext{
-		Commands:    make([]IRCommand, 0),
-		Storage:     make([]IRValue, 0),
-		Temporaries: make([]IRValue, 0),
-		Symbols:     make(map[string]IRAddress),
-		PC:          0,
-	}
+func Reduce(program ast.Program, context *IRContext) ([]IRCommand, error) {
 
 	for _, expr := range program.Body {
 
-		val, err := reduceExpression(expr, &context)
+		_, err := reduceExpression(expr, context)
 		if err != nil {
 			return nil, fmt.Errorf("reducer error: %v\n", err)
 		}
-
-		context.Commands = append(context.Commands, val.Commands...)
 	}
 
 	return context.Commands, nil
