@@ -17,6 +17,9 @@ import (
 	"goblin.org/main/frontend/ast"
 	i "goblin.org/main/middleware/irtypes"
 	a "goblin.org/main/middleware/irtypes/arithmetic"
+	c "goblin.org/main/middleware/irtypes/conditional"
+	f "goblin.org/main/middleware/irtypes/controlflow"
+	m "goblin.org/main/middleware/irtypes/memory"
 )
 
 /*
@@ -119,7 +122,7 @@ func reduceIfExpr(expr ast.IfCondition, context *i.IRContext) (i.IRResult, error
 
 	bodyLabel.PCOffset = jmpOffset
 
-	jmpIf := &i.JmpIf{
+	jmpIf := &f.JmpIf{
 		Destination: bodyLabel,
 		Condition:   condition.Value,
 	}
@@ -129,7 +132,7 @@ func reduceIfExpr(expr ast.IfCondition, context *i.IRContext) (i.IRResult, error
 
 	endLabel := context.AllocateLabel()
 
-	jmp := &i.Jmp{
+	jmp := &f.Jmp{
 		Destination: endLabel,
 	}
 	context.Push(jmp)
@@ -175,7 +178,7 @@ func reduceVariableDecleration(expr ast.VariableDecleration, context *i.IRContex
 		Commands: value.Commands,
 	}
 
-	cmd := &i.Store{
+	cmd := &m.Store{
 		Destination: address,
 		Value:       value.Value,
 	}
@@ -201,7 +204,7 @@ func reduceIdentifierExpr(expr ast.Identifier, context *i.IRContext) (i.IRResult
 	temp := context.AllocateTemporary()
 	result := i.IRResult{}
 	result.Commands = make([]i.IRCommand, 0)
-	cmd := &i.Load{Destination: temp, Source: address}
+	cmd := &m.Load{Destination: temp, Source: address}
 	result.Commands = append(result.Commands, cmd)
 	result.Value = temp
 
@@ -235,7 +238,7 @@ func reduceAssignmentExpr(expr ast.AssignmentExpr, context *i.IRContext) (i.IRRe
 		Value:    address,
 	}
 
-	cmd := &i.Store{
+	cmd := &m.Store{
 		Destination: address,
 		Value:       rhs.Value,
 	}
@@ -325,7 +328,7 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *i.IRContext) (i.IRResult, er
 		context.Temporaries[destination.Index] = i.IRNumber{}
 
 	case ">":
-		cmd := &i.Gt{
+		cmd := &c.Gt{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
@@ -336,7 +339,7 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *i.IRContext) (i.IRResult, er
 		context.Temporaries[destination.Index] = i.IRBoolean{}
 
 	case ">=":
-		cmd := &i.Gte{
+		cmd := &c.Gte{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
@@ -347,7 +350,7 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *i.IRContext) (i.IRResult, er
 		context.Temporaries[destination.Index] = i.IRBoolean{}
 
 	case "<":
-		cmd := &i.Lt{
+		cmd := &c.Lt{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
@@ -358,7 +361,7 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *i.IRContext) (i.IRResult, er
 		context.Temporaries[destination.Index] = i.IRBoolean{}
 
 	case "<=":
-		cmd := &i.Lte{
+		cmd := &c.Lte{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
@@ -369,7 +372,7 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *i.IRContext) (i.IRResult, er
 		context.Temporaries[destination.Index] = i.IRBoolean{}
 
 	case "==":
-		cmd := &i.Eq{
+		cmd := &c.Eq{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
@@ -380,7 +383,7 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *i.IRContext) (i.IRResult, er
 		context.Temporaries[destination.Index] = i.IRBoolean{}
 
 	case "!=":
-		cmd := &i.Neq{
+		cmd := &c.Neq{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,

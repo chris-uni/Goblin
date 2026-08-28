@@ -16,6 +16,9 @@ import (
 
 	i "goblin.org/main/middleware/irtypes"
 	a "goblin.org/main/middleware/irtypes/arithmetic"
+	c "goblin.org/main/middleware/irtypes/conditional"
+	f "goblin.org/main/middleware/irtypes/controlflow"
+	m "goblin.org/main/middleware/irtypes/memory"
 )
 
 func validateCommand(command i.IRCommand, context *i.IRContext) (i.IRCommand, error) {
@@ -57,63 +60,63 @@ func validateCommand(command i.IRCommand, context *i.IRContext) (i.IRCommand, er
 		}
 		return com, nil
 
-	case *i.Store:
+	case *m.Store:
 		_, err := validateStore(com, context)
 		if err != nil {
 			return nil, err
 		}
 		return com, nil
 
-	case *i.Load:
+	case *m.Load:
 		_, err := validateLoad(com, context)
 		if err != nil {
 			return nil, err
 		}
 		return com, nil
 
-	case *i.Eq:
+	case *c.Eq:
 		_, err := validateEquality(com, context)
 		if err != nil {
 			return nil, err
 		}
 		return com, nil
 
-	case *i.Neq:
+	case *c.Neq:
 		_, err := validateNotEquality(com, context)
 		if err != nil {
 			return nil, err
 		}
 		return com, nil
 
-	case *i.Lt:
+	case *c.Lt:
 		_, err := validateLessThan(com, context)
 		if err != nil {
 			return nil, err
 		}
 		return com, nil
 
-	case *i.Lte:
+	case *c.Lte:
 		_, err := validateLessThanEqualTo(com, context)
 		if err != nil {
 			return nil, err
 		}
 		return com, nil
 
-	case *i.Gt:
+	case *c.Gt:
 		_, err := validateGreaterThan(com, context)
 		if err != nil {
 			return nil, err
 		}
 		return com, nil
 
-	case *i.Gte:
+	case *c.Gte:
 		_, err := validateGreaterThanEqualTo(com, context)
 		if err != nil {
 			return nil, err
 		}
 		return com, nil
 
-	case *i.JmpIf:
+	case *f.JmpIf:
 		_, err := validateJmpIf(com, context)
 		if err != nil {
 			return nil, err
@@ -121,7 +124,7 @@ func validateCommand(command i.IRCommand, context *i.IRContext) (i.IRCommand, er
 
 		return com, nil
 
-	case *i.Jmp:
+	case *f.Jmp:
 		_, err := validateJmp(com, context)
 		if err != nil {
 			return nil, err
@@ -136,14 +139,14 @@ func validateCommand(command i.IRCommand, context *i.IRContext) (i.IRCommand, er
 /*
 Validates Store, simply commits value to storage.
 */
-func validateStore(s *i.Store, context *i.IRContext) (i.IRCommand, error) {
+func validateStore(s *m.Store, context *i.IRContext) (i.IRCommand, error) {
 	return s, nil
 }
 
 /*
 Validates Load, checks if source is a valid address space, then commits source to temporaries.
 */
-func validateLoad(l *i.Load, context *i.IRContext) (i.IRCommand, error) {
+func validateLoad(l *m.Load, context *i.IRContext) (i.IRCommand, error) {
 
 	/*
 		For load, we need to check the source exists as we are loading a stored variable into temporary memory.
@@ -279,7 +282,7 @@ func validateMod(m *a.Mod, context *i.IRContext) (i.IRCommand, error) {
 /*
 Validates Eq, performs type checking on provided operands, resolving where needed.
 */
-func validateEquality(m *i.Eq, context *i.IRContext) (i.IRCommand, error) {
+func validateEquality(m *c.Eq, context *i.IRContext) (i.IRCommand, error) {
 
 	// Does both the lhs and rhs of the command adhere to the commands rules?
 	lhsType, err := resolveIRType(m.Lhs, context)
@@ -307,7 +310,7 @@ func validateEquality(m *i.Eq, context *i.IRContext) (i.IRCommand, error) {
 /*
 Validates Neq, performs type checking on provided operands, resolving where needed.
 */
-func validateNotEquality(m *i.Neq, context *i.IRContext) (i.IRCommand, error) {
+func validateNotEquality(m *c.Neq, context *i.IRContext) (i.IRCommand, error) {
 
 	// Does both the lhs and rhs of the command adhere to the commands rules?
 	lhsType, err := resolveIRType(m.Lhs, context)
@@ -335,7 +338,7 @@ func validateNotEquality(m *i.Neq, context *i.IRContext) (i.IRCommand, error) {
 /*
 Validates Lt, performs type checking on provided operands, resolving where needed.
 */
-func validateLessThan(m *i.Lt, context *i.IRContext) (i.IRCommand, error) {
+func validateLessThan(m *c.Lt, context *i.IRContext) (i.IRCommand, error) {
 
 	// Does both the lhs and rhs of the command adhere to the commands rules?
 	lhsType, err := resolveIRType(m.Lhs, context)
@@ -358,7 +361,7 @@ func validateLessThan(m *i.Lt, context *i.IRContext) (i.IRCommand, error) {
 /*
 Validates Lte, performs type checking on provided operands, resolving where needed.
 */
-func validateLessThanEqualTo(m *i.Lte, context *i.IRContext) (i.IRCommand, error) {
+func validateLessThanEqualTo(m *c.Lte, context *i.IRContext) (i.IRCommand, error) {
 
 	// Does both the lhs and rhs of the command adhere to the commands rules?
 	lhsType, err := resolveIRType(m.Lhs, context)
@@ -381,7 +384,7 @@ func validateLessThanEqualTo(m *i.Lte, context *i.IRContext) (i.IRCommand, error
 /*
 Validates Gt, performs type checking on provided operands, resolving where needed.
 */
-func validateGreaterThan(m *i.Gt, context *i.IRContext) (i.IRCommand, error) {
+func validateGreaterThan(m *c.Gt, context *i.IRContext) (i.IRCommand, error) {
 
 	// Does both the lhs and rhs of the command adhere to the commands rules?
 	lhsType, err := resolveIRType(m.Lhs, context)
@@ -404,7 +407,7 @@ func validateGreaterThan(m *i.Gt, context *i.IRContext) (i.IRCommand, error) {
 /*
 Validates Gte, performs type checking on provided operands, resolving where needed.
 */
-func validateGreaterThanEqualTo(m *i.Gte, context *i.IRContext) (i.IRCommand, error) {
+func validateGreaterThanEqualTo(m *c.Gte, context *i.IRContext) (i.IRCommand, error) {
 
 	// Does both the lhs and rhs of the command adhere to the commands rules?
 	lhsType, err := resolveIRType(m.Lhs, context)
@@ -427,7 +430,7 @@ func validateGreaterThanEqualTo(m *i.Gte, context *i.IRContext) (i.IRCommand, er
 /*
 Validates JmpIf, performs type checking on provided operands, resolving where needed.
 */
-func validateJmpIf(ji *i.JmpIf, context *i.IRContext) (i.IRCommand, error) {
+func validateJmpIf(ji *f.JmpIf, context *i.IRContext) (i.IRCommand, error) {
 
 	conditionType, err := resolveIRType(ji.Condition, context)
 	if err != nil {
@@ -450,7 +453,7 @@ func validateJmpIf(ji *i.JmpIf, context *i.IRContext) (i.IRCommand, error) {
 /*
 Validates JmpIf, performs type checking on provided operands, resolving where needed.
 */
-func validateJmp(j *i.Jmp, context *i.IRContext) (i.IRCommand, error) {
+func validateJmp(j *f.Jmp, context *i.IRContext) (i.IRCommand, error) {
 
 	_, err := resolveIRType(j.Destination, context)
 	if err != nil {
