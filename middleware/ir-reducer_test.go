@@ -340,7 +340,7 @@ func Test_If_Expression_Lt(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[lt %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	want := "[lt %0 10 5 jmpif L0 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -362,7 +362,7 @@ func Test_If_Expression_Lte(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[lte %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	want := "[lte %0 10 5 jmpif L0 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -384,7 +384,7 @@ func Test_If_Expression_Gt(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[gt %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	want := "[gt %0 10 5 jmpif L0 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -406,7 +406,7 @@ func Test_If_Expression_Gte(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[gte %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	want := "[gte %0 10 5 jmpif L0 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -428,7 +428,7 @@ func Test_If_Expression_Eq(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[eq %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	want := "[eq %0 10 5 jmpif L0 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -450,7 +450,7 @@ func Test_If_Expression_Neq(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[neq %0 10 5 jmpif L0 %0 jmp L1 L0: L1:]"
+	want := "[neq %0 10 5 jmpif L0 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {

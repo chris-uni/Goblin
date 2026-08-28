@@ -108,17 +108,17 @@ func reduceIfExpr(expr ast.IfCondition, context *IRContext) (IRResult, error) {
 	}
 
 	// If Body label.
-	bodyTrueLabel := context.allocateLabel()
+	bodyLabel := context.allocateLabel()
 
 	jmpOffset := context.PC + 2 // 1 for the jmpif and 1 for jmp commands
 	if len(expr.Body) == 0 {
 		jmpOffset = context.PC
 	}
 
-	bodyTrueLabel.PCOffset = jmpOffset
+	bodyLabel.PCOffset = jmpOffset
 
 	jmpIf := &JmpIf{
-		Destination: bodyTrueLabel,
+		Destination: bodyLabel,
 		Condition:   condition.Value,
 	}
 
@@ -145,9 +145,9 @@ func reduceIfExpr(expr ast.IfCondition, context *IRContext) (IRResult, error) {
 		bodyCmds = append(bodyCmds, res.Commands...)
 	}
 
-	jmpOffset = bodyTrueLabel.PCOffset + len(bodyCmds)
+	jmpOffset = bodyLabel.PCOffset + len(bodyCmds)
 	if len(expr.Body) == 0 {
-		jmpOffset = bodyTrueLabel.PCOffset
+		jmpOffset = bodyLabel.PCOffset
 	}
 
 	jmp.Destination.PCOffset = jmpOffset

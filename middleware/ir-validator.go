@@ -493,8 +493,6 @@ func resolveIRType(value IRValue, context *IRContext) (IRType, error) {
 			return IRTypeUndefined, fmt.Errorf("label[%v] offset out of bounds for offset %v\n", val, val.PCOffset)
 		}
 
-		fmt.Printf("pc offset stored at label %v is %v\n", val.Value, val.PCOffset)
-
 		return IRTypeLabel, nil
 
 	default:
