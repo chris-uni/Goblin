@@ -1,7 +1,7 @@
 /*
 Goblin IR Orchestrator v0.1
 Author: Chris J.M. Wing
-Date: 28/08/2026
+Date: 21/08/2026
 
 Input:
 	Validated GoblinIR program.
@@ -16,23 +16,24 @@ package middleware
 
 import (
 	"goblin.org/main/frontend/ast"
+	i "goblin.org/main/middleware/irtypes"
 )
 
-func OrchestrateIRLayer(program ast.Program) ([]IRCommand, error) {
+func OrchestrateIRLayer(program ast.Program) ([]i.IRCommand, error) {
 
-	context := IRContext{
-		Commands:    make([]IRCommand, 0),
-		Storage:     make([]IRValue, 0),
-		Temporaries: make([]IRValue, 0),
-		Labels:      make([]IRLabel, 0),
-		Symbols:     make(map[string]IRAddress),
+	context := i.IRContext{
+		Commands:    make([]i.IRCommand, 0),
+		Storage:     make([]i.IRValue, 0),
+		Temporaries: make([]i.IRValue, 0),
+		Labels:      make([]i.IRLabel, 0),
+		Symbols:     make(map[string]i.IRAddress),
 		PC:          0,
 	}
 
 	// 1. Reduce the AST down into GoblinIR.
 	rawIR, err := Reduce(program, &context)
 	if err != nil {
-		return []IRCommand{}, err
+		return []i.IRCommand{}, err
 	}
 
 	PrintIR("raw ir:", rawIR)
@@ -40,7 +41,7 @@ func OrchestrateIRLayer(program ast.Program) ([]IRCommand, error) {
 	// 2. Validate the Raw GoblinIR into Validated GoblinIR.
 	validatedIR, err := Validate(rawIR, &context)
 	if err != nil {
-		return []IRCommand{}, err
+		return []i.IRCommand{}, err
 	}
 
 	PrintIR("validated ir:", rawIR)
