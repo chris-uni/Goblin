@@ -1,7 +1,7 @@
 /*
 Goblin IR Reducer v0.1
 Author: Chris J.M. Wing
-Date: 28/08/2026
+Date: 21/08/2026
 
 Input:
 	AST Generated from frontend.Parser.
@@ -15,12 +15,17 @@ import (
 	"fmt"
 
 	"goblin.org/main/frontend/ast"
+	i "goblin.org/main/middleware/irtypes"
+	a "goblin.org/main/middleware/irtypes/arithmetic"
+	c "goblin.org/main/middleware/irtypes/conditional"
+	f "goblin.org/main/middleware/irtypes/controlflow"
+	m "goblin.org/main/middleware/irtypes/memory"
 )
 
 /*
 Main reducer switch-board. Orchestrates where each ast.Expression goes to be reduced down into GoblinIR.
 */
-func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error) {
+func reduceExpression(expr ast.Expression, context *i.IRContext) (i.IRResult, error) {
 
 	switch value := expr.(type) {
 
@@ -28,7 +33,7 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 
 		ir, err := reduceIfExpr(value, context)
 		if err != nil {
-			return IRResult{}, err
+			return i.IRResult{}, err
 		}
 		return ir, nil
 
@@ -36,7 +41,7 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 
 		ir, err := reduceAssignmentExpr(value, context)
 		if err != nil {
-			return IRResult{}, err
+			return i.IRResult{}, err
 		}
 		return ir, nil
 
@@ -44,7 +49,7 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 
 		ir, err := reduceVariableDecleration(value, context)
 		if err != nil {
-			return IRResult{}, err
+			return i.IRResult{}, err
 		}
 		return ir, nil
 
@@ -52,7 +57,7 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 
 		ir, err := reduceBinaryExpr(value, context)
 		if err != nil {
-			return IRResult{}, err
+			return i.IRResult{}, err
 		}
 		return ir, nil
 
@@ -60,7 +65,7 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 
 		ir, err := reduceIdentifierExpr(value, context)
 		if err != nil {
-			return IRResult{}, err
+			return i.IRResult{}, err
 		}
 		return ir, nil
 
@@ -68,7 +73,7 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 
 		ir, err := reduceNumericExpr(value, context)
 		if err != nil {
-			return IRResult{}, err
+			return i.IRResult{}, err
 		}
 		return ir, nil
 
@@ -76,7 +81,7 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 
 		ir, err := reduceStringExpr(value, context)
 		if err != nil {
-			return IRResult{}, err
+			return i.IRResult{}, err
 		}
 		return ir, nil
 
@@ -84,31 +89,31 @@ func reduceExpression(expr ast.Expression, context *IRContext) (IRResult, error)
 
 		ir, err := reduceBooleanExpr(value, context)
 		if err != nil {
-			return IRResult{}, err
+			return i.IRResult{}, err
 		}
 		return ir, nil
 
 	default:
-		return IRResult{}, fmt.Errorf("unknonwn expression found %v\n", expr)
+		return i.IRResult{}, fmt.Errorf("unknonwn expression found %v\n", expr)
 	}
 }
 
 /*
 Reduces an IfExpression down into GoblinIR.
 */
-func reduceIfExpr(expr ast.IfCondition, context *IRContext) (IRResult, error) {
+func reduceIfExpr(expr ast.IfCondition, context *i.IRContext) (i.IRResult, error) {
 
 	condition, err := reduceExpression(expr.Condition, context)
 	if err != nil {
-		return IRResult{}, err
+		return i.IRResult{}, err
 	}
 
-	result := IRResult{
+	result := i.IRResult{
 		Commands: condition.Commands,
 	}
 
 	// If Body label.
-	bodyLabel := context.allocateLabel()
+	bodyLabel := context.AllocateLabel()
 
 	jmpOffset := context.PC + 2 // 1 for the jmpif and 1 for jmp commands
 	if len(expr.Body) == 0 {
@@ -117,29 +122,29 @@ func reduceIfExpr(expr ast.IfCondition, context *IRContext) (IRResult, error) {
 
 	bodyLabel.PCOffset = jmpOffset
 
-	jmpIf := &JmpIf{
+	jmpIf := &f.JmpIf{
 		Destination: bodyLabel,
 		Condition:   condition.Value,
 	}
 
-	context.push(jmpIf)
+	context.Push(jmpIf)
 	result.Commands = append(result.Commands, jmpIf)
 
-	endLabel := context.allocateLabel()
+	endLabel := context.AllocateLabel()
 
-	jmp := &Jmp{
+	jmp := &f.Jmp{
 		Destination: endLabel,
 	}
-	context.push(jmp)
+	context.Push(jmp)
 	result.Commands = append(result.Commands, jmp)
 
-	var bodyCmds []IRCommand
+	var bodyCmds []i.IRCommand
 
 	for _, stmt := range expr.Body {
 
 		res, err := reduceExpression(stmt, context)
 		if err != nil {
-			return IRResult{}, err
+			return i.IRResult{}, err
 		}
 
 		bodyCmds = append(bodyCmds, res.Commands...)
@@ -159,26 +164,26 @@ func reduceIfExpr(expr ast.IfCondition, context *IRContext) (IRResult, error) {
 /*
 Reduces a VariableDeclerationExpr down into GoblinIR.
 */
-func reduceVariableDecleration(expr ast.VariableDecleration, context *IRContext) (IRResult, error) {
+func reduceVariableDecleration(expr ast.VariableDecleration, context *i.IRContext) (i.IRResult, error) {
 
 	value, err := reduceExpression(expr.Value, context)
 	if err != nil {
-		return IRResult{}, err
+		return i.IRResult{}, err
 	}
 
-	address := context.allocateAddress()
-	context.storeSymbol(expr.Identifier, address)
+	address := context.AllocateAddress()
+	context.StoreSymbol(expr.Identifier, address)
 
-	result := IRResult{
+	result := i.IRResult{
 		Commands: value.Commands,
 	}
 
-	cmd := &Store{
+	cmd := &m.Store{
 		Destination: address,
 		Value:       value.Value,
 	}
 
-	context.push(cmd)
+	context.Push(cmd)
 	result.Commands = append(result.Commands, cmd)
 
 	context.Storage[address.Index] = value.Value
@@ -189,22 +194,22 @@ func reduceVariableDecleration(expr ast.VariableDecleration, context *IRContext)
 /*
 Reduces an identifier expression down into GoblinIR.
 */
-func reduceIdentifierExpr(expr ast.Identifier, context *IRContext) (IRResult, error) {
+func reduceIdentifierExpr(expr ast.Identifier, context *i.IRContext) (i.IRResult, error) {
 
 	address, ok := context.Symbols[expr.Symbol]
 	if !ok {
-		return IRResult{}, fmt.Errorf("undefined symbol %v\n", expr.Symbol)
+		return i.IRResult{}, fmt.Errorf("undefined symbol %v\n", expr.Symbol)
 	}
 
-	temp := context.allocateTemporary()
-	result := IRResult{}
-	result.Commands = make([]IRCommand, 0)
-	cmd := &Load{Destination: temp, Source: address}
+	temp := context.AllocateTemporary()
+	result := i.IRResult{}
+	result.Commands = make([]i.IRCommand, 0)
+	cmd := &m.Load{Destination: temp, Source: address}
 	result.Commands = append(result.Commands, cmd)
 	result.Value = temp
 	context.Temporaries[temp.Index] = context.Storage[address.Index]
 
-	context.push(cmd)
+	context.Push(cmd)
 
 	return result, nil
 }
@@ -212,34 +217,34 @@ func reduceIdentifierExpr(expr ast.Identifier, context *IRContext) (IRResult, er
 /*
 Reduces an assigmnet expression down into GoblinIR.
 */
-func reduceAssignmentExpr(expr ast.AssignmentExpr, context *IRContext) (IRResult, error) {
+func reduceAssignmentExpr(expr ast.AssignmentExpr, context *i.IRContext) (i.IRResult, error) {
 
 	iden, ok := expr.Assigne.(ast.Identifier)
 	if !ok {
-		return IRResult{}, fmt.Errorf("invalid assignment target")
+		return i.IRResult{}, fmt.Errorf("invalid assignment target")
 	}
 
 	address, ok := context.Symbols[iden.Symbol]
 	if !ok {
-		return IRResult{}, fmt.Errorf("undefined symbol %v\n", iden.Symbol)
+		return i.IRResult{}, fmt.Errorf("undefined symbol %v\n", iden.Symbol)
 	}
 
 	rhs, err := reduceExpression(expr.Value, context)
 	if err != nil {
-		return IRResult{}, nil
+		return i.IRResult{}, nil
 	}
 
-	result := IRResult{
+	result := i.IRResult{
 		Commands: rhs.Commands,
 		Value:    address,
 	}
 
-	cmd := &Store{
+	cmd := &m.Store{
 		Destination: address,
 		Value:       rhs.Value,
 	}
 
-	context.push(cmd)
+	context.Push(cmd)
 	result.Commands = append(result.Commands, cmd)
 
 	return result, nil
@@ -248,146 +253,146 @@ func reduceAssignmentExpr(expr ast.AssignmentExpr, context *IRContext) (IRResult
 /*
 Reduces a BinaryExpr down into GoblinIR.
 */
-func reduceBinaryExpr(expr ast.BinaryExpr, context *IRContext) (IRResult, error) {
+func reduceBinaryExpr(expr ast.BinaryExpr, context *i.IRContext) (i.IRResult, error) {
 
 	lhs, err := reduceExpression(expr.Left, context)
 	if err != nil {
-		return IRResult{}, err
+		return i.IRResult{}, err
 	}
 
 	rhs, err := reduceExpression(expr.Right, context)
 	if err != nil {
-		return IRResult{}, err
+		return i.IRResult{}, err
 	}
 
-	result := IRResult{}
+	result := i.IRResult{}
 
 	result.Commands = append(result.Commands, lhs.Commands...)
 	result.Commands = append(result.Commands, rhs.Commands...)
 
-	destination := context.allocateTemporary()
+	destination := context.AllocateTemporary()
 
 	switch expr.Operator {
 	case "+":
-		cmd := &Add{
+		cmd := &a.Add{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRNumber{Value: 0}
+		context.Temporaries[destination.Index] = i.IRNumber{}
 
 	case "-":
-		cmd := &Sub{
+		cmd := &a.Sub{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRNumber{}
+		context.Temporaries[destination.Index] = i.IRNumber{}
 
 	case "*":
-		cmd := &Mul{
+		cmd := &a.Mul{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRNumber{}
+		context.Temporaries[destination.Index] = i.IRNumber{}
 
 	case "/":
-		cmd := &Div{
+		cmd := &a.Div{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRNumber{}
+		context.Temporaries[destination.Index] = i.IRNumber{}
 
 	case "%":
-		cmd := &Mod{
+		cmd := &a.Mod{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRNumber{}
+		context.Temporaries[destination.Index] = i.IRNumber{}
 
 	case ">":
-		cmd := &Gt{
+		cmd := &c.Gt{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRBoolean{}
+		context.Temporaries[destination.Index] = i.IRBoolean{}
 
 	case ">=":
-		cmd := &Gte{
+		cmd := &c.Gte{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRBoolean{}
+		context.Temporaries[destination.Index] = i.IRBoolean{}
 
 	case "<":
-		cmd := &Lt{
+		cmd := &c.Lt{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRBoolean{}
+		context.Temporaries[destination.Index] = i.IRBoolean{}
 
 	case "<=":
-		cmd := &Lte{
+		cmd := &c.Lte{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRBoolean{}
+		context.Temporaries[destination.Index] = i.IRBoolean{}
 
 	case "==":
-		cmd := &Eq{
+		cmd := &c.Eq{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRBoolean{}
+		context.Temporaries[destination.Index] = i.IRBoolean{}
 
 	case "!=":
-		cmd := &Neq{
+		cmd := &c.Neq{
 			Destination: destination,
 			Lhs:         lhs.Value,
 			Rhs:         rhs.Value,
 		}
 
-		context.push(cmd)
+		context.Push(cmd)
 		result.Commands = append(result.Commands, cmd)
-		context.Temporaries[destination.Index] = IRBoolean{}
+		context.Temporaries[destination.Index] = i.IRBoolean{}
 	}
 
 	result.Value = destination
@@ -397,10 +402,10 @@ func reduceBinaryExpr(expr ast.BinaryExpr, context *IRContext) (IRResult, error)
 /*
 Reduces a NumericExpr down into GoblinIR.
 */
-func reduceNumericExpr(expr ast.NumericLiteral, _ *IRContext) (IRResult, error) {
+func reduceNumericExpr(expr ast.NumericLiteral, _ *i.IRContext) (i.IRResult, error) {
 
-	result := IRResult{}
-	result.Value = IRNumber{Value: expr.Value}
+	result := i.IRResult{}
+	result.Value = i.IRNumber{Value: expr.Value}
 
 	return result, nil
 }
@@ -408,10 +413,10 @@ func reduceNumericExpr(expr ast.NumericLiteral, _ *IRContext) (IRResult, error) 
 /*
 Reduces a StringExpr down into GoblinIR.
 */
-func reduceStringExpr(expr ast.StringLiteral, _ *IRContext) (IRResult, error) {
+func reduceStringExpr(expr ast.StringLiteral, _ *i.IRContext) (i.IRResult, error) {
 
-	result := IRResult{}
-	result.Value = IRString{Value: expr.Value}
+	result := i.IRResult{}
+	result.Value = i.IRString{Value: expr.Value}
 
 	return result, nil
 }
@@ -419,10 +424,10 @@ func reduceStringExpr(expr ast.StringLiteral, _ *IRContext) (IRResult, error) {
 /*
 Reduces a BooleanExpr down into GoblinIR.
 */
-func reduceBooleanExpr(expr ast.BooleanLiteral, _ *IRContext) (IRResult, error) {
+func reduceBooleanExpr(expr ast.BooleanLiteral, _ *i.IRContext) (i.IRResult, error) {
 
-	result := IRResult{}
-	result.Value = IRBoolean{Value: expr.Value}
+	result := i.IRResult{}
+	result.Value = i.IRBoolean{Value: expr.Value}
 
 	return result, nil
 }
@@ -430,7 +435,7 @@ func reduceBooleanExpr(expr ast.BooleanLiteral, _ *IRContext) (IRResult, error) 
 /*
 Entry for Reducer called by main program.
 */
-func Reduce(program ast.Program, context *IRContext) ([]IRCommand, error) {
+func Reduce(program ast.Program, context *i.IRContext) ([]i.IRCommand, error) {
 
 	for _, expr := range program.Body {
 
@@ -446,7 +451,7 @@ func Reduce(program ast.Program, context *IRContext) ([]IRCommand, error) {
 /*
 Utility function for pretty-printing the generated GoblinIR.
 */
-func PrintIR(prefix string, commands []IRCommand) {
+func PrintIR(prefix string, commands []i.IRCommand) {
 
 	fmt.Printf("%v\n", prefix)
 	for i, command := range commands {

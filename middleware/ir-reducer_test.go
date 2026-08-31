@@ -7,6 +7,7 @@ import (
 	"goblin.org/main/frontend/ast"
 	"goblin.org/main/frontend/lexer"
 	"goblin.org/main/frontend/parser"
+	i "goblin.org/main/middleware/irtypes"
 )
 
 func assembleAST(source string) (ast.Program, error) {
@@ -24,13 +25,13 @@ func assembleAST(source string) (ast.Program, error) {
 	return program, nil
 }
 
-func newIRContext() IRContext {
-	return IRContext{
-		Commands:    make([]IRCommand, 0),
-		Storage:     make([]IRValue, 0),
-		Temporaries: make([]IRValue, 0),
-		Labels:      make([]IRLabel, 0),
-		Symbols:     make(map[string]IRAddress),
+func newIRContext() i.IRContext {
+	return i.IRContext{
+		Commands:    make([]i.IRCommand, 0),
+		Storage:     make([]i.IRValue, 0),
+		Temporaries: make([]i.IRValue, 0),
+		Labels:      make([]i.IRLabel, 0),
+		Symbols:     make(map[string]i.IRAddress),
 		PC:          0,
 	}
 }
