@@ -27,7 +27,7 @@ func (a *Add) Validate(context *i.IRContext) error {
 		return err
 	}
 
-	if !(lhsType == i.IRTypeNumber || lhsType == i.IRTypeString) &&
+	if !(lhsType == i.IRTypeNumber || lhsType == i.IRTypeString) ||
 		!(rhsType == i.IRTypeNumber || rhsType == i.IRTypeString) {
 		return fmt.Errorf("type error: add: operands of invalid type\n")
 	}
