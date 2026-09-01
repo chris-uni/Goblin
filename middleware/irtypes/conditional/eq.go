@@ -26,8 +26,8 @@ func (e *Eq) Validate(context *i.IRContext) error {
 		return err
 	}
 
-	if !(lhsType == i.IRTypeNumber || lhsType == i.IRTypeBoolean) &&
-		!(rhsType == i.IRTypeNumber || rhsType == i.IRTypeBoolean) {
+	if !(lhsType == i.IRTypeNumber || lhsType == i.IRTypeBoolean || lhsType == i.IRTypeString) ||
+		!(rhsType == i.IRTypeNumber || rhsType == i.IRTypeBoolean || rhsType == i.IRTypeString) {
 		return fmt.Errorf("type error: eq: operands of invalid type\n")
 	}
 

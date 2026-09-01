@@ -7,7 +7,7 @@ import (
 	i "goblin.org/main/middleware/irtypes"
 )
 
-func Test_Sub_Expression_Invalid_Type_LHS(t *testing.T) {
+func Test_Sub_Expression_Invalid_Type_LHS_Boolean(t *testing.T) {
 
 	context := i.IRContext{}
 	irTemp := context.AllocateTemporary()
@@ -28,7 +28,28 @@ func Test_Sub_Expression_Invalid_Type_LHS(t *testing.T) {
 	}
 }
 
-func Test_Sub_Expression_Invalid_Type_RHS(t *testing.T) {
+func Test_Sub_Expression_Invalid_Type_LHS_String(t *testing.T) {
+
+	context := i.IRContext{}
+	irTemp := context.AllocateTemporary()
+
+	sub := Sub{
+		Destination: irTemp,
+		Lhs:         i.IRString{Value: "Hello"},
+		Rhs:         i.IRNumber{Value: 10},
+	}
+
+	out := sub.Validate(&context)
+
+	want := "type error: sub: operands of invalid type\n"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Sub_Expression_Invalid_Type_RHS_Boolean(t *testing.T) {
 
 	context := i.IRContext{}
 	irTemp := context.AllocateTemporary()
@@ -37,6 +58,27 @@ func Test_Sub_Expression_Invalid_Type_RHS(t *testing.T) {
 		Destination: irTemp,
 		Lhs:         i.IRNumber{Value: 10},
 		Rhs:         i.IRBoolean{Value: true},
+	}
+
+	out := sub.Validate(&context)
+
+	want := "type error: sub: operands of invalid type\n"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Sub_Expression_Invalid_Type_RHS_String(t *testing.T) {
+
+	context := i.IRContext{}
+	irTemp := context.AllocateTemporary()
+
+	sub := Sub{
+		Destination: irTemp,
+		Lhs:         i.IRNumber{Value: 10},
+		Rhs:         i.IRString{Value: "Hello"},
 	}
 
 	out := sub.Validate(&context)

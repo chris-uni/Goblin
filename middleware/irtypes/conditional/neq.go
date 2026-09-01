@@ -27,13 +27,13 @@ func (n *Neq) Validate(context *i.IRContext) error {
 		return err
 	}
 
-	if !(lhsType == i.IRTypeNumber || lhsType == i.IRTypeBoolean) &&
-		!(rhsType == i.IRTypeNumber || rhsType == i.IRTypeBoolean) {
-		return fmt.Errorf("type error: eq: operands of invalid type\n")
+	if !(lhsType == i.IRTypeNumber || lhsType == i.IRTypeBoolean || lhsType == i.IRTypeString) ||
+		!(rhsType == i.IRTypeNumber || rhsType == i.IRTypeBoolean || rhsType == i.IRTypeString) {
+		return fmt.Errorf("type error: neq: operands of invalid type\n")
 	}
 
 	if lhsType != rhsType {
-		return fmt.Errorf("type error: eq: incompatible types\n")
+		return fmt.Errorf("type error: neq: incompatible types\n")
 	}
 
 	return nil

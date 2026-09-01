@@ -14,6 +14,12 @@ type Store struct {
 func (s *Store) Exec(context *i.IRContext) {}
 
 func (s *Store) Validate(context *i.IRContext) error {
+
+	_, err := i.ResolveIRType(s.Destination, context)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

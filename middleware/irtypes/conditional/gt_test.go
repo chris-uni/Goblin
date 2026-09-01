@@ -1,4 +1,4 @@
-package arithmetic
+package conditional
 
 import (
 	"fmt"
@@ -7,20 +7,20 @@ import (
 	i "goblin.org/main/middleware/irtypes"
 )
 
-func Test_Mod_Expression_Invalid_Type_LHS_Boolean(t *testing.T) {
+func Test_Gt_Expression_Invalid_Type_LHS_Boolean(t *testing.T) {
 
 	context := i.IRContext{}
 	irTemp := context.AllocateTemporary()
 
-	mod := Mod{
+	gt := Gt{
 		Destination: irTemp,
 		Lhs:         i.IRBoolean{Value: true},
 		Rhs:         i.IRNumber{Value: 10},
 	}
 
-	out := mod.Validate(&context)
+	out := gt.Validate(&context)
 
-	want := "type error: mod: operands of invalid type\n"
+	want := "type error: gt: operands of invalid type\n"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -28,20 +28,20 @@ func Test_Mod_Expression_Invalid_Type_LHS_Boolean(t *testing.T) {
 	}
 }
 
-func Test_Mod_Expression_Invalid_Type_LHS_String(t *testing.T) {
+func Test_Gt_Expression_Invalid_Type_LHS_String(t *testing.T) {
 
 	context := i.IRContext{}
 	irTemp := context.AllocateTemporary()
 
-	mod := Mod{
+	gt := Gt{
 		Destination: irTemp,
 		Lhs:         i.IRString{Value: "Hello"},
 		Rhs:         i.IRNumber{Value: 10},
 	}
 
-	out := mod.Validate(&context)
+	out := gt.Validate(&context)
 
-	want := "type error: mod: operands of invalid type\n"
+	want := "type error: gt: operands of invalid type\n"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -49,20 +49,20 @@ func Test_Mod_Expression_Invalid_Type_LHS_String(t *testing.T) {
 	}
 }
 
-func Test_Mod_Expression_Invalid_Type_RHS_Boolean(t *testing.T) {
+func Test_Gt_Expression_Invalid_Type_RHS_Boolean(t *testing.T) {
 
 	context := i.IRContext{}
 	irTemp := context.AllocateTemporary()
 
-	mod := Mod{
+	gt := Gt{
 		Destination: irTemp,
 		Lhs:         i.IRNumber{Value: 10},
 		Rhs:         i.IRBoolean{Value: true},
 	}
 
-	out := mod.Validate(&context)
+	out := gt.Validate(&context)
 
-	want := "type error: mod: operands of invalid type\n"
+	want := "type error: gt: operands of invalid type\n"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -70,20 +70,20 @@ func Test_Mod_Expression_Invalid_Type_RHS_Boolean(t *testing.T) {
 	}
 }
 
-func Test_Mod_Expression_Invalid_Type_RHS_String(t *testing.T) {
+func Test_Gt_Expression_Invalid_Type_RHS_String(t *testing.T) {
 
 	context := i.IRContext{}
 	irTemp := context.AllocateTemporary()
 
-	mod := Mod{
+	gt := Gt{
 		Destination: irTemp,
 		Lhs:         i.IRNumber{Value: 10},
 		Rhs:         i.IRString{Value: "Hello"},
 	}
 
-	out := mod.Validate(&context)
+	out := gt.Validate(&context)
 
-	want := "type error: mod: operands of invalid type\n"
+	want := "type error: gt: operands of invalid type\n"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -91,18 +91,18 @@ func Test_Mod_Expression_Invalid_Type_RHS_String(t *testing.T) {
 	}
 }
 
-func Test_Mod_Expression_Success_Number(t *testing.T) {
+func Test_Gt_Expression_Success_Number(t *testing.T) {
 
 	context := i.IRContext{}
 	irTemp := context.AllocateTemporary()
 
-	mod := Mod{
+	gt := Gt{
 		Destination: irTemp,
 		Lhs:         i.IRNumber{Value: 10},
 		Rhs:         i.IRNumber{Value: 10},
 	}
 
-	out := mod.Validate(&context)
+	out := gt.Validate(&context)
 
 	if out != nil {
 		t.Errorf("\ngot %v\nwant %v\n", out, "<nil>")

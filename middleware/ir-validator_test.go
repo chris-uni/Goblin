@@ -270,23 +270,6 @@ func Test_Mod_Expression_Numeric_Invalid_Boolean(t *testing.T) {
 Comparision Operator Tests
 */
 
-func Test_Eq_Expression_Invalid_String(t *testing.T) {
-
-	context, rawIR, err := assembleRawIR(`let x = "true" == "false";`)
-	if err != nil {
-		t.Error(err.Error())
-	}
-
-	_, err = Validate(rawIR, &context)
-
-	want := "validation error: type error: eq: operands of invalid type\n\n"
-	got := fmt.Sprintf("%v", err)
-
-	if got != want {
-		t.Errorf("\ngot %v\nwant %v\n", got, want)
-	}
-}
-
 func Test_Eq_Expression_Invalid_Multi(t *testing.T) {
 
 	context, rawIR, err := assembleRawIR(`let x = true == "false";`)
@@ -304,23 +287,6 @@ func Test_Eq_Expression_Invalid_Multi(t *testing.T) {
 	}
 }
 
-func Test_Neq_Expression_Invalid_String(t *testing.T) {
-
-	context, rawIR, err := assembleRawIR(`let x = "true" != "false";`)
-	if err != nil {
-		t.Error(err.Error())
-	}
-
-	_, err = Validate(rawIR, &context)
-
-	want := "validation error: type error: eq: operands of invalid type\n\n"
-	got := fmt.Sprintf("%v", err)
-
-	if got != want {
-		t.Errorf("\ngot %v\nwant %v\n", got, want)
-	}
-}
-
 func Test_Neq_Expression_Invalid_Multi(t *testing.T) {
 
 	context, rawIR, err := assembleRawIR(`let x = true != "false";`)
@@ -330,7 +296,7 @@ func Test_Neq_Expression_Invalid_Multi(t *testing.T) {
 
 	_, err = Validate(rawIR, &context)
 
-	want := "validation error: type error: eq: incompatible types\n\n"
+	want := "validation error: type error: neq: incompatible types\n\n"
 	got := fmt.Sprintf("%v", err)
 
 	if got != want {

@@ -15,10 +15,12 @@ func (l *Load) Exec(context *i.IRContext) {}
 
 func (l *Load) Validate(context *i.IRContext) error {
 
-	/*
-		For load, we need to check the source exists as we are loading a stored variable into temporary memory.
-	*/
 	_, err := i.ResolveIRType(l.Source, context)
+	if err != nil {
+		return err
+	}
+
+	_, err = i.ResolveIRType(l.Destination, context)
 	if err != nil {
 		return err
 	}
