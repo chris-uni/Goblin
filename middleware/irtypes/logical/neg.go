@@ -7,4 +7,8 @@ type Neg struct {
 	Val         i.IRValue
 }
 
-func (Neg) Exec(context *i.IRContext) {}
+func (n *Neg) Exec(context *i.IRContext) {}
+
+func (n *Neg) Validate(context *i.IRContext) error {
+	return nil
+}

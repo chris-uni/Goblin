@@ -12,8 +12,39 @@ type Mod struct {
 	Rhs         i.IRValue
 }
 
-func (v *Mod) String() string            { return fmt.Sprintf("mod %v %v %v", v.Destination, v.Lhs, v.Rhs) }
-func (v *Mod) Exec(context *i.IRContext) {}
-func (v *Mod) Left() i.IRValue           { return v.Lhs }
-func (v *Mod) Right() i.IRValue          { return v.Rhs }
-func (v *Mod) Dest() i.IRTemporary       { return v.Destination }
+func (m *Mod) Exec(context *i.IRContext) {}
+
+func (m *Mod) Validate(context *i.IRContext) error {
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := i.ResolveIRType(m.Lhs, context)
+	if err != nil {
+		return err
+	}
+
+	rhsType, err := i.ResolveIRType(m.Rhs, context)
+	if err != nil {
+		return err
+	}
+
+	if lhsType != i.IRTypeNumber || rhsType != i.IRTypeNumber {
+		return fmt.Errorf("type error: mod: operands of invalid type\n")
+	}
+
+	return nil
+}
+
+func (m *Mod) String() string {
+	return fmt.Sprintf("mod %v %v %v", m.Destination, m.Lhs, m.Rhs)
+}
+
+func (m *Mod) Left() i.IRValue {
+	return m.Lhs
+}
+
+func (m *Mod) Right() i.IRValue {
+	return m.Rhs
+}
+
+func (m *Mod) Dest() i.IRTemporary {
+	return m.Destination
+}

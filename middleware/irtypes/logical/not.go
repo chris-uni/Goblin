@@ -7,4 +7,8 @@ type Not struct {
 	Val         i.IRValue
 }
 
-func (Not) Exec(context *i.IRContext) {}
+func (n *Not) Exec(context *i.IRContext) {}
+
+func (n *Not) Validate(context *i.IRContext) error {
+	return nil
+}

@@ -8,4 +8,8 @@ type And struct {
 	Val2        i.IRValue
 }
 
-func (And) Exec(context *i.IRContext) {}
+func (a *And) Exec(context *i.IRContext) {}
+
+func (a *And) Validate(context *i.IRContext) error {
+	return nil
+}

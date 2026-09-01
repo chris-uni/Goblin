@@ -12,8 +12,39 @@ type Mul struct {
 	Rhs         i.IRValue
 }
 
-func (v *Mul) String() string            { return fmt.Sprintf("mul %v %v %v", v.Destination, v.Lhs, v.Rhs) }
-func (v *Mul) Exec(context *i.IRContext) {}
-func (v *Mul) Left() i.IRValue           { return v.Lhs }
-func (v *Mul) Right() i.IRValue          { return v.Rhs }
-func (v *Mul) Dest() i.IRTemporary       { return v.Destination }
+func (m *Mul) Exec(context *i.IRContext) {}
+
+func (m *Mul) Validate(context *i.IRContext) error {
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := i.ResolveIRType(m.Lhs, context)
+	if err != nil {
+		return err
+	}
+
+	rhsType, err := i.ResolveIRType(m.Rhs, context)
+	if err != nil {
+		return err
+	}
+
+	if lhsType != i.IRTypeNumber || rhsType != i.IRTypeNumber {
+		return fmt.Errorf("type error: mul: operands of invalid type\n")
+	}
+
+	return nil
+}
+
+func (m *Mul) String() string {
+	return fmt.Sprintf("mul %v %v %v", m.Destination, m.Lhs, m.Rhs)
+}
+
+func (m *Mul) Left() i.IRValue {
+	return m.Lhs
+}
+
+func (m *Mul) Right() i.IRValue {
+	return m.Rhs
+}
+
+func (m *Mul) Dest() i.IRTemporary {
+	return m.Destination
+}

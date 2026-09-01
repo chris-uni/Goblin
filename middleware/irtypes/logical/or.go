@@ -8,4 +8,8 @@ type Or struct {
 	Val2        i.IRValue
 }
 
-func (Or) Exec(context *i.IRContext) {}
+func (o *Or) Exec(context *i.IRContext) {}
+
+func (o *Or) Validate(context *i.IRContext) error {
+	return nil
+}

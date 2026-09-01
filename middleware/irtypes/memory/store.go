@@ -11,7 +11,12 @@ type Store struct {
 	Value       i.IRValue
 }
 
+func (s *Store) Exec(context *i.IRContext) {}
+
+func (s *Store) Validate(context *i.IRContext) error {
+	return nil
+}
+
 func (s *Store) String() string {
 	return fmt.Sprintf("store %v %v", s.Destination, s.Value)
 }
-func (Store) Exec(context *i.IRContext) {}
