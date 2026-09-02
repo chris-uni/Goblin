@@ -12,8 +12,39 @@ type Div struct {
 	Rhs         i.IRValue
 }
 
-func (v *Div) String() string            { return fmt.Sprintf("div %v %v %v", v.Destination, v.Lhs, v.Rhs) }
-func (v *Div) Exec(context *i.IRContext) {}
-func (v *Div) Left() i.IRValue           { return v.Lhs }
-func (v *Div) Right() i.IRValue          { return v.Rhs }
-func (v *Div) Dest() i.IRTemporary       { return v.Destination }
+func (d *Div) Exec(context *i.IRContext) {}
+
+func (d *Div) Validate(context *i.IRContext) error {
+	// Does both the lhs and rhs of the command adhere to the commands rules?
+	lhsType, err := i.ResolveIRType(d.Lhs, context)
+	if err != nil {
+		return err
+	}
+
+	rhsType, err := i.ResolveIRType(d.Rhs, context)
+	if err != nil {
+		return err
+	}
+
+	if lhsType != i.IRTypeNumber || rhsType != i.IRTypeNumber {
+		return fmt.Errorf("type error: div: operands of invalid type\n")
+	}
+
+	return nil
+}
+
+func (d *Div) String() string {
+	return fmt.Sprintf("div %v %v %v", d.Destination, d.Lhs, d.Rhs)
+}
+
+func (d *Div) Left() i.IRValue {
+	return d.Lhs
+}
+
+func (d *Div) Right() i.IRValue {
+	return d.Rhs
+}
+
+func (d *Div) Dest() i.IRTemporary {
+	return d.Destination
+}

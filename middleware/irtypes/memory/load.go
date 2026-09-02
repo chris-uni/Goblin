@@ -11,8 +11,23 @@ type Load struct {
 	Source      i.IRAddress
 }
 
-func (v *Load) String() string {
-	return fmt.Sprintf("load %v %v", v.Destination, v.Source)
+func (l *Load) Exec(context *i.IRContext) {}
+
+func (l *Load) Validate(context *i.IRContext) error {
+
+	_, err := i.ResolveIRType(l.Source, context)
+	if err != nil {
+		return err
+	}
+
+	_, err = i.ResolveIRType(l.Destination, context)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (Load) Exec(context *i.IRContext) {}
+func (l *Load) String() string {
+	return fmt.Sprintf("load %v %v", l.Destination, l.Source)
+}
