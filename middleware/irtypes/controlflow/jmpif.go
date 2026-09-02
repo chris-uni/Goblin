@@ -11,8 +11,28 @@ type JmpIf struct {
 	Condition   i.IRValue
 }
 
-func (v *JmpIf) String() string {
-	return fmt.Sprintf("jmpif %v %v", v.Destination, v.Condition)
+func (ji *JmpIf) Exec(context *i.IRContext) {}
+
+func (ji *JmpIf) Validate(context *i.IRContext) error {
+
+	conditionType, err := i.ResolveIRType(ji.Condition, context)
+	if err != nil {
+		return err
+	}
+
+	_, err = i.ResolveIRType(ji.Destination, context)
+	if err != nil {
+		return err
+	}
+
+	// Is the condition a truthy type?
+	if conditionType != i.IRTypeBoolean {
+		return fmt.Errorf("type error: jmpif: condition of invalid type\n")
+	}
+
+	return nil
 }
 
-func (JmpIf) Exec(context *i.IRContext) {}
+func (ji *JmpIf) String() string {
+	return fmt.Sprintf("jmpif %v %v", ji.Destination, ji.Condition)
+}

@@ -10,8 +10,18 @@ type Jmp struct {
 	Destination i.IRLabel
 }
 
-func (v *Jmp) String() string {
-	return fmt.Sprintf("jmp %v", v.Destination)
+func (j *Jmp) Exec(context *i.IRContext) {}
+
+func (j *Jmp) Validate(context *i.IRContext) error {
+
+	_, err := i.ResolveIRType(j.Destination, context)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (Jmp) Exec(context *i.IRContext) {}
+func (j *Jmp) String() string {
+	return fmt.Sprintf("jmp %v", j.Destination)
+}
