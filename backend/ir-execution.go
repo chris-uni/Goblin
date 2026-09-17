@@ -19,7 +19,7 @@ import (
 
 	i "goblin.org/main/middleware/irtypes"
 	a "goblin.org/main/middleware/irtypes/arithmetic"
-	s "goblin.org/main/middleware/irtypes/memory"
+	m "goblin.org/main/middleware/irtypes/memory"
 )
 
 func Dispatch(command i.IRCommand, state *i.IRExecutionState) error {
@@ -29,8 +29,11 @@ func Dispatch(command i.IRCommand, state *i.IRExecutionState) error {
 	case *a.Add:
 		return ExecAdd(com, state)
 
-	case *s.Store:
+	case *m.Store:
 		return ExecStore(com, state)
+
+	case *m.Load:
+		return ExecLoad(com, state)
 
 	default:
 		return fmt.Errorf("execution: unknown command %v", command)
@@ -45,7 +48,7 @@ func ExecAdd(add *a.Add, state *i.IRExecutionState) error {
 	return nil
 }
 
-func ExecStore(store *s.Store, state *i.IRExecutionState) error {
+func ExecStore(store *m.Store, state *i.IRExecutionState) error {
 
 	val, err := state.Resolve(store.Value)
 	if err != nil {
@@ -53,6 +56,21 @@ func ExecStore(store *s.Store, state *i.IRExecutionState) error {
 	}
 
 	state.PushStorage(store.Destination.Index, val)
+	return nil
+}
+
+func ExecLoad(load *m.Load, state *i.IRExecutionState) error {
+
+	index := load.Destination.Index
+
+	val, err := state.Resolve(load.Source)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("pushing value %v into temporary index %v\n", val, index)
+
+	state.PushTemporaries(index, val)
 	return nil
 }
 

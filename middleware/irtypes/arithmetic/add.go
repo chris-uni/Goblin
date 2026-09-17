@@ -12,24 +12,27 @@ type Add struct {
 	Rhs         i.IRValue
 }
 
-func (a *Add) Exec(context *i.IRExecutionState) i.IRValue {
+func (a *Add) Exec(state *i.IRExecutionState) i.IRValue {
 
 	isStringAddition := true
 
-	_, err := i.ValueAs[string](a.Lhs)
+	lhsVal, err := state.Resolve(a.Lhs)
+	rhsVal, err := state.Resolve(a.Lhs)
+
+	_, err = i.ValueAs[string](lhsVal)
 	if err != nil {
 		isStringAddition = false
 	}
 
 	if isStringAddition {
-		lhs, _ := i.ValueAs[string](a.Lhs)
-		rhs, _ := i.ValueAs[string](a.Rhs)
+		lhs, _ := i.ValueAs[string](lhsVal)
+		rhs, _ := i.ValueAs[string](rhsVal)
 
 		return i.IRString{Value: lhs + rhs}
 	}
 
-	lhs, _ := i.ValueAs[int](a.Lhs)
-	rhs, _ := i.ValueAs[int](a.Rhs)
+	lhs, _ := i.ValueAs[int](lhsVal)
+	rhs, _ := i.ValueAs[int](rhsVal)
 
 	return i.IRNumber{Value: lhs + rhs}
 

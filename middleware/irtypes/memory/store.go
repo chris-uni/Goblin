@@ -11,7 +11,7 @@ type Store struct {
 	Value       i.IRValue
 }
 
-func (s *Store) Exec(context *i.IRExecutionState) i.IRValue { return nil }
+func (s *Store) Exec(state *i.IRExecutionState) i.IRValue { return nil }
 
 func (s *Store) Validate(context *i.IRContext) error {
 
