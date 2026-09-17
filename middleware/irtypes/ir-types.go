@@ -50,7 +50,7 @@ func (IRString) isIRValue()    {}
 func (IRBoolean) isIRValue()   {}
 
 type IRCommand interface {
-	Exec(context *IRContext)
+	Exec(context *IRExecutionState) IRValue
 	Validate(context *IRContext) error
 	String() string
 }

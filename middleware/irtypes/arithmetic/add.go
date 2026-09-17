@@ -12,7 +12,14 @@ type Add struct {
 	Rhs         i.IRValue
 }
 
-func (a *Add) Exec(context *i.IRContext) {}
+func (a *Add) Exec(context *i.IRExecutionState) i.IRValue {
+
+	lhs := a.Lhs.(i.IRNumber)
+	rhs := a.Rhs.(i.IRNumber)
+
+	return i.IRNumber{Value: lhs.Value + rhs.Value}
+
+}
 
 func (a *Add) Validate(context *i.IRContext) error {
 
