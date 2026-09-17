@@ -12,7 +12,7 @@ type JmpIf struct {
 }
 
 func (v *JmpIf) String() string {
-	return fmt.Sprintf("jmpif %v %v", v.Destination, v.Condition)
+	return fmt.Sprintf("jmpif %v %v", v.Condition, v.Destination)
 }
 
 func (JmpIf) Exec(context *i.IRContext) {}

@@ -1,2 +1,5 @@
-let x = 10;
-let y = 10 + x;
+let x = true;
+if(x){
+    x = false;
+}
+x = true;
