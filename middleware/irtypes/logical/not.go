@@ -11,7 +11,7 @@ type Not struct {
 	Lhs         i.IRValue
 }
 
-func (n *Not) Exec(context *i.IRContext) {}
+func (n *Not) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (n *Not) Validate(context *i.IRContext) error {
 

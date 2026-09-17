@@ -11,8 +11,7 @@ type Load struct {
 	Source      i.IRAddress
 }
 
-func (l *Load) Exec(context *i.IRContext) {}
-
+func (l *Load) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 func (l *Load) Validate(context *i.IRContext) error {
 
 	_, err := i.ResolveIRType(l.Source, context)

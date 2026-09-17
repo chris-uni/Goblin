@@ -12,7 +12,7 @@ type Neq struct {
 	Rhs         i.IRValue
 }
 
-func (n *Neq) Exec(context *i.IRContext) {}
+func (n *Neq) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (n *Neq) Validate(context *i.IRContext) error {
 

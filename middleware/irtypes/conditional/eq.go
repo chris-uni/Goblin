@@ -12,7 +12,7 @@ type Eq struct {
 	Rhs         i.IRValue
 }
 
-func (e *Eq) Exec(context *i.IRContext) {}
+func (e *Eq) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (e *Eq) Validate(context *i.IRContext) error {
 	// Does both the lhs and rhs of the command adhere to the commands rules?

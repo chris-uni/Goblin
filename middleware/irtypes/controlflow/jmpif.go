@@ -11,7 +11,7 @@ type JmpIf struct {
 	Condition   i.IRValue
 }
 
-func (ji *JmpIf) Exec(context *i.IRContext) {}
+func (ji *JmpIf) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (ji *JmpIf) Validate(context *i.IRContext) error {
 

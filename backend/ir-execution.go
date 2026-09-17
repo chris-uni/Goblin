@@ -19,6 +19,7 @@ import (
 
 	i "goblin.org/main/middleware/irtypes"
 	a "goblin.org/main/middleware/irtypes/arithmetic"
+	s "goblin.org/main/middleware/irtypes/memory"
 )
 
 func Dispatch(command i.IRCommand, state *i.IRExecutionState) error {
@@ -28,6 +29,9 @@ func Dispatch(command i.IRCommand, state *i.IRExecutionState) error {
 	case *a.Add:
 		return ExecAdd(com, state)
 
+	case *s.Store:
+		return ExecStore(com, state)
+
 	default:
 		return fmt.Errorf("execution: unknown command %v", command)
 	}
@@ -36,8 +40,19 @@ func Dispatch(command i.IRCommand, state *i.IRExecutionState) error {
 func ExecAdd(add *a.Add, state *i.IRExecutionState) error {
 
 	result := add.Exec(state)
-	fmt.Printf("execution: `add` result %v\n", result)
+	state.PushTemporaries(add.Destination.Index, result)
 
+	return nil
+}
+
+func ExecStore(store *s.Store, state *i.IRExecutionState) error {
+
+	val, err := state.Resolve(store.Value)
+	if err != nil {
+		return err
+	}
+
+	state.PushStorage(store.Destination.Index, val)
 	return nil
 }
 
@@ -57,6 +72,8 @@ func Execution(commands []i.IRCommand) error {
 			return err
 		}
 	}
+
+	fmt.Printf("%v\n", state.String())
 
 	return nil
 }

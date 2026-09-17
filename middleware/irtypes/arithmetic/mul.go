@@ -12,7 +12,7 @@ type Mul struct {
 	Rhs         i.IRValue
 }
 
-func (m *Mul) Exec(context *i.IRContext) {}
+func (m *Mul) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (m *Mul) Validate(context *i.IRContext) error {
 	// Does both the lhs and rhs of the command adhere to the commands rules?

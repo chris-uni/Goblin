@@ -12,7 +12,7 @@ type Mod struct {
 	Rhs         i.IRValue
 }
 
-func (m *Mod) Exec(context *i.IRContext) {}
+func (m *Mod) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (m *Mod) Validate(context *i.IRContext) error {
 	// Does both the lhs and rhs of the command adhere to the commands rules?

@@ -10,7 +10,7 @@ type Jmp struct {
 	Destination i.IRLabel
 }
 
-func (j *Jmp) Exec(context *i.IRContext) {}
+func (j *Jmp) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (j *Jmp) Validate(context *i.IRContext) error {
 

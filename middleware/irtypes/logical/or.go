@@ -12,7 +12,7 @@ type Or struct {
 	Rhs         i.IRValue
 }
 
-func (o *Or) Exec(context *i.IRContext) {}
+func (o *Or) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (o *Or) Validate(context *i.IRContext) error {
 

@@ -11,7 +11,7 @@ type Neg struct {
 	Lhs         i.IRValue
 }
 
-func (n *Neg) Exec(context *i.IRContext) {}
+func (n *Neg) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (n *Neg) Validate(context *i.IRContext) error {
 

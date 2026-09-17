@@ -12,7 +12,7 @@ type Sub struct {
 	Rhs         i.IRValue
 }
 
-func (s *Sub) Exec(context *i.IRContext) {}
+func (s *Sub) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (s *Sub) Validate(context *i.IRContext) error {
 

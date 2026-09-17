@@ -12,7 +12,7 @@ type Div struct {
 	Rhs         i.IRValue
 }
 
-func (d *Div) Exec(context *i.IRContext) {}
+func (d *Div) Exec(context *i.IRExecutionState) i.IRValue { return nil }
 
 func (d *Div) Validate(context *i.IRContext) error {
 	// Does both the lhs and rhs of the command adhere to the commands rules?
