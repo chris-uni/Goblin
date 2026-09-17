@@ -14,10 +14,25 @@ type Add struct {
 
 func (a *Add) Exec(context *i.IRExecutionState) i.IRValue {
 
-	lhs := a.Lhs.(i.IRNumber)
-	rhs := a.Rhs.(i.IRNumber)
+	isStringAddition := true
 
-	return i.IRNumber{Value: lhs.Value + rhs.Value}
+	_, err := i.ValueAs[string](a.Lhs)
+	if err != nil {
+		isStringAddition = false
+	}
+
+	if isStringAddition {
+		lhs, _ := i.ValueAs[string](a.Lhs)
+		rhs, _ := i.ValueAs[string](a.Rhs)
+
+		return i.IRString{Value: lhs + rhs}
+	}
+
+	lhs, _ := i.ValueAs[int](a.Lhs)
+	rhs, _ := i.ValueAs[int](a.Rhs)
+
+	return i.IRNumber{Value: lhs + rhs}
+
 }
 
 func (a *Add) Validate(context *i.IRContext) error {

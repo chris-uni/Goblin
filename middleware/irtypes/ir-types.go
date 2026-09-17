@@ -8,6 +8,17 @@ import (
 type IRValue interface {
 	String() string
 	isIRValue()
+	GetValue() any
+}
+
+func ValueAs[T any](val IRValue) (T, error) {
+	v, ok := val.GetValue().(T)
+	if !ok {
+		var zero T
+		return zero, fmt.Errorf("invalid IRValue provided: %v\n", val)
+	}
+
+	return v, nil
 }
 
 type IRAddress struct {
@@ -48,6 +59,13 @@ func (IRNumber) isIRValue()    {}
 func (IRLabel) isIRValue()     {}
 func (IRString) isIRValue()    {}
 func (IRBoolean) isIRValue()   {}
+
+func (a IRAddress) GetValue() any   { return a.Index }
+func (t IRTemporary) GetValue() any { return t.Index }
+func (v IRNumber) GetValue() any    { return v.Value }
+func (l IRLabel) GetValue() any     { return l.Value }
+func (s IRString) GetValue() any    { return s.Value }
+func (b IRBoolean) GetValue() any   { return b.Value }
 
 type IRCommand interface {
 	Exec(context *IRExecutionState) IRValue
