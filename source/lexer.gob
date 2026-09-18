@@ -1,7 +1,4 @@
-let x = false;
+let x = 10;
+let y = 10;
 
-if(x){
-    let y = 1 + 1;
-}
-
-let z = 11;
+return x + y;

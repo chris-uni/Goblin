@@ -38,6 +38,7 @@ const (
 	ForNode     NodeType = "ForNode"
 
 	// Misc.
+	ReturnNode  NodeType = "ReturnNode"
 	UnknownNode NodeType = "UnknownNode"
 )
 
@@ -57,6 +58,13 @@ type Program struct {
 }
 
 func (p Program) expr() {}
+
+type Return struct {
+	Kind  NodeType
+	Value Expression
+}
+
+func (r Return) expr() {}
 
 type VariableDecleration struct {
 	Kind       NodeType

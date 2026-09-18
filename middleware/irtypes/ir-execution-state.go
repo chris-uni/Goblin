@@ -7,6 +7,7 @@ type IRExecutionState struct {
 	Temporaries []IRValue
 	Labels      []IRLabel
 	PC          int
+	Result      *IRExecutionResult
 }
 
 func (state *IRExecutionState) PushStorage(index int, val IRValue) {

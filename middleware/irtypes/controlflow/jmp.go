@@ -12,10 +12,7 @@ type Jmp struct {
 
 func (j *Jmp) Exec(state *i.IRExecutionState) (i.IRValue, error) {
 
-	fmt.Printf("jmp to %v\n", j.Destination.PCOffset)
-
 	state.PC = j.Destination.PCOffset
-
 	return nil, nil
 }
 

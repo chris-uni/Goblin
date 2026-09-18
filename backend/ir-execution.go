@@ -21,6 +21,7 @@ import (
 	a "goblin.org/main/middleware/irtypes/arithmetic"
 	ct "goblin.org/main/middleware/irtypes/controlflow"
 	m "goblin.org/main/middleware/irtypes/memory"
+	p "goblin.org/main/middleware/irtypes/program"
 )
 
 func Dispatch(command i.IRCommand, state *i.IRExecutionState) error {
@@ -55,6 +56,9 @@ func Dispatch(command i.IRCommand, state *i.IRExecutionState) error {
 
 	case *ct.JmpIf:
 		err = ExecJmpIf(com, state)
+
+	case *p.Return:
+		err = ExecRtn(com, state)
 
 	default:
 		err = fmt.Errorf("execution: unknown command %v", command)
@@ -162,7 +166,6 @@ func ExecJmp(jmp *ct.Jmp, state *i.IRExecutionState) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -176,12 +179,27 @@ func ExecJmpIf(jmpif *ct.JmpIf, state *i.IRExecutionState) error {
 	return nil
 }
 
-func Execution(commands []i.IRCommand) error {
+/*
+	PROGRAM OPERATION SECTION.
+*/
+
+func ExecRtn(rtn *p.Return, state *i.IRExecutionState) error {
+
+	_, err := rtn.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Execution(commands []i.IRCommand) (i.IRExecutionResult, error) {
 
 	state := i.IRExecutionState{
 		Storage:     make([]i.IRValue, 0),
 		Temporaries: make([]i.IRValue, 0),
 		Labels:      make([]i.IRLabel, 0),
+		Result:      nil,
 		PC:          0,
 	}
 
@@ -189,11 +207,15 @@ func Execution(commands []i.IRCommand) error {
 
 		err := Dispatch(commands[state.PC], &state)
 		if err != nil {
-			return err
+			return i.IRExecutionResult{}, err
 		}
+
+		if state.Result != nil {
+
+			return *state.Result, nil
+		}
+
 	}
 
-	fmt.Printf("%v\n", state.String())
-
-	return nil
+	return i.IRExecutionResult{}, nil
 }

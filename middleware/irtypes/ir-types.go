@@ -48,7 +48,7 @@ type IRBoolean struct {
 
 func (i IRTemporary) String() string { return fmt.Sprintf("%%%v", i.Index) }
 func (i IRAddress) String() string   { return fmt.Sprintf("@%v", i.Index) }
-func (i IRLabel) String() string     { return fmt.Sprintf("L%v", i.Value) }
+func (i IRLabel) String() string     { return fmt.Sprintf("L%v", i.PCOffset) }
 func (i IRNumber) String() string    { return fmt.Sprintf("%v", i.Value) }
 func (i IRString) String() string    { return fmt.Sprintf("%v", i.Value) }
 func (i IRBoolean) String() string   { return strconv.FormatBool(i.Value) }

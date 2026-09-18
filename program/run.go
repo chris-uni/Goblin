@@ -31,10 +31,12 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 	}
 
 	// Stage 4. Pass thorugh GoblinIR execution Engine.
-	err = backend.Execution(goblinIR)
+	result, err := backend.Execution(goblinIR)
 	if err != nil {
 		return nil, fmt.Errorf("execution error: %v\n", err.Error())
 	}
+
+	fmt.Printf("%v\n", result.Value)
 
 	/*
 		// Stage 3. Interprete the AST.

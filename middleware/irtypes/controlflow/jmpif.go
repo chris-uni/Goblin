@@ -13,8 +13,6 @@ type JmpIf struct {
 
 func (ji *JmpIf) Exec(state *i.IRExecutionState) (i.IRValue, error) {
 
-	fmt.Printf("jmp to %v\n", ji.Destination.PCOffset)
-
 	condition, err := state.Resolve(ji.Condition)
 	if err != nil {
 		return nil, err
@@ -26,7 +24,11 @@ func (ji *JmpIf) Exec(state *i.IRExecutionState) (i.IRValue, error) {
 	}
 
 	if conVal {
+		// Move to if body.
 		state.PC = ji.Destination.PCOffset
+	} else {
+		// Else continue to next instruction.
+		state.PC++
 	}
 
 	return nil, nil
