@@ -57,7 +57,7 @@ func (state *IRExecutionState) Resolve(i IRValue) (IRValue, error) {
 		}
 
 		if state.Temporaries[value.Index] == nil {
-			return nil, fmt.Errorf("null pointer at IR temporary: @%v\n", value.Index)
+			return nil, fmt.Errorf("null pointer at IR temporary: %%%v\n", value.Index)
 		}
 
 		return state.Temporaries[value.Index], nil

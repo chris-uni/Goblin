@@ -12,7 +12,26 @@ type Mod struct {
 	Rhs         i.IRValue
 }
 
-func (m *Mod) Exec(context *i.IRExecutionState) i.IRValue { return nil }
+func (m *Mod) Exec(state *i.IRExecutionState) (i.IRValue, error) {
+
+	lhsVal, err := state.Resolve(m.Lhs)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsVal, err := state.Resolve(m.Rhs)
+	if err != nil {
+		return nil, err
+	}
+
+	lhs, _ := i.ValueAs[int](lhsVal)
+	rhs, _ := i.ValueAs[int](rhsVal)
+
+	// Increment PC.
+	state.PC++
+
+	return i.IRNumber{Value: lhs % rhs}, nil
+}
 
 func (m *Mod) Validate(context *i.IRContext) error {
 	// Does both the lhs and rhs of the command adhere to the commands rules?

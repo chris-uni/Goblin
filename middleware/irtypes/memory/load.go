@@ -11,7 +11,22 @@ type Load struct {
 	Source      i.IRAddress
 }
 
-func (l *Load) Exec(context *i.IRExecutionState) i.IRValue { return nil }
+func (l *Load) Exec(state *i.IRExecutionState) (i.IRValue, error) {
+
+	index := l.Destination.Index
+
+	val, err := state.Resolve(l.Source)
+	if err != nil {
+		return nil, err
+	}
+
+	state.PushTemporaries(index, val)
+
+	// Increment PC.
+	state.PC++
+
+	return nil, nil
+}
 
 func (l *Load) Validate(context *i.IRContext) error {
 

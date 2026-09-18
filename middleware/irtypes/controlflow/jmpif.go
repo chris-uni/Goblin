@@ -11,7 +11,26 @@ type JmpIf struct {
 	Condition   i.IRValue
 }
 
-func (ji *JmpIf) Exec(context *i.IRExecutionState) i.IRValue { return nil }
+func (ji *JmpIf) Exec(state *i.IRExecutionState) (i.IRValue, error) {
+
+	fmt.Printf("jmp to %v\n", ji.Destination.PCOffset)
+
+	condition, err := state.Resolve(ji.Condition)
+	if err != nil {
+		return nil, err
+	}
+
+	conVal, err := i.ValueAs[bool](condition)
+	if err != nil {
+		return nil, err
+	}
+
+	if conVal {
+		state.PC = ji.Destination.PCOffset
+	}
+
+	return nil, nil
+}
 
 func (ji *JmpIf) Validate(context *i.IRContext) error {
 

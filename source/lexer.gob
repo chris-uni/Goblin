@@ -1,3 +1,7 @@
-let x = 10 + 10;
-let y = 20;
-let z = 20 + x;
+let x = false;
+
+if(x){
+    let y = 1 + 1;
+}
+
+let z = 11;

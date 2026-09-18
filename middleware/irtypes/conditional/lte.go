@@ -12,7 +12,7 @@ type Lte struct {
 	Rhs         i.IRValue
 }
 
-func (l *Lte) Exec(context *i.IRExecutionState) i.IRValue { return nil }
+func (l *Lte) Exec(context *i.IRExecutionState) (i.IRValue, error) { return nil, nil }
 
 func (l *Lte) Validate(context *i.IRContext) error {
 

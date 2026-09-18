@@ -12,7 +12,7 @@ type Gte struct {
 	Rhs         i.IRValue
 }
 
-func (g *Gte) Exec(context *i.IRExecutionState) i.IRValue { return nil }
+func (g *Gte) Exec(context *i.IRExecutionState) (i.IRValue, error) { return nil, nil }
 
 func (g *Gte) Validate(context *i.IRContext) error {
 

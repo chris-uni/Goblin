@@ -12,9 +12,29 @@ type Div struct {
 	Rhs         i.IRValue
 }
 
-func (d *Div) Exec(context *i.IRExecutionState) i.IRValue { return nil }
+func (d *Div) Exec(state *i.IRExecutionState) (i.IRValue, error) {
+
+	lhsVal, err := state.Resolve(d.Lhs)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsVal, err := state.Resolve(d.Rhs)
+	if err != nil {
+		return nil, err
+	}
+
+	lhs, _ := i.ValueAs[int](lhsVal)
+	rhs, _ := i.ValueAs[int](rhsVal)
+
+	// Increment PC.
+	state.PC++
+
+	return i.IRNumber{Value: lhs / rhs}, nil
+}
 
 func (d *Div) Validate(context *i.IRContext) error {
+
 	// Does both the lhs and rhs of the command adhere to the commands rules?
 	lhsType, err := i.ResolveIRType(d.Lhs, context)
 	if err != nil {
@@ -29,6 +49,8 @@ func (d *Div) Validate(context *i.IRContext) error {
 	if lhsType != i.IRTypeNumber || rhsType != i.IRTypeNumber {
 		return fmt.Errorf("type error: div: operands of invalid type\n")
 	}
+
+	// TODO: Need to add in a divide by 0 check, currently it allows this behaviour.
 
 	return nil
 }

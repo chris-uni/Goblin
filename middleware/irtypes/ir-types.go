@@ -68,7 +68,7 @@ func (s IRString) GetValue() any    { return s.Value }
 func (b IRBoolean) GetValue() any   { return b.Value }
 
 type IRCommand interface {
-	Exec(context *IRExecutionState) IRValue
+	Exec(context *IRExecutionState) (IRValue, error)
 	Validate(context *IRContext) error
 	String() string
 }

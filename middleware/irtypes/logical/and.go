@@ -12,7 +12,7 @@ type And struct {
 	Rhs         i.IRValue
 }
 
-func (a *And) Exec(context *i.IRExecutionState) i.IRValue { return nil }
+func (a *And) Exec(context *i.IRExecutionState) (i.IRValue, error) { return nil, nil }
 
 func (a *And) Validate(context *i.IRContext) error {
 

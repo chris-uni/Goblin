@@ -12,7 +12,26 @@ type Sub struct {
 	Rhs         i.IRValue
 }
 
-func (s *Sub) Exec(context *i.IRExecutionState) i.IRValue { return nil }
+func (s *Sub) Exec(state *i.IRExecutionState) (i.IRValue, error) {
+
+	lhsVal, err := state.Resolve(s.Lhs)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsVal, err := state.Resolve(s.Rhs)
+	if err != nil {
+		return nil, err
+	}
+
+	lhs, _ := i.ValueAs[int](lhsVal)
+	rhs, _ := i.ValueAs[int](rhsVal)
+
+	// Increment PC.
+	state.PC++
+
+	return i.IRNumber{Value: lhs - rhs}, nil
+}
 
 func (s *Sub) Validate(context *i.IRContext) error {
 

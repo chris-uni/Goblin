@@ -10,7 +10,14 @@ type Jmp struct {
 	Destination i.IRLabel
 }
 
-func (j *Jmp) Exec(context *i.IRExecutionState) i.IRValue { return nil }
+func (j *Jmp) Exec(state *i.IRExecutionState) (i.IRValue, error) {
+
+	fmt.Printf("jmp to %v\n", j.Destination.PCOffset)
+
+	state.PC = j.Destination.PCOffset
+
+	return nil, nil
+}
 
 func (j *Jmp) Validate(context *i.IRContext) error {
 

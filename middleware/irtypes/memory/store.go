@@ -11,7 +11,20 @@ type Store struct {
 	Value       i.IRValue
 }
 
-func (s *Store) Exec(state *i.IRExecutionState) i.IRValue { return nil }
+func (s *Store) Exec(state *i.IRExecutionState) (i.IRValue, error) {
+
+	val, err := state.Resolve(s.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	state.PushStorage(s.Destination.Index, val)
+
+	// Increment PC.
+	state.PC++
+
+	return nil, nil
+}
 
 func (s *Store) Validate(context *i.IRContext) error {
 

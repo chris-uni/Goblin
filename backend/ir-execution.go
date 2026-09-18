@@ -6,7 +6,7 @@ Date: 02/09/2026
 Input:
 	Optimised GoblinIR program.
 Output:
-	A fully executed GoblinIR program represented by a GoblinRuntime object.
+	A fully executed GoblinIR program represented by a Goblin ExecutionState object.
 
 Guarantees:
 	- Execution of GoblinIR commands
@@ -19,58 +19,160 @@ import (
 
 	i "goblin.org/main/middleware/irtypes"
 	a "goblin.org/main/middleware/irtypes/arithmetic"
+	ct "goblin.org/main/middleware/irtypes/controlflow"
 	m "goblin.org/main/middleware/irtypes/memory"
 )
 
 func Dispatch(command i.IRCommand, state *i.IRExecutionState) error {
 
+	var err error
+
 	switch com := command.(type) {
 
 	case *a.Add:
-		return ExecAdd(com, state)
+		err = ExecAdd(com, state)
+
+	case *a.Sub:
+		err = ExecSub(com, state)
+
+	case *a.Mul:
+		err = ExecMul(com, state)
+
+	case *a.Div:
+		err = ExecDiv(com, state)
+
+	case *a.Mod:
+		err = ExecMod(com, state)
 
 	case *m.Store:
-		return ExecStore(com, state)
+		err = ExecStore(com, state)
 
 	case *m.Load:
-		return ExecLoad(com, state)
+		err = ExecLoad(com, state)
+
+	case *ct.Jmp:
+		err = ExecJmp(com, state)
+
+	case *ct.JmpIf:
+		err = ExecJmpIf(com, state)
 
 	default:
-		return fmt.Errorf("execution: unknown command %v", command)
+		err = fmt.Errorf("execution: unknown command %v", command)
 	}
+
+	return err
 }
+
+/*
+	ARITHMETIC OPERATION SECTION.
+*/
 
 func ExecAdd(add *a.Add, state *i.IRExecutionState) error {
 
-	result := add.Exec(state)
+	result, err := add.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("attempting to push temp into index %v\n", add.Destination.Index)
 	state.PushTemporaries(add.Destination.Index, result)
 
 	return nil
 }
 
-func ExecStore(store *m.Store, state *i.IRExecutionState) error {
+func ExecSub(sub *a.Sub, state *i.IRExecutionState) error {
 
-	val, err := state.Resolve(store.Value)
+	result, err := sub.Exec(state)
 	if err != nil {
 		return err
 	}
 
-	state.PushStorage(store.Destination.Index, val)
+	state.PushTemporaries(sub.Destination.Index, result)
+
+	return nil
+}
+
+func ExecMul(mul *a.Mul, state *i.IRExecutionState) error {
+
+	result, err := mul.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	state.PushTemporaries(mul.Destination.Index, result)
+
+	return nil
+}
+
+func ExecDiv(div *a.Div, state *i.IRExecutionState) error {
+
+	result, err := div.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	state.PushTemporaries(div.Destination.Index, result)
+
+	return nil
+}
+
+func ExecMod(mod *a.Mod, state *i.IRExecutionState) error {
+
+	result, err := mod.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	state.PushTemporaries(mod.Destination.Index, result)
+
+	return nil
+}
+
+/*
+	MEMORY OPERATION SECTION.
+*/
+
+func ExecStore(store *m.Store, state *i.IRExecutionState) error {
+
+	_, err := store.Exec(state)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func ExecLoad(load *m.Load, state *i.IRExecutionState) error {
 
-	index := load.Destination.Index
-
-	val, err := state.Resolve(load.Source)
+	_, err := load.Exec(state)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("pushing value %v into temporary index %v\n", val, index)
+	return nil
+}
 
-	state.PushTemporaries(index, val)
+/*
+	CONTROL-FLOW OPERATION SECTION.
+*/
+
+func ExecJmp(jmp *ct.Jmp, state *i.IRExecutionState) error {
+
+	_, err := jmp.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ExecJmpIf(jmpif *ct.JmpIf, state *i.IRExecutionState) error {
+
+	_, err := jmpif.Exec(state)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -83,9 +185,9 @@ func Execution(commands []i.IRCommand) error {
 		PC:          0,
 	}
 
-	for _, com := range commands {
+	for state.PC <= len(commands)-1 {
 
-		err := Dispatch(com, &state)
+		err := Dispatch(commands[state.PC], &state)
 		if err != nil {
 			return err
 		}
