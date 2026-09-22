@@ -87,12 +87,12 @@ func Test_BooleanKeywords(t *testing.T) {
 
 func Test_LanguageKeywords(t *testing.T) {
 
-	out, _, err := Lex("let const fn if else while for using")
+	out, _, err := Lex("let const fn if else while for using return")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
-	want := "[{Let let 1 4} {Const const 1 10} {Fn fn 1 13} {If if 1 16} {Else else 1 21} {While while 1 27} {For for 1 31} {Using using 1 37} {EOF EOF 1 37}]"
+	want := "[{Let let 1 4} {Const const 1 10} {Fn fn 1 13} {If if 1 16} {Else else 1 21} {While while 1 27} {For for 1 31} {Using using 1 37} {Return return 1 44} {EOF EOF 1 44}]"
 	tokens := fmt.Sprintf("%v", out)
 
 	if tokens != want {
@@ -101,7 +101,7 @@ func Test_LanguageKeywords(t *testing.T) {
 	}
 }
 
-func Test_VariableAssignment(t *testing.T) {
+func Test_ReturnStatement(t *testing.T) {
 
 	var tests = []struct {
 		in   string

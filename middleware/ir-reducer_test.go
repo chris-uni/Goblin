@@ -458,3 +458,69 @@ func Test_If_Expression_Neq(t *testing.T) {
 		t.Errorf("\ngot %v\nwant %v\n", got, want)
 	}
 }
+
+func Test_Numeric_Return_Statement(t *testing.T) {
+
+	ast, err := assembleAST(`return 10;`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[rtn 10]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_String_Return_Statement(t *testing.T) {
+
+	ast, err := assembleAST(`return "hello";`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[rtn hello]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Boolean_Return_Statement(t *testing.T) {
+
+	ast, err := assembleAST(`return false;`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[rtn false]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}

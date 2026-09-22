@@ -77,8 +77,6 @@ func ExecAdd(add *a.Add, state *i.IRExecutionState) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("attempting to push temp into index %v\n", add.Destination.Index)
 	state.PushTemporaries(add.Destination.Index, result)
 
 	return nil

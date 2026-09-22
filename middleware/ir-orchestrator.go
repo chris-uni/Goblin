@@ -38,14 +38,13 @@ func OrchestrateIRLayer(program ast.Program) ([]i.IRCommand, error) {
 
 	PrintIR("raw ir:", rawIR)
 
-	/*
-		// 2. Validate the Raw GoblinIR into Validated GoblinIR.
-		validatedIR, err := Validate(rawIR, &context)
-		if err != nil {
-			return []i.IRCommand{}, err
-		}
+	// 2. Validate the Raw GoblinIR into Validated GoblinIR.
+	validatedIR, err := Validate(rawIR, &context)
+	if err != nil {
+		return []i.IRCommand{}, err
+	}
 
-		PrintIR("validated ir:", rawIR)*/
+	PrintIR("validated ir:", rawIR)
 
-	return rawIR, nil
+	return validatedIR, nil
 }
