@@ -12,7 +12,63 @@ type Neq struct {
 	Rhs         i.IRValue
 }
 
-func (n *Neq) Exec(context *i.IRExecutionState) (i.IRValue, error) { return nil, nil }
+func (n *Neq) Exec(state *i.IRExecutionState) (i.IRValue, error) {
+
+	lhsVal, err := state.Resolve(n.Lhs)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsVal, err := state.Resolve(n.Rhs)
+	if err != nil {
+		return nil, err
+	}
+
+	var lhs any
+	var rhs any
+
+	switch l := lhsVal.(type) {
+
+	case i.IRNumber:
+
+		lhs, err = i.ValueAs[int](l)
+		if err != nil {
+			return nil, err
+		}
+
+		rhs, err = i.ValueAs[int](rhsVal)
+		if err != nil {
+			return nil, err
+		}
+
+	case i.IRString:
+
+		lhs, err = i.ValueAs[string](l)
+		if err != nil {
+			return nil, err
+		}
+
+		rhs, err = i.ValueAs[string](rhsVal)
+		if err != nil {
+			return nil, err
+		}
+
+	case i.IRBoolean:
+
+		lhs, err = i.ValueAs[bool](l)
+		if err != nil {
+			return nil, err
+		}
+
+		rhs, err = i.ValueAs[bool](rhsVal)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	state.PC++
+	return i.IRBoolean{Value: lhs != rhs}, nil
+}
 
 func (n *Neq) Validate(context *i.IRContext) error {
 

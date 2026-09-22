@@ -12,7 +12,31 @@ type Gte struct {
 	Rhs         i.IRValue
 }
 
-func (g *Gte) Exec(context *i.IRExecutionState) (i.IRValue, error) { return nil, nil }
+func (g *Gte) Exec(state *i.IRExecutionState) (i.IRValue, error) {
+
+	lhsVal, err := state.Resolve(g.Lhs)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsVal, err := state.Resolve(g.Rhs)
+	if err != nil {
+		return nil, err
+	}
+
+	lhs, err := i.ValueAs[int](lhsVal)
+	if err != nil {
+		return nil, err
+	}
+
+	rhs, err := i.ValueAs[int](rhsVal)
+	if err != nil {
+		return nil, err
+	}
+
+	state.PC++
+	return i.IRBoolean{Value: lhs >= rhs}, nil
+}
 
 func (g *Gte) Validate(context *i.IRContext) error {
 

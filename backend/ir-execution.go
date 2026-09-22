@@ -19,6 +19,7 @@ import (
 
 	i "goblin.org/main/middleware/irtypes"
 	a "goblin.org/main/middleware/irtypes/arithmetic"
+	cn "goblin.org/main/middleware/irtypes/conditional"
 	ct "goblin.org/main/middleware/irtypes/controlflow"
 	m "goblin.org/main/middleware/irtypes/memory"
 	p "goblin.org/main/middleware/irtypes/program"
@@ -44,6 +45,24 @@ func Dispatch(command i.IRCommand, state *i.IRExecutionState) error {
 
 	case *a.Mod:
 		err = ExecMod(com, state)
+
+	case *cn.Eq:
+		err = ExecEq(com, state)
+
+	case *cn.Gt:
+		err = ExecGt(com, state)
+
+	case *cn.Gte:
+		err = ExecGte(com, state)
+
+	case *cn.Lt:
+		err = ExecLt(com, state)
+
+	case *cn.Lte:
+		err = ExecLte(com, state)
+
+	case *cn.Neq:
+		err = ExecNeq(com, state)
 
 	case *m.Store:
 		err = ExecStore(com, state)
@@ -126,6 +145,82 @@ func ExecMod(mod *a.Mod, state *i.IRExecutionState) error {
 	}
 
 	state.PushTemporaries(mod.Destination.Index, result)
+
+	return nil
+}
+
+/*
+	CONDITIONAL OPERATION SECTION.
+*/
+
+func ExecEq(eq *cn.Eq, state *i.IRExecutionState) error {
+
+	result, err := eq.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	state.PushTemporaries(eq.Destination.Index, result)
+
+	return nil
+}
+
+func ExecGt(gt *cn.Gt, state *i.IRExecutionState) error {
+
+	result, err := gt.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	state.PushTemporaries(gt.Destination.Index, result)
+
+	return nil
+}
+
+func ExecGte(gte *cn.Gte, state *i.IRExecutionState) error {
+
+	result, err := gte.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	state.PushTemporaries(gte.Destination.Index, result)
+
+	return nil
+}
+
+func ExecLt(lt *cn.Lt, state *i.IRExecutionState) error {
+
+	result, err := lt.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	state.PushTemporaries(lt.Destination.Index, result)
+
+	return nil
+}
+
+func ExecLte(lte *cn.Lte, state *i.IRExecutionState) error {
+
+	result, err := lte.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	state.PushTemporaries(lte.Destination.Index, result)
+
+	return nil
+}
+
+func ExecNeq(neq *cn.Neq, state *i.IRExecutionState) error {
+
+	result, err := neq.Exec(state)
+	if err != nil {
+		return err
+	}
+
+	state.PushTemporaries(neq.Destination.Index, result)
 
 	return nil
 }

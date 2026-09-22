@@ -1,4 +1,1 @@
-let x = 10;
-let y = 10;
-
-return x + y;
+return 5 != 8;
