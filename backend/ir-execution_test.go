@@ -83,3 +83,105 @@ func Test_Simple_Boolean_Return(t *testing.T) {
 		t.Errorf("\ngot %v\nwant %v\n", got, want)
 	}
 }
+
+func Test_Simple_Lt_Return(t *testing.T) {
+
+	validatedIR, err := assembleValidatedIR(`return 10 < 5;`)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	out, err := Execution(validatedIR)
+
+	want := `{false}`
+	got := fmt.Sprintf("%v", out)
+
+	if want != got {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Simple_Lte_Return(t *testing.T) {
+
+	validatedIR, err := assembleValidatedIR(`return 10 <= 5;`)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	out, err := Execution(validatedIR)
+
+	want := `{false}`
+	got := fmt.Sprintf("%v", out)
+
+	if want != got {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Simple_Gt_Return(t *testing.T) {
+
+	validatedIR, err := assembleValidatedIR(`return 10 > 5;`)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	out, err := Execution(validatedIR)
+
+	want := `{true}`
+	got := fmt.Sprintf("%v", out)
+
+	if want != got {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Simple_Gte_Return(t *testing.T) {
+
+	validatedIR, err := assembleValidatedIR(`return 10 >= 5;`)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	out, err := Execution(validatedIR)
+
+	want := `{true}`
+	got := fmt.Sprintf("%v", out)
+
+	if want != got {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Simple_Eq_Return(t *testing.T) {
+
+	validatedIR, err := assembleValidatedIR(`return 10 == 5;`)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	out, err := Execution(validatedIR)
+
+	want := `{false}`
+	got := fmt.Sprintf("%v", out)
+
+	if want != got {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Simple_Neq_Return(t *testing.T) {
+
+	validatedIR, err := assembleValidatedIR(`return 10 != 5;`)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	out, err := Execution(validatedIR)
+
+	want := `{true}`
+	got := fmt.Sprintf("%v", out)
+
+	if want != got {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
