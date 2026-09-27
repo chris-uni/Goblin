@@ -1,7 +1,7 @@
 /*
 Goblin IR Validator v0.1
 Author: Chris J.M. Wing
-Date: 02/09/2026
+Date: 21/08/2026
 
 Input:
 	Raw GoblinIR from the Reducer stage.

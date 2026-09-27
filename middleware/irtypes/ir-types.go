@@ -8,6 +8,17 @@ import (
 type IRValue interface {
 	String() string
 	isIRValue()
+	GetValue() any
+}
+
+func ValueAs[T any](val IRValue) (T, error) {
+	v, ok := val.GetValue().(T)
+	if !ok {
+		var zero T
+		return zero, fmt.Errorf("invalid IRValue provided: %v\n", val)
+	}
+
+	return v, nil
 }
 
 type IRAddress struct {
@@ -37,7 +48,7 @@ type IRBoolean struct {
 
 func (i IRTemporary) String() string { return fmt.Sprintf("%%%v", i.Index) }
 func (i IRAddress) String() string   { return fmt.Sprintf("@%v", i.Index) }
-func (i IRLabel) String() string     { return fmt.Sprintf("L%v", i.Value) }
+func (i IRLabel) String() string     { return fmt.Sprintf("L%v", i.PCOffset) }
 func (i IRNumber) String() string    { return fmt.Sprintf("%v", i.Value) }
 func (i IRString) String() string    { return fmt.Sprintf("%v", i.Value) }
 func (i IRBoolean) String() string   { return strconv.FormatBool(i.Value) }
@@ -49,8 +60,15 @@ func (IRLabel) isIRValue()     {}
 func (IRString) isIRValue()    {}
 func (IRBoolean) isIRValue()   {}
 
+func (a IRAddress) GetValue() any   { return a.Index }
+func (t IRTemporary) GetValue() any { return t.Index }
+func (v IRNumber) GetValue() any    { return v.Value }
+func (l IRLabel) GetValue() any     { return l.Value }
+func (s IRString) GetValue() any    { return s.Value }
+func (b IRBoolean) GetValue() any   { return b.Value }
+
 type IRCommand interface {
-	Exec(context *IRContext)
+	Exec(context *IRExecutionState) (IRValue, error)
 	Validate(context *IRContext) error
 	String() string
 }

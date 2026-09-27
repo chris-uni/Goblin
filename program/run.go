@@ -3,6 +3,7 @@ package program
 import (
 	"fmt"
 
+	"goblin.org/main/backend"
 	"goblin.org/main/frontend/lexer"
 	"goblin.org/main/frontend/parser"
 	"goblin.org/main/middleware"
@@ -11,6 +12,7 @@ import (
 
 // Where the source goes to be lexed, parsed, interpreted, and returned.
 func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
+
 	// Stage 1. Lex the input.
 	tokens, _, err := lexer.Lex(input)
 	if err != nil {
@@ -23,11 +25,19 @@ func Run(input string, env runtime.Environment) (runtime.RuntimeValue, error) {
 		return nil, fmt.Errorf("parse error: %v", err.Error())
 	}
 
-	// Stage 3. Reduce to GoblinIR
-	_, err = middleware.OrchestrateIRLayer(program)
+	// Stage 3. Reduce to GoblinIR (reducer, validator, optimiser [tbc]).
+	goblinIR, err := middleware.OrchestrateIRLayer(program)
 	if err != nil {
 		return nil, fmt.Errorf("ir error: %v\n", err.Error())
 	}
+
+	// Stage 4. Pass thorugh GoblinIR execution Engine.
+	result, err := backend.Execution(goblinIR)
+	if err != nil {
+		return nil, fmt.Errorf("execution error: %v\n", err.Error())
+	}
+
+	fmt.Printf("%v\n", result.Value)
 
 	/*
 		// Stage 3. Interprete the AST.
