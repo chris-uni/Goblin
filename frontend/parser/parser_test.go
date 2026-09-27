@@ -396,6 +396,69 @@ func Test_Artehmetic_GroupingExpression(t *testing.T) {
 	}
 }
 
+func Test_Numeric_Return_Statement(t *testing.T) {
+
+	tokens := make([]lexer.Token, 0)
+	tokens, err := generateLexerTokens(`return 2;`)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	out, err := ParseTokens(tokens)
+	if err != nil {
+		t.Errorf("\n%v\n", err)
+	}
+
+	want := "{Program [{ReturnNode {NumericLiteralNode 2}}]}"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_String_Return_Statement(t *testing.T) {
+
+	tokens := make([]lexer.Token, 0)
+	tokens, err := generateLexerTokens(`return "hello";`)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	out, err := ParseTokens(tokens)
+	if err != nil {
+		t.Errorf("\n%v\n", err)
+	}
+
+	want := "{Program [{ReturnNode {StringLiteralNode hello}}]}"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Boolean_Return_Statement(t *testing.T) {
+
+	tokens := make([]lexer.Token, 0)
+	tokens, err := generateLexerTokens(`return false;`)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	out, err := ParseTokens(tokens)
+	if err != nil {
+		t.Errorf("\n%v\n", err)
+	}
+
+	want := "{Program [{ReturnNode {BooleanLiteralNode false}}]}"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
 func Test_Invalid_1Expression(t *testing.T) {
 
 	tokens := make([]lexer.Token, 0)
@@ -508,6 +571,24 @@ func Test_Invalid_7Expression(t *testing.T) {
 
 	tokens := make([]lexer.Token, 0)
 	tokens, err := generateLexerTokens(`10 +5`)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	_, err = ParseTokens(tokens)
+
+	want := "expecting token `;`"
+	got := fmt.Sprintf("%v", err)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Invalid_8Expression(t *testing.T) {
+
+	tokens := make([]lexer.Token, 0)
+	tokens, err := generateLexerTokens(`return 5`)
 	if err != nil {
 		t.Errorf(err.Error())
 	}

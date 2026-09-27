@@ -12,7 +12,41 @@ type Add struct {
 	Rhs         i.IRValue
 }
 
-func (a *Add) Exec(context *i.IRContext) {}
+func (a *Add) Exec(state *i.IRExecutionState) (i.IRValue, error) {
+
+	isStringAddition := true
+
+	lhsVal, err := state.Resolve(a.Lhs)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsVal, err := state.Resolve(a.Rhs)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = i.ValueAs[string](lhsVal)
+	if err != nil {
+		isStringAddition = false
+	}
+
+	if isStringAddition {
+		lhs, _ := i.ValueAs[string](lhsVal)
+		rhs, _ := i.ValueAs[string](rhsVal)
+
+		return i.IRString{Value: lhs + rhs}, nil
+	}
+
+	lhs, _ := i.ValueAs[int](lhsVal)
+	rhs, _ := i.ValueAs[int](rhsVal)
+
+	// Increment PC.
+	state.PC++
+
+	return i.IRNumber{Value: lhs + rhs}, nil
+
+}
 
 func (a *Add) Validate(context *i.IRContext) error {
 

@@ -341,7 +341,7 @@ func Test_If_Expression_Lt(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[lt %0 10 5 jmpif L0 %0 jmp L1]"
+	want := "[lt %0 10 5 jmpif L1 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -363,7 +363,7 @@ func Test_If_Expression_Lte(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[lte %0 10 5 jmpif L0 %0 jmp L1]"
+	want := "[lte %0 10 5 jmpif L1 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -385,7 +385,7 @@ func Test_If_Expression_Gt(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[gt %0 10 5 jmpif L0 %0 jmp L1]"
+	want := "[gt %0 10 5 jmpif L1 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -407,7 +407,7 @@ func Test_If_Expression_Gte(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[gte %0 10 5 jmpif L0 %0 jmp L1]"
+	want := "[gte %0 10 5 jmpif L1 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -429,7 +429,7 @@ func Test_If_Expression_Eq(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[eq %0 10 5 jmpif L0 %0 jmp L1]"
+	want := "[eq %0 10 5 jmpif L1 %0 jmp L1]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {
@@ -451,7 +451,73 @@ func Test_If_Expression_Neq(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	want := "[neq %0 10 5 jmpif L0 %0 jmp L1]"
+	want := "[neq %0 10 5 jmpif L1 %0 jmp L1]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Numeric_Return_Statement(t *testing.T) {
+
+	ast, err := assembleAST(`return 10;`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[rtn 10]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_String_Return_Statement(t *testing.T) {
+
+	ast, err := assembleAST(`return "hello";`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[rtn hello]"
+	got := fmt.Sprintf("%v", out)
+
+	if got != want {
+		t.Errorf("\ngot %v\nwant %v\n", got, want)
+	}
+}
+
+func Test_Boolean_Return_Statement(t *testing.T) {
+
+	ast, err := assembleAST(`return false;`)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	context := newIRContext()
+	out, err := Reduce(ast, &context)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	want := "[rtn false]"
 	got := fmt.Sprintf("%v", out)
 
 	if got != want {

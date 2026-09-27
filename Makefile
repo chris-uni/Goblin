@@ -7,5 +7,8 @@ test-parser:
 test-ir-pipeline:
 	clear && go test ./middleware/... -v
 
+test-ir-execution:
+	clear && go test ./backend/... -v
+
 run:
 	go run main.go source/lexer.gob

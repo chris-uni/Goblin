@@ -20,6 +20,7 @@ import (
 	c "goblin.org/main/middleware/irtypes/conditional"
 	f "goblin.org/main/middleware/irtypes/controlflow"
 	m "goblin.org/main/middleware/irtypes/memory"
+	p "goblin.org/main/middleware/irtypes/program"
 )
 
 /*
@@ -28,6 +29,14 @@ Main reducer switch-board. Orchestrates where each ast.Expression goes to be red
 func reduceExpression(expr ast.Expression, context *i.IRContext) (i.IRResult, error) {
 
 	switch value := expr.(type) {
+
+	case ast.Return:
+
+		ir, err := reduceReturnExpr(value, context)
+		if err != nil {
+			return i.IRResult{}, err
+		}
+		return ir, nil
 
 	case ast.IfCondition:
 
@@ -96,6 +105,29 @@ func reduceExpression(expr ast.Expression, context *i.IRContext) (i.IRResult, er
 	default:
 		return i.IRResult{}, fmt.Errorf("unknonwn expression found %v\n", expr)
 	}
+}
+
+/*
+Reduces an IfExpression down into GoblinIR.
+*/
+func reduceReturnExpr(expr ast.Return, context *i.IRContext) (i.IRResult, error) {
+
+	value, err := reduceExpression(expr.Value, context)
+	if err != nil {
+		return i.IRResult{}, err
+	}
+
+	rtn := &p.Return{
+		Value: value.Value,
+	}
+
+	result := i.IRResult{}
+
+	result.Commands = append(result.Commands, rtn)
+
+	context.Push(rtn)
+
+	return result, nil
 }
 
 /*

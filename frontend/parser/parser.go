@@ -101,6 +101,9 @@ func (p *Parser) parseStatement() (ast.Expression, error) {
 	} else if p.match(lexer.If) {
 		return p.parseIfStatement()
 
+	} else if p.match(lexer.Return) {
+		return p.parseReturnStatement()
+
 	} else {
 		expr, err := p.parseExpression()
 		if err != nil {
@@ -119,6 +122,22 @@ func (p *Parser) parseStatement() (ast.Expression, error) {
 
 func (p *Parser) parseExpression() (ast.Expression, error) {
 	return p.parseAssignmentExpression()
+}
+
+func (p *Parser) parseReturnStatement() (ast.Expression, error) {
+
+	// Consume the return keyword.
+	p.consume()
+
+	value, err := p.parseStatement()
+	if err != nil {
+		return ast.Expr{}, err
+	}
+
+	return ast.Return{
+		Kind:  ast.ReturnNode,
+		Value: value,
+	}, nil
 }
 
 func (p *Parser) parseIfStatement() (ast.Expression, error) {

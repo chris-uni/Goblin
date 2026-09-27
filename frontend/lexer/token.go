@@ -49,19 +49,20 @@ const (
 	Ternary      TokenType = "?"
 
 	// Operators.
-	BinaryOperator      TokenType = "BinaryOperator"      // e.g. '+, -, /, *, etc'
-	ConditionalOperator TokenType = "ConditionalOperator" // e.g. '<, >, <=, >=, etc'
-	ShorthandOperator   TokenType = "ShorthandOperator"   // e.g. '++, --, +=, -=, etc'
+	BinaryOperator      TokenType = "BinaryOperator"      // e.g. '+, -, /, *, etc'.
+	ConditionalOperator TokenType = "ConditionalOperator" // e.g. '<, >, <=, >=, etc'.
+	ShorthandOperator   TokenType = "ShorthandOperator"   // e.g. '++, --, +=, -=, etc'.
 
 	// Keywords.
-	Let   TokenType = "Let"   // declaring new variables
-	Const TokenType = "Const" // declaring new constants
-	Fn    TokenType = "Fn"    // declaring new functions
-	If    TokenType = "If"    // standard if condition
-	Else  TokenType = "Else"  // standard else condition
-	While TokenType = "While" // standard while loop
-	For   TokenType = "For"   // standard for loop
-	Using TokenType = "Using" // for importing goblin api libs
+	Let    TokenType = "Let"    // declaring new variables.
+	Const  TokenType = "Const"  // declaring new constants.
+	Fn     TokenType = "Fn"     // declaring new functions.
+	If     TokenType = "If"     // standard if condition.
+	Else   TokenType = "Else"   // standard else condition.
+	While  TokenType = "While"  // standard while loop.
+	For    TokenType = "For"    // standard for loop.
+	Using  TokenType = "Using"  // for importing goblin api libs.
+	Return TokenType = "Return" // for returning a value from a stack frame.
 
 	// End of Line.
 	EOL TokenType = ";"
@@ -108,14 +109,15 @@ var tokenListByLength = map[int]map[string]TokenType{
 
 // Map of languages keywords.
 var Keywords = map[string]TokenType{
-	"true":  Boolean,
-	"false": Boolean,
-	"let":   Let,
-	"const": Const,
-	"fn":    Fn,
-	"if":    If,
-	"else":  Else,
-	"while": While,
-	"for":   For,
-	"using": Using,
+	"true":   Boolean,
+	"false":  Boolean,
+	"let":    Let,
+	"const":  Const,
+	"fn":     Fn,
+	"if":     If,
+	"else":   Else,
+	"while":  While,
+	"for":    For,
+	"using":  Using,
+	"return": Return,
 }
